@@ -1,0 +1,15 @@
+{
+  "name": "Uniswap V3 Development Book",
+  "short_name": "Uniswap V3 Development Book",
+  "start_url": "/uniswapv3-book/",
+  "scope": "/uniswapv3-book/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/uniswapv3-book/favicon.svg",
+      "sizes": "512x512"
+    }
+  ]
+}
