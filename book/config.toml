@@ -1,3 +1,9 @@
-baseURL = 'http://example.org/'
+baseURL = 'https://jeiwan.net/uniswapv3-book'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Uniswap V3 Development Book'
+theme = 'hugo-book'
+
+[markup.goldmark.renderer]
+unsafe = true
+[markup.goldmark.tableOfContents]
+startLevel = 1
