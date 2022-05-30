@@ -7,3 +7,6 @@ theme = 'hugo-book'
 unsafe = true
 [markup.goldmark.tableOfContents]
 startLevel = 1
+
+[markup.tableOfContents]
+  startLevel = 1
