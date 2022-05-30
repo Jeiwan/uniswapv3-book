@@ -1,6 +1,6 @@
 ---
 title: "Automated Market Makers"
-weight: 1
+weight: 0
 # bookFlatSection: false
 # bookToc: false
 # bookHidden: false
