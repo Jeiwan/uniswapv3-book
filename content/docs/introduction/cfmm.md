@@ -20,7 +20,7 @@ $$x * y = k$$
 
 That's it, that's the formula.
 
-\\(x\\) and \\(y\\) are pool contract reserves–the amount of tokens it current holds. *k* is just their product, actual
+$x$ and $y$ are pool contract reserves–the amount of tokens it current holds. *k* is just their product, actual
 value doesn't matter.
 
 > **Why there are only two reserves, *x* and *y*?**  
@@ -40,9 +40,9 @@ $$(x + r\Delta x)(y - \Delta y) = k\$$
 
 [TODO: illustration]
 
-1. There's a pool with some amount of token A (\\(x\\)) and some amount of token B (\\(y\\)).
-1. When we buy token B for token A, we give some amount of token A to the pool (\\(\Delta x\\)).
-1. The pool gives us some amount of token B in exchange (\\(\Delta y\\)).
-1. The pool also takes a small fee from the amount of token A we gave (\\(r\\)).
-1. The reserve of token A changes (\\(x + r \Delta x\\)), and the reserve of token B changes as well (\\(y - \Delta y\\)).
-1. The product of updated reserves must still equal to \\(k\\).
+1. There's a pool with some amount of token A ($x$) and some amount of token B ($y$).
+1. When we buy token B for token A, we give some amount of token A to the pool ($\Delta x$).
+1. The pool gives us some amount of token B in exchange ($\Delta y$).
+1. The pool also takes a small fee from the amount of token A we gave ($r$).
+1. The reserve of token A changes ($x + r \Delta x$), and the reserve of token B changes as well ($y - \Delta y$).
+1. The product of updated reserves must still equal to $k$.
