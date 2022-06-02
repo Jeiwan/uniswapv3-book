@@ -87,6 +87,17 @@ Having these functions, we don't need to calculate prices because we can calcula
 tokens we want to sell, we can calculate the amount we'll get without calculating the price. And vice versa: if we want
 to buy a specific amount of tokens, we can calculate the amount we need to sell right away, without calculating the price.
 
+Last thing to notice here is that the trade function can be rewritten using geometric means. So this formula:
+$$(x + r\Delta x)(y - \Delta y) = xy\$$
+
+Becomes this:
+$$\sqrt[n]{\prod_{i=1}^n X_i'} = \sqrt[n]{\prod_{i=1}^n X_i}$$
+
+Where: $n=2$ (since we have only two tokens in a pool), $X_i$ is current reserves ($X_1 = x, X_2=y$), $X_i'$ is updated
+reserves. This is a general representation of the trade function, Uniswap's implementation is a special case of this
+formula.
+
+
 ## The Curve
 
 The above calculations might seem too abstract and dry. Let's visualize the constant product function to better understand
