@@ -16,14 +16,14 @@ weight: 0
 **This book was started on May 26, 2022. Soon, it'll be filled with 🤌 content. [Stay tuned!](https://github.com/Jeiwan/uniswapv3-book)**
 
 Welcome to the world of decentralized finances and automated market makers! This book will be your guide in this
-mysterious and amusing world! Together, we'll build one of the most interesting and important application, which serves
+mysterious and amusing world! Together, we'll build one of the most interesting and important applications, which serves
 as a pillar of today's decentralized finances–**Uniswap V3**!
 
-This book will guide you into the development for decentralized applications, including:
-- smart contract development (Solidity);
+This book will guide you into the development of decentralized applications, including:
+- smart-contract development (Solidity);
 - contracts testing and deployment (Forge and Hardhat); [TODO: Maybe only Forge]
 - design and mathematics of a decentralized exchange;
-- development of a front end application for the exchange (React and MetaMask).
+- development of a front-end application for the exchange (React and MetaMask).
 
 ### This book is not for complete beginners
 I expect you to be an experienced developer, who has ever programmed in any programming language. It'll also be helpful
@@ -32,8 +32,8 @@ the main programming language of this book. If not, it's not a big problem: we'l
 Ethereum Virtual Machine during our journey.
 
 ### However, this book is for blockchain beginners
-If you only heard about blockchains and were interested but haven't had a chance to dive deeper, this books is for you!
-Yes, for you personally! You'll learn how to build for blockchains (specifically, Ethereum), how they work, how to
+If you only heard about blockchains and were interested but haven't had a chance to dive deeper, this book is for you!
+Yes, for you personally! You'll learn how to develop for blockchains (specifically, Ethereum), how they work, how to
 program and deploy smart contracts, and how to test them locally.
 
 Alright, let's get started!
@@ -42,7 +42,7 @@ Alright, let's get started!
 
 ## Useful links
 
-1. This book is available at: [TODO: add domain]
+1. This book is available at [TODO: add domain]
 1. This book is hosted on GitHub: https://github.com/Jeiwan/uniswapv3-book
 1. All source codes are hosted in a separate repo: https://github.com/Jeiwan/uniswapv3-code
 1. If you think you can help Uniswap, they have [a grants program](https://www.notion.so/unigrants/Welcome-to-UNI-Grants-6e3e84967a984a5fb127ae749649ddc9).
