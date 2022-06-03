@@ -8,9 +8,12 @@ weight: 2
 # bookComments: false
 # bookSearchExclude: false
 ---
+{{< katex display >}} {{</ katex >}}
+
 # Constant Function Market Makers
 
-{{< katex display >}} {{</ katex >}}
+> This chapter retells [the whitepaper of Uniswap V2](https://uniswap.org/whitepaper.pdf). Understanding this math is
+crucial to build a Uniswap-like DEX, but it's totally fine if you don't understand everything at this stage.
 
 As I mentioned in the previous section, there are different approaches to building AMM. We'll be focusing on and
 building one specific type of AMM–Constant Function Market Maker. Don't be scared by the long name! At its core is a very
