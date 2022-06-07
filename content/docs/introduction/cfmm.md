@@ -135,6 +135,10 @@ the constant product function implements this mechanism! Demand is defined by th
 pool reserves. When you want to buy a big amount relative to pool reserves the price is higher than when you want to
 buy a smaller amount. Such a simple formula guarantees such a powerful mechanism!
 
+## Pricing
+
+[TODO: tell about prices on the curve, tangent lines]
+
 **And that's the whole math of Uniswap! Phew!**
 
 Well, this is the math of Uniswap V2, and we're studying Uniswap V3. So in the next part, we'll see how the mathematics
