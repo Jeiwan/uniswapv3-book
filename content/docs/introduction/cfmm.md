@@ -43,11 +43,11 @@ $$(x + r\Delta x)(y - \Delta y) = k\$$
 
 [TODO: illustration]
 
-1. There's a pool with some amount of token A ($x$) and some amount of token B ($y$).
-1. When we buy token B for token A, we give some amount of token A to the pool ($\Delta x$).
-1. The pool gives us some amount of token B in exchange ($\Delta y$).
-1. The pool also takes a small fee from the amount of token A we gave ($r$).
-1. The reserve of token A changes ($x + r \Delta x$), and the reserve of token B changes as well ($y - \Delta y$).
+1. There's a pool with some amount of token X ($x$) and some amount of token Y ($y$).
+1. When we buy token Y for token X, we give some amount of token X to the pool ($\Delta x$).
+1. The pool gives us some amount of token Y in exchange ($\Delta y$).
+1. The pool also takes a small fee from the amount of token X we gave ($r$).
+1. The reserve of token X changes ($x + r \Delta x$), and the reserve of token Y changes as well ($y - \Delta y$).
 1. The product of updated reserves must still equal $k$.
 
 The order of tokens in the formula doesn't matter: Uniswap pools allow swapping tokens in both directions.
@@ -69,9 +69,9 @@ trade function and try to come up with some conclusions about how an actual trad
 
 $$(x + r\Delta x)(y - \Delta y) = k\$$
 
-Suppose we want to find the price of token A (its reserve is $x$ in the formula) when swapping it for token B (its
-reserve is $y$ in the formula). We're trading in some amount of token A ($\Delta x$) in exchange for some amount of
-token B ($\Delta y$). This means that the actual price of the trade will be **the relation of the amounts**. Not the
+Suppose we want to find the price of token X (its reserve is $x$ in the formula) when swapping it for token Y (its
+reserve is $y$ in the formula). We're trading in some amount of token X ($\Delta x$) in exchange for some amount of
+token Y ($\Delta y$). This means that the actual price of the trade will be **the relation of the amounts**. Not the
 reserves, but the amounts we give and get.
 
 Let's rewrite the trade function to find out trade amounts:
@@ -112,7 +112,7 @@ When plotted, the constant product function is a quadratic hyperbola:
 
 Where axes are reserves. Every trade starts at the point on the curve that corresponds to the current ratio of reserves.
 To calculate the output amount, we need to find a new point on the curve, which has the $x$ coordinate of $x+\Delta x$, i.e.
-current reserve of token A + the amount we're selling. The change in $y$ is the number of tokens B we'll get.
+current reserve of token X + the amount we're selling. The change in $y$ is the number of tokens B we'll get.
 
 Let's look at a concrete example:
 
