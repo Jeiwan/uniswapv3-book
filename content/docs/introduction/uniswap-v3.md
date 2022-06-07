@@ -49,28 +49,28 @@ liquidity into. This improves capital efficiency by allowing to put more liquidi
 Uniswap more diverse: it can now have pools configured for pairs with different volatility. This fixes the problem of
 Uniswap V2 we discussed above.
 
-The main difference between V2 and V3 is that, in V3, there are now **many curves**, not one. The curve we saw earlier
-can now be seen as the curve of *virtual reserves*, and there are now many similar curves for *real reserves*. The full
-price range (0 to infinity) is now split into many short ranges, each of which holds some amount of real reserves. And
-each of these ranges **is bound by start and end prices** chosen by liquidity providers.
+In a nutshell, Uniswap V3 is many small Uniswap V2s. The main difference between V2 and V3 is that, in V3, there are 
+**many pools**, not one. Each of these smaller pools exists only within a certain *price range* and each of them has
+**finite reserves**–we'll call them *real reserves*. The entire price range (from 0 to infinity) is can be filled with
+these discrete pools, which provide liquidity within certain price ranges–this is the main feature of Uniswap V3.
 
-When looking at the curve, real reserves are amounts that bring the price (the price of X in terms of Y) to some points
-$a$ and $b$:
+[TODO: add illustration, compare liquidity distributions]
+
+To make a pool finite, we need to shift the curve to the bottom left so it crosses the $x$ and $y$ axes. The points where
+it crosses the axes will be equal to the reserves of the smaller pool:
+
+[TODO: add virtual reserves -> real reserves transition graph]
+
+The *virtual reserves* curve on this graph is what the pool would look like if it wasn't limited by a price range. The $a$
+and $b$ points on the curve are prices–lower and upper bounds of the price range:
 
 [TODO: add curve with x_real, y_real]
 
 If we sell many X tokens, the price will drop and reach the point $a$. If we buy many tokens X, the price will grow and
-reach the point $b$. The range between $a$ and $b$ (including them) is one of the short ranges we can provide liquidity
-into in Uniswap V3. We can graph this range as the original curve transitioned in such a way that it touches the axes:
+reach the point $b$. The range between $a$ and $b$ (including them) is one of the price ranges we can provide liquidity
+into in Uniswap V3.
 
-[TODO: add virtual reserves -> real reserves transition graph]
-
-Thus making it limited by the axes. It's no longer infinite, and **the reserves of an asset can be emptied now**. But
-this is not a problem because this would happen only in one range and other ranges can still contain liquidity:
-
-[TODO: add illustration, compare liquidity distributions]
-
-This transitioned curve is the function:
+The transition of the curve is made through this formula:
 
 $$(x + \frac{L}{\sqrt{p_b}})(y + L \sqrt{p_a}) = L^2$$
 
@@ -82,17 +82,16 @@ $$L = \sqrt{xy}$$
 
 $$\sqrt{P} = \sqrt{\frac{y}{x}}$$
 
-Since token prices in a pool are reciprocals of each other, Uniswap V3 uses one definition of price: $\frac{y}{x}$, i.e.
-the price of token X in terms of token Y. The price of token Y in terms of token X is simply $\frac{1}{y/x}=\frac{x}{y}$.
-Similarly, $\frac{1}{\sqrt{P}} = \frac{1}{\sqrt{y/x}} = \sqrt{\frac{x}{y}}$. Thus, in the transition formula, the shifts
-along axes are corresponding prices scaled by $L$, where $L$ is *a unit of liquidity*.
+$L$ can be seen as *the unit of liquidity*. In the previous chapter, we saw that the trade function can be rewritten as
+a comparison of geometric means of reserves before and after a swap.
 
-> In the previous chapter, we saw that the trade function can be rewritten as a comparison of geometric means of reserves
-before and after a swap.
+$\frac{y}{x}$ is the price of token X in terms of Y. Since token prices in a pool are reciprocals of each other,
+we can use only one of them in calculations. The price of token Y in terms of token X is simply 
+$\frac{1}{y/x}=\frac{x}{y}$. Similarly, $\frac{1}{\sqrt{P}} = \frac{1}{\sqrt{y/x}} = \sqrt{\frac{x}{y}}$.
 
 $L$ times price gives us the *amount of liquidity*. The curve of virtual reserves is shifted: along $x$ by the reserves of
-token X; along $y$ by the reserves of token Y. The shifted curve crosses the axes in the coordinates equal to the amounts
-of reserves, thus reserves can be depleted.
+token X; along $y$ by the reserves of token Y. The real reserves curve crosses the axes in the coordinates equal to the
+amounts of reserves, that's why reserves can be depleted.
 
 Why using $\sqrt{p}$ instead of $p$? There are two reasons:
 
@@ -127,30 +126,27 @@ As we discussed above, prices in a pool are reciprocals of each other. Thus, $\D
 
 $$\Delta x = \Delta \frac{1}{\sqrt{P}} L$$
 
-$L$ and $\sqrt{P}$ allow us not to store and update pool reserves. Also, we don't need to calculate $\sqrt{P}$ each time
+$L$ and $\sqrt{P}$ allow us to not store and update pool reserves. Also, we don't need to calculate $\sqrt{P}$ each time
 because we can always find $\Delta \sqrt{P}$ and its reciprocal.
 
 ## Ticks
 
-Custom liquidity ranges are implemented through *ticks*–the range of all possible prices is demarcated by ticks and
-liquidity is provided between two ticks chosen by a liquidity provider. 
+Uniswap V3, however, doesn't allow us to select arbitrary prices when providing liquidity. Instead, it implements a scale
+and we choose certain marks on it.
 
-[TODO: add illustration]
+The entire price range is demarcated by evenly distributed discrete *ticks*. Each tick has an index and corresponds to
+a certain price:
 
-Each tick is mapped to some price from the range of all available prices. This mapping is done through this formula:
+$$p(i) = 1.0001^i$$
 
-$$p(i) = 1.00001^i$$
+Where $p(i)$ is the price at tick $i$. Taking powers of 1.0001 has a desirable property: the difference between two
+adjacent ticks is 0.01% or *1 basis point*.
 
-Where $p(i)$ is the price at tick $i$. This formula is then improved to use $\sqrt{p}$ for the reasons explained above:
-
-$$ \sqrt{p(i)} = \sqrt{1.0001}^i = 1.0001^{\frac{i}{2}}$$
-
-$1.0001^i$ was chosen because it makes adjacent ticks 0.01% away from each other. **The difference in price between
-two adjacent ticks is 0.01%**, or *1 basis point*.
-
-> Basis point (1/100th of 1%, or 0.01%, or 0.0001) is a unit of measure of percentages in finance. You could heard about
+> Basis point (1/100th of 1%, or 0.01%, or 0.0001) is a unit of measure of percentages in finance. You could've heard about
 basis point when central banks announced changes in interest rates.
 
-This seemingly tricky algorithm allows to demarcate the continuous range of prices into evenly
-distributed prices indexed by ticks, where the distance between two prices/ticks is always 0.01%. This is a powerful
-design. If it's hard to understand now, it'll become clearer after we implemented it.
+As we discussed above, Uniswap V3 stores $\sqrt{P}$, not $P$. Thus, the formula is in fact:
+
+$$\sqrt{p(i)} = \sqrt{1.0001}^i = 1.0001 ^{\frac{i}{2}}$$
+
+So, we get values like: $\sqrt{p(0)} = 1$, $\sqrt{p(1)} = \sqrt{1.0001} \approx 1.00005$, $\sqrt{p(-1)} \approx 0.99995$.
