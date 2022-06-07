@@ -5,8 +5,8 @@
 ### Introduction
 1. ~~Introduction, overview of the course~~
 1. ~~Automated Market Makers (overview, V2, theory, math, visualizations, curve, Dan's desmos)~~
-1. Uniswap V3 (overview of V3, concentrated liquidity, L, sqrt(P))
-1. Tools (quick intro to blockchains, Foundry, Hardhat, testing, local node; Metamask, React, Ethers.js)
+1. ~~Uniswap V3 (overview of V3, concentrated liquidity, L, sqrt(P))~~
+1. ~~Tools (quick intro to blockchains, Foundry, Hardhat, testing, local node; Metamask, React, Ethers.js)~~
 
 ### Milestone 1: First swap
 1. First swap (Pool contract, 0-to-1, hardcoded ticks and sqrt(P))
