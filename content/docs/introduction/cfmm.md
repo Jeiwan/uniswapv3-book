@@ -135,9 +135,16 @@ the constant product function implements this mechanism! Demand is defined by th
 pool reserves. When you want to buy a big amount relative to pool reserves the price is higher than when you want to
 buy a smaller amount. Such a simple formula guarantees such a powerful mechanism!
 
-## Pricing
+Even though Uniswap doesn't calculate trade prices, we can still see them on the curve. Surprisingly, there are multiple
+prices when making a trade:
 
 [TODO: tell about prices on the curve, tangent lines]
+
+1. Before a trade, there's *a spot price*. It's equal to the relation of reserves, $y/x$ or $x/y$ depending on the order
+of the trade. This price is also *the slope of the tangent line* at the starting point.
+1. After a trade, there's a new spot price, at a different point on the curve. And it's the slope of the tangent line at
+this new point.
+1. The actual price of the trade is the slope of the line connecting the two points!
 
 **And that's the whole math of Uniswap! Phew!**
 
