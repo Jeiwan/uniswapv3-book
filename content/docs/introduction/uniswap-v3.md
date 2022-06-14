@@ -150,3 +150,10 @@ As we discussed above, Uniswap V3 stores $\sqrt{P}$, not $P$. Thus, the formula 
 $$\sqrt{p(i)} = \sqrt{1.0001}^i = 1.0001 ^{\frac{i}{2}}$$
 
 So, we get values like: $\sqrt{p(0)} = 1$, $\sqrt{p(1)} = \sqrt{1.0001} \approx 1.00005$, $\sqrt{p(-1)} \approx 0.99995$.
+
+Ticks are integers that can be positive and negative and, of course, they're not infinite. Ticks are mapped to prices,
+thus they're limited by the price range. Uniswap V3 stores $\sqrt{P}$ as a fixed point Q64.96 number, which is a rational
+number that uses 64 bits for the integer part and 96 bits for the fraction part. It's stored in an `uint160` variable and
+it supports prices between $2^{-128}$ and $2^{128}$. Thus, the tick range is:
+
+$$[log_{1.0001}2^{-128}, log_{1.0001}{2^{128}}] = [-887272, 887272]$$
