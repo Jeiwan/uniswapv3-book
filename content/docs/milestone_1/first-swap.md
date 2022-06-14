@@ -21,6 +21,7 @@ Create a new folder (mine is called `uniswapv3-code`), and run `forge init --vsc
 project. The `--vscode` flag tells Forge to configure the Solidity extension for Forge projects.
 
 Next, remove the default contract and its test:
+- `script/Contract.s.sol`
 - `src/Contract.sol`
 - `test/Contract.t.sol`
 
