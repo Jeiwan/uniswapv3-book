@@ -29,7 +29,7 @@ And that's it! Let's create our first contract!
 
 ## Pool Contract
 
-As you've learned from the introduction, Uniswap deploys multiple Pool contracts, each of which is a market exchange of
+As you've learned from the introduction, Uniswap deploys multiple Pool contracts, each of which is an exchange market of
 a pair of tokens. Uniswap groups all its contract into two categories:
 
 - core contracts, and
@@ -50,13 +50,14 @@ contract UniswapV3Pool {}
 ```
 
 Let's think about what data the contract will store:
-1. Since every a pool contract is an exchange market of two tokens, we need to track the two token addresses. And this
+1. Since every pool contract is an exchange market of two tokens, we need to track the two token addresses. And these
 addresses will be static, set once and forever during contract initialization.
 1. Each pool contract is a set of liquidity positions, a data structure to manage positions identified by: liquidity
-provider's address, upper and lower bounds of the position.
+provider's address, and upper and lower bounds of the position.
 1. Each pool contract will also need to maintain a ticks registry and information about each tick–the amount of liquidity
 provided by each tick.
-1. And as we discussed in the introduction, pool contracts store the amount of liquidity, $L$, and $\sqrt{P} instead of
+1. Since the tick range is limited, we need to store the limits in the contract, as constants.
+1. And as we discussed in the introduction, pool contracts store the amount of liquidity, $L$, and $\sqrt{P}$ instead of
 token reserves. So we'll need to store them in the contract as well.
 
 Here's what our pool contract with all the state variables:
@@ -66,6 +67,9 @@ contract UniswapV3Pool {
     using Tick for mapping(int24 => Tick.Info);
     using Position for mapping(bytes32 => Position.Info);
     using Position for Position.Info;
+
+    int24 internal constant MIN_TICK = -887272;
+    int24 internal constant MAX_TICK = -MIN_TICK;
 
     // Pool tokens, immutable
     address public immutable token0;
@@ -108,7 +112,7 @@ And we'll initialize them in the constructor:
 }
 ```
 
-`Tick` and `Position` are custom types that make managing of ticks and positions easier. You'll find their code in `lib`
+`Tick` and `Position` are custom types that make the managing of ticks and positions easier. You'll find their code in `lib`
 folder.
 
 > For brevity, I'll omit detailed explanation of Solidity syntax and features. Solidity has [great documentation](https://docs.soliditylang.org/en/latest/),
@@ -116,14 +120,14 @@ don't hesitate referring to it if something is not clear!
 
 This is our starting point, and our goal in this chapter is to make our first swap.
 
-## Liquidity
-Trading is not possible without liquidity, and to make first swap we need to put some liquidity into the pool contract.
+## Liquidity Calculation
+Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.
 Providing liquidity into a pool simply means:
 - sending tokens to the pool,
-- updating pool's parameters so our liquidity is recorded and used for swaps.
+- updating pool parameters so our liquidity is recorded and used for swaps.
 
-Tokens are smart-contracts, they track balances inside their own storage: when you send tokens to someone you simply
-update balances inside token's storage. Thus, we don't need to enable tokens receiving in our pool contract–it'll just
+Tokens are smart contracts, they track balances inside their own storage: when you send tokens to someone you simply
+update balances in token's storage. Thus, we don't need to enable tokens receiving in our pool contract–it'll just
 work! However, we want the contract to put provided liquidity into some price range.
 
 Remember that, in Uniswap V3, the entire price range is demaracted into *ticks*: each tick corresponds to a price and has
@@ -182,7 +186,7 @@ expect to start at 0.0002 ETH/USDC and bring the price not higher than 0.0002040
 
 [TODO: add curve with start and end prices]
 
-To not overload this chapter with calculations, we'll simply pick it up empirically 🤷‍♂️ During development and testing
+To not overload this chapter with calculations, we'll simply pick it up empirically 🤷‍♂️ During development and testing,
 we'll be able to mint as many tokens as we want.
 
 ## Minting
@@ -197,7 +201,8 @@ function mint(
     int24 lowerTick,
     int24 upperTick,
     uint128 amount
-) external returns (uint256 amount0, uint256 amount1) {}
+) external returns (uint256 amount0, uint256 amount1) {
+    ...
 ```
 
 Our `mint` function will take:
@@ -205,4 +210,91 @@ Our `mint` function will take:
 1. Upper and lower ticks, to set the bounds of a price range.
 1. The amount of liquidity we have provided.
 
-What the function does in the most basic scenario is updating the information about positions and ticks.
+When adding initial liquidity to a pool, this function adds a new tick and a position.
+
+We begin with checking the ticks:
+```solidity
+if (
+    lowerTick >= upperTick ||
+    lowerTick < MIN_TICK ||
+    upperTick > MAX_TICK
+) revert InvalidTickRange();
+```
+
+And ensuring that some amount of liquidity is provided:
+```solidity
+if (amount == 0) revert ZeroLiquidity();
+```
+
+Then, add a tick and a position:
+```solidity
+ticks.update(lowerTick, amount);
+ticks.update(upperTick, amount);
+
+Position.Info storage position = positions.get(
+    owner,
+    lowerTick,
+    upperTick
+);
+position.update(amount);
+```
+
+The `ticks.update` function is:
+```solidity
+// src/libs/Tick.sol
+...
+function update(
+    mapping(int24 => Tick.Info) storage self,
+    int24 tick,
+    int128 liquidityDelta
+) internal {
+    Tick.Info storage tickInfo = self[tick];
+    uint128 liquidityBefore = tickInfo.liquidity;
+    uint128 liquidityAfter = liquidityBefore + uint128(liquidityDelta);
+
+    if (liquidityBefore == 0) {
+        tickInfo.initialized = true;
+    }
+
+    tickInfo.liquidity = liquidityAfter;
+}
+...
+```
+It initialized a tick if it has 0 liquidity before and adds new liquidity to it. As you can see, we're calling this
+function on both lower and upper ticks, thus liquidity is added to both of them–we'll see why later on.
+
+The `position.update` function is:
+```solidity
+// src/libs/Position.sol
+function update(Info storage self, int128 liquidityDelta) internal {
+    uint128 liquidityBefore = self.liquidity;
+    uint128 liquidityAfter = liquidityBefore + uint128(liquidityDelta);
+
+    self.liquidity = liquidityAfter;
+}
+```
+Similar to the tick update function, it adds liquidity to a specific position. And to get a position we call:
+```solidity
+// src/libs/Position.sol
+...
+function get(
+    mapping(bytes32 => Info) storage self,
+    address owner,
+    int24 lowerTick,
+    int24 upperTick
+) internal view returns (Position.Info storage position) {
+    position = self[
+        keccak256(abi.encodePacked(owner, lowerTick, upperTick))
+    ];
+}
+...
+```
+
+Each position is uniquely identified by three keys: owner address, lower tick index, and upper tick index. We're storing
+positions in a `bytes32 => Info` map and are using hashes of concatenated owner address, lower tick, and upper tick as
+keys. This is cheaper than storing three nested maps.
+
+We're not done yet! Next, we need to calculate the amounts that a user must deposit. These amounts will be based on current
+$\sqrt{P}$ and the parameters the user passed to `mint`.
+```solidity
+```
