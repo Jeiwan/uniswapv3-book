@@ -1,0 +1,320 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="function renderKatex(element) { renderMathInElement(document.body, { delimiters: [ { left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }, { left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true } ], throwOnError: false }); }    \[ \]   You&rsquo;ll find the complete code of this chapter in this Github branch.
+ In this milestone, we&rsquo;ll build a pool contract that can receive liquidity from users and make swaps within a price range."><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="Providing Liquidity"><meta property="og:description" content="function renderKatex(element) { renderMathInElement(document.body, { delimiters: [ { left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }, { left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true } ], throwOnError: false }); }    \[ \]   You&rsquo;ll find the complete code of this chapter in this Github branch.
+ In this milestone, we&rsquo;ll build a pool contract that can receive liquidity from users and make swaps within a price range."><meta property="og:type" content="article"><meta property="og:url" content="https://jeiwan.net/uniswapv3-book/docs/milestone_1/providing-liquidity/"><meta property="article:section" content="docs"><title>Providing Liquidity | Uniswap V3 Development Book</title><link rel=manifest href=/uniswapv3-book/manifest.json><link rel=icon href=/uniswapv3-book/favicon.png type=image/x-icon><link rel=stylesheet href=/uniswapv3-book/book.min.82c5dbd23447cee0b4c2aa3ed08ce0961faa40e1fa370eee4f8c9f02e0d46b5f.css integrity="sha256-gsXb0jRHzuC0wqo+0Izglh+qQOH6Nw7uT4yfAuDUa18=" crossorigin=anonymous><script defer src=/uniswapv3-book/flexsearch.min.js></script>
+<script defer src=/uniswapv3-book/en.search.min.a542957e03ae7f6adcb1a4c470e1faf79eac230e6a03822d5168f2c2cbc0ff5e.js integrity="sha256-pUKVfgOuf2rcsaTEcOH6956sIw5qA4ItUWjywsvA/14=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/uniswapv3-book/><span>Uniswap V3 Development Book</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li class=book-section-flat><span>Milestone 0</span><ul><li><a href=/uniswapv3-book/docs/introduction/amm/>Introduction to markets</a></li><li><a href=/uniswapv3-book/docs/introduction/cfmm/>Constant Function Market Makers</a></li><li><a href=/uniswapv3-book/docs/introduction/uniswap-v3/>Uniswap V3</a></li><li><a href=/uniswapv3-book/docs/introduction/dev-environment/>Development Environment</a></li></ul></li><li class=book-section-flat><span>Milestone 1. First Swap</span><ul><li><a href=/uniswapv3-book/docs/milestone_1/providing-liquidity/ class=active>Providing Liquidity</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/uniswapv3-book/svg/menu.svg class=book-icon alt=Menu></label>
+<strong>Providing Liquidity</strong>
+<label for=toc-control><img src=/uniswapv3-book/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#providing-liquidity>Providing Liquidity</a><ul><li><a href=#theory>Theory</a><ul><li><a href=#price-range-calculation>Price Range Calculation</a></li><li><a href=#liquidity-amount-calculation>Liquidity Amount Calculation</a></li><li><a href=#token-amounts-calculation>Token Amounts Calculation</a></li></ul></li><li><a href=#coding>Coding</a><ul><li><a href=#pool-contract>Pool Contract</a></li><li><a href=#minting>Minting</a></li></ul></li><li><a href=#testing>Testing</a><ul><li><a href=#test-tokens>Test Tokens</a></li><li><a href=#minting-1>Minting</a></li></ul></li></ul></li></ul></nav></aside></header><article class=markdown><link rel=stylesheet href=/uniswapv3-book/katex/katex.min.css><script>function renderKatex(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}],throwOnError:!1})}</script><script defer src=/uniswapv3-book/katex/katex.min.js></script>
+<script defer src=/uniswapv3-book/katex/auto-render.min.js onload=renderKatex(document.body)></script><span>
+\[ \]</span><blockquote><p>You&rsquo;ll find the complete code of this chapter in <a href=https://github.com/Jeiwan/uniswapv3-code/tree/milestone_1>this Github branch</a>.</p></blockquote><p>In this milestone, we&rsquo;ll build a pool contract that can receive liquidity from users and make swaps within a price range.</p><p>We&rsquo;ll start simple. Uniswap V3 contracts are big, complicated, and optimized. To make our studying easier, we&rsquo;ll implement
+them piece-by-piece. And in this milestone, we&rsquo;ll implement this scenario:</p><ol><li>There&rsquo;s a pool contract for ETH-USDC pair.</li><li>Current price is 5000 USDC for 1 ETH.</li><li>As a liquidity provider, we&rsquo;ll provide liquidity at a range around this price.</li><li>As a trader, we&rsquo;ll buy some ETH from the pool contract.</li></ol><h1 id=providing-liquidity>Providing Liquidity
+<a class=anchor href=#providing-liquidity>#</a></h1><h2 id=theory>Theory
+<a class=anchor href=#theory>#</a></h2><p>Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.
+Here&rsquo;s what we need to know to add liquidity to the pool contract:</p><ol><li>A price range. As a liquidity provider, we want to provide liquidity at a specific price range, and it&rsquo;ll only be used
+in this range. A price range is a tuple of lower and upper ticks.</li><li>Amount of liquidity, which is the amounts of two tokens. We&rsquo;ll need to transfer these amounts to the pool contract.</li></ol><p>Here, we&rsquo;re going to calculate these manually, but, in a later chapter, a contract will do this for us. Let&rsquo;s begin with
+a price range.</p><h3 id=price-range-calculation>Price Range Calculation
+<a class=anchor href=#price-range-calculation>#</a></h3><p>Remember that, in Uniswap V3, the entire price range is demaracted into <em>ticks</em>: each tick corresponds to a price and has
+an index. For the sake of simplicity, let&rsquo;s pretend that we&rsquo;re going to buy ETH for USDC at the price of <span>$5000</span>
+per 1 ETH. Buying ETH will remove some amount of it from the pool and will push the price slightly above <span>$5000</span>.
+We want to provide liquidity at a range that includes this price. And we want to be sure that the final price will stay
+<strong>within this range</strong> (again, let&rsquo;s keep it as simple as possible at this moment).</p><p>We&rsquo;ll need to find three ticks:</p><ol><li>The current tick will correspond to the current price (5000 USDC for 1 ETH).</li><li>The lower and upper bounds of the price range we&rsquo;re providing liquidity into. Let the bounds be 100 ticks away from
+the current tick.</li></ol><p>Let&rsquo;s find the current tick first. We know that:</p><p>$$\sqrt{p(i)}=1.0001^{\frac{i}{2}}$$</p><p>Thus, to find $i$:</p><p>$$i = log_{\sqrt{1.0001}} \sqrt{p(i)}$$</p><p>Since we&rsquo;re going to buy ETH and sell USDC, the price we&rsquo;re using is the price of USDC in terms of ETH:</p><p>$$p = \frac{y}{x} = \frac{1}{5000} = 0.0002 \enspace ETH/USDC$$</p><p>We can find the current tick:</p><p>$$i_c = log_{\sqrt{1.0001}}\sqrt{0.0002} = log_{1.00005}0.014142135 = -85174.062077$$</p><p>And we&rsquo;ll then round it down to nearest integer:</p><p>$$i_c = -85174$$
+[TODO: round up or down?]</p><p>This is the tick that corresponds to the price of 0.0002 ETH per 1 USDC. We&rsquo;ll provide liquidity into a range that includes
+this tick. Since we decided to take 100 ticks from both directions of the current tick, the range will look so:</p><p>$$i_l = -85274, i_u = -85074$$
+Where $i_l$ is the index of the lower tick and $i_u$ is the index of the upper tick.</p><p>[TODO: 100 or 101?]</p><p>[TODO: add illustration]</p><p>Let&rsquo;s find prices at these boundaries:</p><ol><li>The price at the upper bound is:
+$$p(i_u) = 1.0001^{-85074} = \frac{1}{1.0001^{85074}} \approx 0.00020205 \enspace ETH/USDC$$
+$$\frac{1}{0.00020205} = 4949.17 \enspace USDC/ETH$$</li><li>The price at the lower bound is:
+$$p(i_l) = 1.0001^{-85274} = \frac{1}{1.0001^{85274}} \approx 0.00019805 \enspace ETH/USDC$$
+$$\frac{1}{0.00019805} = 5049.14 \enspace USDC/ETH$$</li></ol><p>As the price of USDC grows (when selling ETH for USDC), the price of ETH falls. And as the price of USDC falls (when
+selling USDC for ETH), the price of ETH grows.</p><p>So, if we pick this price range, the curve within this range will look like this:</p><p>[TODO: add curve]</p><h3 id=liquidity-amount-calculation>Liquidity Amount Calculation
+<a class=anchor href=#liquidity-amount-calculation>#</a></h3><p>Next, we need to calculate the amount of liquidity we need to provide to make a swap within the price range we selected.
+Since we&rsquo;re buying ETH in our first swap, we want to move the price <strong>to the left of the current tick</strong>. And we want it
+to land within the range $[i_l,i_c)$.</p><blockquote><p>At this point, we&rsquo;ll only implement a swapping within this curve and price range. Later on, we&rsquo;ll see how swapping works
+when current price range doesn&rsquo;t have enough liquidity.</p></blockquote><p>Let the target price be 50 ticks to the left from the current tick:</p><p>$$p(i_t) = 1.0001^{-85224} = \frac{1}{1.0001^{85224}} \approx 0.00019904 \enspace ETH/USDC$$</p><p>So the change in price is:
+$$\Delta \sqrt{p} = \sqrt{0.0002} - \sqrt{0.00019904} \approx 0.00003376 $$</p><p>Knowing that:
+$$L = \frac{\Delta y}{\Delta \sqrt{p}}$$</p><p>And that $L$ remains unchanged, we end up with an equation with two variables ($L$ and $\Delta y$). This means that there
+are multiple combinations of $L$ and $\Delta y$ that will produce the $\Delta \sqrt{p}$ that we want. And that&rsquo;s fine!</p><p>To not make it too complicated, let&rsquo;s pick some big amounts of ETH and USDC as liquidity (in development and testing we can
+mint any number of tokens). Let&rsquo;s assume that we have 1000 ETH and 5,000,000 USDC. We&rsquo;ll get:
+$$\sqrt{1000 * 5000000} = \frac{\Delta y}{0.00003376}$$
+$$\Delta y = \sqrt{1000 * 5000000} * 0.00003376 \approx 2.3875 \enspace ETH$$</p><p>So, we&rsquo;ll need to buy 2.3875 ETH to move the price to the left by 50 ticks considering current reserves are 1000 ETH and
+5,000,000 USDC! Let&rsquo;s code this!</p><h3 id=token-amounts-calculation>Token Amounts Calculation
+<a class=anchor href=#token-amounts-calculation>#</a></h3><p>Before moving forward we need to figure out one more thing: knowing a price range and $\Delta L$, how do find token amounts
+corresponding to the $\Delta L$? We&rsquo;ll need this because we don&rsquo;t want to calculate $\sqrt{x*y}$ in the contract (it&rsquo;s expensive)
+but we still need to tell users how much tokens they need to deposit for a $\Delta L$.</p><p>Recall the reserves formulas:</p><p>$$x = \frac{L}{\sqrt{P}}$$
+$$y = L \sqrt{P}$$</p><p>To find the amount of token X ($\Delta x$) the user needs to deposit in the range ($[i_l;i_u]$) for certain $L$ we simply
+need to find the difference between the reserves of X at the current tick and the upper tick. We&rsquo;re not considering the
+lower tick because it corresponds to the reserves of token Y.</p><p>[TODO: explain]</p><p>So:
+$$\Delta x = \frac{L}{\sqrt{p(i_u)}} - \frac{L}{\sqrt{p(i_c)}} = \frac{L(\sqrt{p(i_u)} - \sqrt{p(i_c)})}{\sqrt{p(i_u)}\sqrt{p(i_c)}}$$</p><p>Similarly, for $\Delta y$:</p><p>$$\Delta y = L\sqrt{p(i_c)} - L\sqrt{p(i_l)} = L(\sqrt{p(i_c)} - \sqrt{p(i_l)})$$</p><h2 id=coding>Coding
+<a class=anchor href=#coding>#</a></h2><p>Enough of theory, let&rsquo;s start coding!</p><p>Create a new folder (mine is called <code>uniswapv3-code</code>), and run <code>forge init --vscode</code> in it–this will initialize a Forge
+project. The <code>--vscode</code> flag tells Forge to configure the Solidity extension for Forge projects.</p><p>Next, remove the default contract and its test:</p><ul><li><code>script/Contract.s.sol</code></li><li><code>src/Contract.sol</code></li><li><code>test/Contract.t.sol</code></li></ul><p>And that&rsquo;s it! Let&rsquo;s create our first contract!</p><h3 id=pool-contract>Pool Contract
+<a class=anchor href=#pool-contract>#</a></h3><p>As you&rsquo;ve learned from the introduction, Uniswap deploys multiple Pool contracts, each of which is an exchange market of
+a pair of tokens. Uniswap groups all its contract into two categories:</p><ul><li>core contracts, and</li><li>periphery contracts.</li></ul><p>Core contracts are, as the name implies, the contracts that implement core logic. These are minimal, user-<em>un</em>friendly,
+low-level contracts. Their purpose is to do one thing. In Uniswap V3, there are 2 such contracts:</p><ol><li>Pool contract, which implements the core logic of a decentralized exchange.</li><li>Factory contract, which serves as a registry of Pool contracts and a contract that makes deployment of pools easier.</li></ol><p>We&rsquo;ll begin with the pool contract. Create <code>src/UniswapV3Pool.sol</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// SPDX-License-Identifier: UNLICENSED
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>pragma solidity</span> <span style=color:#f92672>^</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>8</span>.<span style=color:#ae81ff>14</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Pool</span> {}
+</span></span></code></pre></div><p>Let&rsquo;s think about what data the contract will store:</p><ol><li>Since every pool contract is an exchange market of two tokens, we need to track the two token addresses. And these
+addresses will be static, set once and forever during contract initialization.</li><li>Each pool contract is a set of liquidity positions, a data structure to manage positions identified by: liquidity
+provider&rsquo;s address, and upper and lower bounds of the position.</li><li>Each pool contract will also need to maintain a ticks registry and information about each tick–the amount of liquidity
+provided by each tick.</li><li>Since the tick range is limited, we need to store the limits in the contract, as constants.</li><li>And as we discussed in the introduction, pool contracts store the amount of liquidity, $L$, and $\sqrt{P}$ instead of
+token reserves. So we&rsquo;ll need to store them in the contract as well.</li></ol><p>Here&rsquo;s what our pool contract with all the state variables:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Pool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#f92672>using</span> Tick <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>int24</span> <span style=color:#f92672>=&gt;</span> Tick.Info);
+</span></span><span style=display:flex><span>    <span style=color:#f92672>using</span> Position <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>bytes32</span> <span style=color:#f92672>=&gt;</span> Position.Info);
+</span></span><span style=display:flex><span>    <span style=color:#f92672>using</span> Position <span style=color:#66d9ef>for</span> Position.Info;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>constant</span> MIN_TICK <span style=color:#f92672>=</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>887272</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>constant</span> MAX_TICK <span style=color:#f92672>=</span> <span style=color:#f92672>-</span>MIN_TICK;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Pool tokens, immutable
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>address</span> <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>immutable</span> token0;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>address</span> <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>immutable</span> token1;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// First slot will contain essential data
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Slot0</span> {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Current sqrt(P)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>uint160</span> sqrtPriceX96;
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Current tick
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>int24</span> tick;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    Slot0 <span style=color:#66d9ef>public</span> slot0;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Amount of liquidity, L.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>uint128</span> <span style=color:#66d9ef>public</span> liquidity;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Ticks info
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>int24</span> <span style=color:#f92672>=&gt;</span> Tick.Info) <span style=color:#66d9ef>public</span> ticks;
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Positions info
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>bytes32</span> <span style=color:#f92672>=&gt;</span> Position.Info) <span style=color:#66d9ef>public</span> positions;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ...
+</span></span></code></pre></div><p>Uniswap V3 uses many helper contracts and <code>Tick</code> and <code>Position</code> are two of them. <code>using A for B</code> is a feature of Solidity
+that lets you extend type <code>B</code> with functions from library contract <code>A</code>. This simplifies managing complex data structures.</p><blockquote><p>For brevity, I&rsquo;ll omit detailed explanation of Solidity syntax and features. Solidity has <a href=https://docs.soliditylang.org/en/latest/>great documentation</a>,
+don&rsquo;t hesitate referring to it if something is not clear!</p></blockquote><p>We&rsquo;ll then initialize them in the constructor:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>    <span style=color:#66d9ef>constructor</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> token0_,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> token1_,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint160</span> sqrtPriceX96,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int24</span> tick
+</span></span><span style=display:flex><span>    ) {
+</span></span><span style=display:flex><span>        token0 <span style=color:#f92672>=</span> token0_;
+</span></span><span style=display:flex><span>        token1 <span style=color:#f92672>=</span> token1_;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        slot0 <span style=color:#f92672>=</span> Slot0({sqrtPriceX96<span style=color:#f92672>:</span> sqrtPriceX96, tick<span style=color:#f92672>:</span> tick});
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Notice that we&rsquo;re passing $\sqrt{P}$ and the current tick index without providing liquidity–this sets the current price.</p><blockquote><p>We&rsquo;re setting both $\sqrt{P}$ and tick index in the constructor for simplicity. Later on, we&rsquo;ll implement the conversion
+between $\sqrt{P}$ and tick indexes.</p></blockquote><p>This is our starting point, and our goal in this chapter is to make our first swap.</p><h3 id=minting>Minting
+<a class=anchor href=#minting>#</a></h3><p>The process of providing liquidity in Uniswap V2 is called <em>minting</em>. The reason is that the V2 pool contract mints
+tokens (LP-tokens) in exchange for liquidity. V3 doesn&rsquo;t do that, but it still uses the same name for the function. Let&rsquo;s
+use it as well:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>mint</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>address</span> owner,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> amount
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>external</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>uint256</span> amount0, <span style=color:#66d9ef>uint256</span> amount1) {
+</span></span><span style=display:flex><span>    ...
+</span></span></code></pre></div><p>Our <code>mint</code> function will take:</p><ol><li>Owner&rsquo;s address, to track the owner of the liquidity.</li><li>Upper and lower ticks, to set the bounds of a price range.</li><li>The amount of liquidity we have provided.</li></ol><p>When adding initial liquidity to a pool, this function adds a new tick and a position.</p><p>We begin with checking the ticks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>if</span> (
+</span></span><span style=display:flex><span>    lowerTick <span style=color:#f92672>&gt;=</span> upperTick <span style=color:#f92672>||</span>
+</span></span><span style=display:flex><span>    lowerTick <span style=color:#f92672>&lt;</span> MIN_TICK <span style=color:#f92672>||</span>
+</span></span><span style=display:flex><span>    upperTick <span style=color:#f92672>&gt;</span> MAX_TICK
+</span></span><span style=display:flex><span>) revert InvalidTickRange();
+</span></span></code></pre></div><p>And ensuring that some amount of liquidity is provided:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>if</span> (amount <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) revert ZeroLiquidity();
+</span></span></code></pre></div><p>Then, add a tick and a position:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>ticks.update(lowerTick, amount);
+</span></span><span style=display:flex><span>ticks.update(upperTick, amount);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Position.Info <span style=color:#66d9ef>storage</span> position <span style=color:#f92672>=</span> positions.get(
+</span></span><span style=display:flex><span>    owner,
+</span></span><span style=display:flex><span>    lowerTick,
+</span></span><span style=display:flex><span>    upperTick
+</span></span><span style=display:flex><span>);
+</span></span><span style=display:flex><span>position.update(amount);
+</span></span></code></pre></div><p>The <code>ticks.update</code> function is:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/libs/Tick.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>...
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>update</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>int24</span> <span style=color:#f92672>=&gt;</span> Tick.Info) <span style=color:#66d9ef>storage</span> self,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> tick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidityDelta
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> {
+</span></span><span style=display:flex><span>    Tick.Info <span style=color:#66d9ef>storage</span> tickInfo <span style=color:#f92672>=</span> self[tick];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidityBefore <span style=color:#f92672>=</span> tickInfo.liquidity;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidityAfter <span style=color:#f92672>=</span> liquidityBefore <span style=color:#f92672>+</span> liquidityDelta;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (liquidityBefore <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        tickInfo.initialized <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    tickInfo.liquidity <span style=color:#f92672>=</span> liquidityAfter;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>It initialized a tick if it has 0 liquidity before and adds new liquidity to it. As you can see, we&rsquo;re calling this
+function on both lower and upper ticks, thus liquidity is added to both of them–we&rsquo;ll see why later on.</p><p>The <code>position.update</code> function is:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/libs/Position.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>update</span>(Info <span style=color:#66d9ef>storage</span> self, <span style=color:#66d9ef>uint128</span> liquidityDelta) <span style=color:#66d9ef>internal</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidityBefore <span style=color:#f92672>=</span> self.liquidity;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidityAfter <span style=color:#f92672>=</span> liquidityBefore <span style=color:#f92672>+</span> liquidityDelta;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    self.liquidity <span style=color:#f92672>=</span> liquidityAfter;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Similar to the tick update function, it adds liquidity to a specific position. And to get a position we call:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/libs/Position.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>...
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>get</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>bytes32</span> <span style=color:#f92672>=&gt;</span> Info) <span style=color:#66d9ef>storage</span> self,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>address</span> owner,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>view</span> <span style=color:#66d9ef>returns</span> (Position.Info <span style=color:#66d9ef>storage</span> position) {
+</span></span><span style=display:flex><span>    position <span style=color:#f92672>=</span> self[
+</span></span><span style=display:flex><span>        keccak256(abi.encodePacked(owner, lowerTick, upperTick))
+</span></span><span style=display:flex><span>    ];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>Each position is uniquely identified by three keys: owner address, lower tick index, and upper tick index. We&rsquo;re storing
+positions in a <code>bytes32 => Info</code> map and are using hashes of concatenated owner address, lower tick, and upper tick as
+keys. This is cheaper than storing three nested maps.</p><p>We&rsquo;re not done yet! Next, we need to calculate the amounts that a user must deposit. We discussed this in the theoretical
+part: we don&rsquo;t want to calculate $\sqrt{x*y}$ in the contract, so we need to calculate the token amounts corresponding to
+the price range and the amount of liquidity selected by the user.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>amount0 <span style=color:#f92672>=</span> SqrtPriceMath.getAmount0Delta(
+</span></span><span style=display:flex><span>    _slot0.sqrtPriceX96,
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>14214576466144435</span>, <span style=color:#75715e>// upperTick, sqrt(p(i_c+100)), wei
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    amount
+</span></span><span style=display:flex><span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>amount1 <span style=color:#f92672>=</span> SqrtPriceMath.getAmount1Delta(
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>14073146103223374</span>, <span style=color:#75715e>// lowerTick, sqrt(p(i_c-100)), wei
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    _slot0.sqrtPriceX96,
+</span></span><span style=display:flex><span>    amount
+</span></span><span style=display:flex><span>);
+</span></span></code></pre></div><p>Two values are hardcoded in this piece:</p><ol><li><code>14214576466144435</code> is the square root of the price at the upper bound.</li><li><code>14073146103223374</code> is the square root of the price at the lower bound.</li></ol><p>We do this so we don&rsquo;t need to implement the tick-to-price calculation in the contract to not over-complicate this chapter.
+We&rsquo;ll return to this a little bit later!</p><p>Let&rsquo;s look at <code>getAmount0Delta</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/SqrtPriceMath.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getAmount0Delta</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint160</span> sqrtPriceAX96,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint160</span> sqrtPriceBX96,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidity
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>pure</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>uint256</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (sqrtPriceAX96 <span style=color:#f92672>&gt;</span> sqrtPriceBX96)
+</span></span><span style=display:flex><span>        (sqrtPriceAX96, sqrtPriceBX96) <span style=color:#f92672>=</span> (sqrtPriceBX96, sqrtPriceAX96);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> numerator1 <span style=color:#f92672>=</span> <span style=color:#66d9ef>uint256</span>(liquidity) <span style=color:#f92672>&lt;&lt;</span> FixedPoint96.RESOLUTION;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> numerator2 <span style=color:#f92672>=</span> sqrtPriceBX96 <span style=color:#f92672>-</span> sqrtPriceAX96;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    require(sqrtPriceAX96 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>        Math.divRoundingUp(
+</span></span><span style=display:flex><span>            numerator1 <span style=color:#f92672>*</span> numerator2,
+</span></span><span style=display:flex><span>            (sqrtPriceAX96 <span style=color:#f92672>*</span> sqrtPriceBX96)
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>This logic implements the $\Delta x$ formula we found in the theoretical part. First, we sort the prices so the difference
+between them is positive. Then, we unpack <code>liquidity</code>: it&rsquo;s a Q64.96 number, we want to turn it into a <code>uint256</code> for
+further calculations. Then, we implement the $\Delta x$ formula and round the result up to nearest integer–we&rsquo;re doing
+this because we want the amount to include the full price range. If we don&rsquo;t do this, the amount might be too low to satisfy
+the swap along the full price range.</p><p>Now, let&rsquo;s look at <code>getAmount1Delta</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/SqrtPriceMath.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getAmount1Delta</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint160</span> sqrtPriceAX96,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint160</span> sqrtPriceBX96,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> liquidity
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>pure</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>uint256</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (sqrtPriceAX96 <span style=color:#f92672>&gt;</span> sqrtPriceBX96)
+</span></span><span style=display:flex><span>        (sqrtPriceAX96, sqrtPriceBX96) <span style=color:#f92672>=</span> (sqrtPriceBX96, sqrtPriceAX96);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>        Math.mulDivRoundingUp(
+</span></span><span style=display:flex><span>            liquidity,
+</span></span><span style=display:flex><span>            sqrtPriceBX96 <span style=color:#f92672>-</span> sqrtPriceAX96,
+</span></span><span style=display:flex><span>            FixedPoint96.Q96
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>As you might&rsquo;ve guessed, it implements the $\Delta y$ formula. The result is divided by <code>FixedPoint96.Q96</code> to adjust
+for the fractional part of <code>liquidity</code>.</p><p>Now, we&rsquo;re ready to take tokens from user. This is done via a callback:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>uint256</span> balance0Before;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>uint256</span> balance1Before;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (amount0 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) balance0Before <span style=color:#f92672>=</span> balance0();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (amount1 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) balance1Before <span style=color:#f92672>=</span> balance1();
+</span></span><span style=display:flex><span>IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(
+</span></span><span style=display:flex><span>    amount0,
+</span></span><span style=display:flex><span>    amount1
+</span></span><span style=display:flex><span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (amount0 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> balance0Before <span style=color:#f92672>+</span> amount0 <span style=color:#f92672>&gt;</span> balance0())
+</span></span><span style=display:flex><span>    revert InsufficientInputAmount();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (amount1 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> balance1Before <span style=color:#f92672>+</span> amount1 <span style=color:#f92672>&gt;</span> balance1())
+</span></span><span style=display:flex><span>    revert InsufficientInputAmount();
+</span></span></code></pre></div><p>First, we record current token balances (if either of them is deposited). Then we call <code>uniswapV3MintCallback</code> method
+on the caller–this is the callback. It&rsquo;s expected that the caller (whoever executes <code>mint</code>) is a contract because
+non-contract addresses cannot implement functions in Ethereum. There are two reason doing this like that:</p><ol><li>Pool contract is a core contract, and core contracts are user-unfriendly. It&rsquo;s expected that core contracts are only
+user by other contracts which make interaction with a pool easier.</li><li>We don&rsquo;t want to calculate the square root of reserves in the contract because it&rsquo;s an expensive operation. But we still
+need to be sure that the liquidity deposited by user is correct. To achieve this, we calculate $\Delta x$ and $\Delta y$,
+which doesn&rsquo;t require calculating square roots. But this approach forces us to use a callback to let the caller know the
+actual amounts they need to deposit.</li></ol><p>In production, Pool contracts are called from the Router contract, which handles all the nuances. We&rsquo;ll implement it in
+a later chapter.</p><p>Finally, we&rsquo;re firing a <code>Mint</code> event:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>emit Mint(msg.sender, owner, lowerTick, upperTick, amount, amount0, amount1);
+</span></span></code></pre></div><p>Events is how contract data is indexed in Ethereum for later search. It&rsquo;s a good practice to fire an event whenever
+contract&rsquo;s state is changed to let blockchain explorer know when this happened. Events also carry useful information.
+In our case it&rsquo;s: caller&rsquo;s address, liquidity position owner&rsquo;s address, upper and lower ticks, new liquidity, and token
+amounts. This information will be stored as a log, and anyone else will be able to collect all contract events and
+reproduce activity of the contract without traversing and analyzing all blocks and transactions.</p><p>And we&rsquo;re done! Phew! Now, let&rsquo;s test minting.</p><h2 id=testing>Testing
+<a class=anchor href=#testing>#</a></h2><p>At this point we don&rsquo;t know if everything works correctly. Before deploying our contract anywhere we&rsquo;re going to write
+a bunch of tests to ensure the contract works correctly. Luckily to us, Forge is a great testing framework and it&rsquo;ll
+make testing a breeze.</p><p>Create a new test file:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>//test/UniswapV3Pool.t.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// SPDX-License-Identifier: UNLICENSED
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>pragma solidity</span> <span style=color:#f92672>^</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>8</span>.<span style=color:#ae81ff>14</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;forge-std/Test.sol&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3PoolTest</span> <span style=color:#66d9ef>is</span> Test {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>setUp</span>() <span style=color:#66d9ef>public</span> {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>testExample</span>() <span style=color:#66d9ef>public</span> {
+</span></span><span style=display:flex><span>        assertTrue(<span style=color:#66d9ef>true</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Let&rsquo;s run it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>$ forge test
+</span></span><span style=display:flex><span>Running <span style=color:#ae81ff>1</span> test <span style=color:#66d9ef>for</span> test/UniswapV3Pool.t.sol:UniswapV3PoolTest
+</span></span><span style=display:flex><span><span style=color:#f92672>[</span>PASS<span style=color:#f92672>]</span> testExample<span style=color:#f92672>()</span> <span style=color:#f92672>(</span>gas: 279<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>Test result: ok. <span style=color:#ae81ff>1</span> passed; <span style=color:#ae81ff>0</span> failed; finished in 5.07ms
+</span></span></code></pre></div><p>It passes! Of course it is! So far, our test only checks that <code>true</code> is <code>true</code>!</p><p>Test contract are just contract that inherit from <code>forge-std/Test.sol</code>. This contract is a set of testing utilities, we&rsquo;ll
+get acquainted with them step by step. If you don&rsquo;t want wait, open <code>lib/forge-std/src/Test.sol</code> and skim through it!</p><p>Test contracts follow a specific convention:</p><ol><li><code>setUp</code> function is used to set up test cases. In each test cases, we want to have configured environment, like
+deployed contracts, minted tokens, initialized pools–we&rsquo;ll do all this in <code>setUp</code>.</li><li>Every test case starts with <code>test</code> prefix, e.g. <code>testMint()</code>. This will let Forge distinguish test cases from helper
+functions (we can add any function we want).</li></ol><p>Let&rsquo;s test minting!</p><h3 id=test-tokens>Test Tokens
+<a class=anchor href=#test-tokens>#</a></h3><p>To test minting we need tokens. This is not a problem because we can deploy any contract in tests! Moreover, Forge can
+install open-source contracts as dependencies. Specifically, we need an ERC20 contract with minting functionality. We&rsquo;ll
+use the ERC20 contract from <a href=https://github.com/Rari-Capital/solmate>solmate</a>, a collection of gas-optimized contracts
+(however, we don&rsquo;t care about gas optimization at this moment) and we&rsquo;ll extend it in a contract that allows public
+minting.</p><p>Let&rsquo;s install <code>solmate</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>$ forge install rari-capital/solmate
+</span></span></code></pre></div><p>Then, let&rsquo;s create <code>ERC20Mintable.sol</code> contract in <code>test</code> folder (we&rsquo;ll use the contract only in tests):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// SPDX-License-Identifier: UNLICENSED
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>pragma solidity</span> <span style=color:#f92672>^</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>8</span>.<span style=color:#ae81ff>14</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;solmate/tokens/ERC20.sol&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>ERC20Mintable</span> <span style=color:#66d9ef>is</span> ERC20 {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>constructor</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> _name,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> _symbol,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint8</span> _decimals
+</span></span><span style=display:flex><span>    ) ERC20(_name, _symbol, _decimals) {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>mint</span>(<span style=color:#66d9ef>address</span> to, <span style=color:#66d9ef>uint256</span> amount) <span style=color:#66d9ef>public</span> {
+</span></span><span style=display:flex><span>        _mint(to, amount);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Our <code>ERC20Mintable</code> inherits all functionality from <code>solmate/tokens/ERC20.sol</code> and we additionally implement public <code>mint</code>
+method which will allows us to mint any number of tokens.</p><h3 id=minting-1>Minting
+<a class=anchor href=#minting-1>#</a></h3><p>Now, we&rsquo;re ready to test minting.</p><p>First, let&rsquo;s deploy all the required contracts:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// test/UniswapV3Pool.t.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>...
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;./ERC20Mintable.sol&#34;</span>;
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;../src/UniswapV3Pool.sol&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3PoolTest</span> <span style=color:#66d9ef>is</span> Test {
+</span></span><span style=display:flex><span>    ERC20Mintable token0;
+</span></span><span style=display:flex><span>    ERC20Mintable token1;
+</span></span><span style=display:flex><span>    UniswapV3Pool pool;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>setUp</span>() <span style=color:#66d9ef>public</span> {
+</span></span><span style=display:flex><span>        token0 <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> ERC20Mintable(<span style=color:#e6db74>&#34;Ether&#34;</span>, <span style=color:#e6db74>&#34;ETH&#34;</span>, <span style=color:#ae81ff>18</span>);
+</span></span><span style=display:flex><span>        token1 <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> ERC20Mintable(<span style=color:#e6db74>&#34;USDC&#34;</span>, <span style=color:#e6db74>&#34;USDC&#34;</span>, <span style=color:#ae81ff>18</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        pool <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> UniswapV3Pool(
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>address</span>(token0),
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>address</span>(token1),
+</span></span><span style=display:flex><span>            <span style=color:#ae81ff>14143684505937315</span>, <span style=color:#75715e>// 0.0002 ETH/USDC, 1.0001^(85174/2)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#ae81ff>85174</span>
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ...
+</span></span></code></pre></div><p>First, we deploy ETH and USDC tokens. They both have 18 decimals. After that, we deploy and initialize our pool.</p></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(n){const e=window.getSelection(),t=document.createRange();t.selectNodeContents(n),e.removeAllRanges(),e.addRange(t)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#providing-liquidity>Providing Liquidity</a><ul><li><a href=#theory>Theory</a><ul><li><a href=#price-range-calculation>Price Range Calculation</a></li><li><a href=#liquidity-amount-calculation>Liquidity Amount Calculation</a></li><li><a href=#token-amounts-calculation>Token Amounts Calculation</a></li></ul></li><li><a href=#coding>Coding</a><ul><li><a href=#pool-contract>Pool Contract</a></li><li><a href=#minting>Minting</a></li></ul></li><li><a href=#testing>Testing</a><ul><li><a href=#test-tokens>Test Tokens</a></li><li><a href=#minting-1>Minting</a></li></ul></li></ul></li></ul></nav></div></aside></main></body></html>
