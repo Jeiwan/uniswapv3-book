@@ -1,5 +1,5 @@
 ---
-title: "Milestone 1"
+title: "Milestone 1. First Swap"
 weight: 0
 bookFlatSection: true
 # bookToc: true
