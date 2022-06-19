@@ -1,6 +1,6 @@
 ---
 title: "Providing Liquidity"
-weight: 1
+weight: 3
 # bookFlatSection: false
 # bookToc: false
 # bookHidden: false
@@ -11,144 +11,7 @@ weight: 1
 
 {{< katex display >}} {{</ katex >}}
 
-> You'll find the complete code of this chapter in [this Github branch](https://github.com/Jeiwan/uniswapv3-code/tree/milestone_1).
-
-In this milestone, we'll build a pool contract that can receive liquidity from users and make swaps within a price range.
-
-We'll start simple. Uniswap V3 contracts are big, complicated, and optimized. To make our studying easier, we'll implement
-them piece-by-piece. And in this milestone, we'll implement this scenario:
-1. There's a pool contract for ETH-USDC pair.
-1. Current price is 5000 USDC for 1 ETH.
-1. As a liquidity provider, we'll provide liquidity at a range around this price.
-1. As a trader, we'll buy some ETH from the pool contract.
-
 # Providing Liquidity
-
-## Theory
-Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.
-Here's what we need to know to add liquidity to the pool contract:
-
-1. A price range. As a liquidity provider, we want to provide liquidity at a specific price range, and it'll only be used
-in this range. A price range is a tuple of lower and upper ticks.
-1. Amount of liquidity, which is the amounts of two tokens. We'll need to transfer these amounts to the pool contract.
-
-Here, we're going to calculate these manually, but, in a later chapter, a contract will do this for us. Let's begin with
-a price range.
-
-### Price Range Calculation
-
-Remember that, in Uniswap V3, the entire price range is demaracted into *ticks*: each tick corresponds to a price and has
-an index. For the sake of simplicity, let's pretend that we're going to buy ETH for USDC at the price of <span>$5000</span>
-per 1 ETH. Buying ETH will remove some amount of it from the pool and will push the price slightly above <span>$5000</span>.
-We want to provide liquidity at a range that includes this price. And we want to be sure that the final price will stay
-**within this range** (again, let's keep it as simple as possible at this moment).
-
-We'll need to find three ticks:
-1. The current tick will correspond to the current price (5000 USDC for 1 ETH).
-1. The lower and upper bounds of the price range we're providing liquidity into. Let the bounds be 100 ticks away from
-the current tick.
-
-Let's find the current tick first. We know that:
-
-$$\sqrt{p(i)}=1.0001^{\frac{i}{2}}$$
-
-Thus, to find $i$:
-
-$$i = log_{\sqrt{1.0001}} \sqrt{p(i)}$$
-
-Since we're going to buy ETH and sell USDC, the price we're using is the price of USDC in terms of ETH:
-
-$$p = \frac{y}{x} = \frac{1}{5000} = 0.0002 \enspace ETH/USDC$$
-
-We can find the current tick:
-
-$$i_c = log_{\sqrt{1.0001}}\sqrt{0.0002} = log_{1.00005}0.014142135 = -85174.062077$$
-
-And we'll then round it down to nearest integer:
-
-$$i_c = -85174$$
-[TODO: round up or down?]
-
-This is the tick that corresponds to the price of 0.0002 ETH per 1 USDC. We'll provide liquidity into a range that includes
-this tick. Since we decided to take 100 ticks from both directions of the current tick, the range will look so:
-
-$$i_l = -85274, i_u = -85074$$
-Where $i_l$ is the index of the lower tick and $i_u$ is the index of the upper tick.
-
-[TODO: 100 or 101?]
-
-[TODO: add illustration]
-
-Let's find prices at these boundaries:
-1. The price at the upper bound is:
-$$p(i_u) = 1.0001^{-85074} = \frac{1}{1.0001^{85074}} \approx 0.00020205 \enspace ETH/USDC$$
-$$\frac{1}{0.00020205} = 4949.17 \enspace USDC/ETH$$
-1. The price at the lower bound is:
-$$p(i_l) = 1.0001^{-85274} = \frac{1}{1.0001^{85274}} \approx 0.00019805 \enspace ETH/USDC$$
-$$\frac{1}{0.00019805} = 5049.14 \enspace USDC/ETH$$
-
-As the price of USDC grows (when selling ETH for USDC), the price of ETH falls. And as the price of USDC falls (when
-selling USDC for ETH), the price of ETH grows.
-
-So, if we pick this price range, the curve within this range will look like this:
-
-[TODO: add curve]
-
-### Liquidity Amount Calculation
-
-Next, we need to calculate the amount of liquidity we need to provide to make a swap within the price range we selected.
-Since we're buying ETH in our first swap, we want to move the price **to the left of the current tick**. And we want it
-to land within the range $[i_l,i_c)$.
-
-> At this point, we'll only implement a swapping within this curve and price range. Later on, we'll see how swapping works
-when current price range doesn't have enough liquidity.
-
-Let the target price be 50 ticks to the left from the current tick:
-
-$$p(i_t) = 1.0001^{-85224} = \frac{1}{1.0001^{85224}} \approx 0.00019904 \enspace ETH/USDC$$
-
-So the change in price is:
-$$\Delta \sqrt{p} = \sqrt{0.0002} - \sqrt{0.00019904} \approx 0.00003376 $$
-
-Knowing that:
-$$L = \frac{\Delta y}{\Delta \sqrt{p}}$$
-
-And that $L$ remains unchanged, we end up with an equation with two variables ($L$ and $\Delta y$). This means that there
-are multiple combinations of $L$ and $\Delta y$ that will produce the $\Delta \sqrt{p}$ that we want. And that's fine!
-
-To not make it too complicated, let's pick some big amounts of ETH and USDC as liquidity (in development and testing we can
-mint any number of tokens). Let's assume that we have 1000 ETH and 5,000,000 USDC. We'll get:
-$$\sqrt{1000 * 5000000} = \frac{\Delta y}{0.00003376}$$
-$$\Delta y = \sqrt{1000 * 5000000} * 0.00003376 \approx 2.3875 \enspace ETH$$
-
-So, we'll need to buy 2.3875 ETH to move the price to the left by 50 ticks considering current reserves are 1000 ETH and
-5,000,000 USDC! Let's code this!
-
-### Token Amounts Calculation
-
-Before moving forward we need to figure out one more thing: knowing a price range and $\Delta L$, how do find token amounts
-corresponding to the $\Delta L$? We'll need this because we don't want to calculate $\sqrt{x*y}$ in the contract (it's expensive)
-but we still need to tell users how much tokens they need to deposit for a $\Delta L$.
-
-Recall the reserves formulas:
-
-$$x = \frac{L}{\sqrt{P}}$$
-$$y = L \sqrt{P}$$
-
-To find the amount of token X ($\Delta x$) the user needs to deposit in the range ($[i_l;i_u]$) for certain $L$ we simply
-need to find the difference between the reserves of X at the current tick and the upper tick. We're not considering the
-lower tick because it corresponds to the reserves of token Y.
-
-[TODO: explain]
-
-So:
-$$\Delta x = \frac{L}{\sqrt{p(i_u)}} - \frac{L}{\sqrt{p(i_c)}} = \frac{L(\sqrt{p(i_u)} - \sqrt{p(i_c)})}{\sqrt{p(i_u)}\sqrt{p(i_c)}}$$
-
-Similarly, for $\Delta y$:
-
-$$\Delta y = L\sqrt{p(i_c)} - L\sqrt{p(i_l)} = L(\sqrt{p(i_c)} - \sqrt{p(i_l)})$$
-
-## Coding
 
 Enough of theory, let's start coding!
 
@@ -367,7 +230,8 @@ Each position is uniquely identified by three keys: owner address, lower tick in
 positions in a `bytes32 => Info` map and are using hashes of concatenated owner address, lower tick, and upper tick as
 keys. This is cheaper than storing three nested maps.
 
-We're not done yet! Next, we need to calculate the amounts that a user must deposit. We discussed this in the theoretical
+We're not done yet! Next, we need to calculate the amounts that the user must deposit. Luckily, we have 
+
 part: we don't want to calculate $\sqrt{x*y}$ in the contract, so we need to calculate the token amounts corresponding to
 the price range and the amount of liquidity selected by the user.
 
