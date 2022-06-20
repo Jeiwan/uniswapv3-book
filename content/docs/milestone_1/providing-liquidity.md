@@ -25,7 +25,7 @@ Next, remove the default contract and its test:
 
 And that's it! Let's create our first contract!
 
-### Pool Contract
+## Pool Contract
 
 As you've learned from the introduction, Uniswap deploys multiple Pool contracts, each of which is an exchange market of
 a pair of tokens. Uniswap groups all its contract into two categories:
@@ -123,9 +123,7 @@ between $\sqrt{P}$ and tick indexes.
 
 This is our starting point, and our goal in this chapter is to make our first swap.
 
-
-
-### Minting
+## Minting
 
 The process of providing liquidity in Uniswap V2 is called *minting*. The reason is that the V2 pool contract mints
 tokens (LP-tokens) in exchange for liquidity. V3 doesn't do that, but it still uses the same name for the function. Let's
