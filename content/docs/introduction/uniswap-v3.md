@@ -56,33 +56,39 @@ these discrete pools, which provide liquidity within certain price ranges–this
 
 [TODO: add illustration, compare liquidity distributions]
 
-To make a pool finite, we need to shift the curve to the bottom left so it crosses the $x$ and $y$ axes. The points where
-it crosses the axes will be equal to the reserves of the smaller pool:
+To set a price range, we need to pick two price points on the curve, $a$ and $b$:
+
+[TODO: add curve with price a, b, and x_real, y_real]
+
+As we saw in the previous chapter, buying or selling tokens moves the prices along the curve. A price range limits the
+movement of the price. When the price moves to either of the points, the pool becomes depleted: one of the token reserves
+will be 0 and buying this token won't be possible.
+
+Let's look closely at the chart above:
+1. The current price is the ratio of current reserves.
+1. To get to point $a$ we need to buy all available $Y$; to get to point $b$ we need to buy all available $X$.
+1. Real pool reserves are $x_real$ and $y_real$. These amounts define the current price and also allow to move the price
+to one of the edge prices.
+
+Since reserves can be depleted, this curve better illustrates the price ranges:
 
 [TODO: add virtual reserves -> real reserves transition graph]
 
-The *virtual reserves* curve on this graph is what the pool would look like if it wasn't limited by a price range. The $a$
-and $b$ points on the curve are prices–lower and upper bounds of the price range:
+This is the original curve shifted in a way that makes it limited by the axes: the curve crosses the axes at the points
+corresponding to the price range. This chart also better illustrated pool reserves: amounts required to move the price
+of either of the tokens to one of the bounds of the price range.
 
-[TODO: add curve with x_real, y_real]
+What happens when the current price range gets depleted? The price slips into the next price range (if it exists, of
+course). If the next price range doesn't exist, a trade is not possible. We'll see how this works later in the book.
 
-If we sell many X tokens, the price will drop and reach the point $a$. If we buy many tokens X, the price will grow and
-reach the point $b$. The range between $a$ and $b$ (including them) is one of the price ranges we can provide liquidity
-into in Uniswap V3.
-
-The transition of the curve is made through this formula:
-
-$$(x + \frac{L}{\sqrt{p_b}})(y + L \sqrt{p_a}) = L^2$$
-
-Don't confuse it with the trade function! This formula describes how real reserves are related to virtual ones. In this
-formula, virtual reserves are shifted by $\frac{L}{\sqrt{p_b}}$ along the $x$ axis and by $L \sqrt{p_a}$ along the $y$
-axis. What are these new variables?
+To handle transitioning between price ranges, simplify liquidity management, and avoid rounding errors, Uniswap V3 uses
+these new concepts:
 
 $$L = \sqrt{xy}$$
 
 $$\sqrt{P} = \sqrt{\frac{y}{x}}$$
 
-$L$ can be seen as *the unit of liquidity*. In the previous chapter, we saw that the trade function can be rewritten as
+$L$ can be seen as *the amount of liquidity*. In the previous chapter, we saw that the trade function can be rewritten as
 a comparison of geometric means of reserves before and after a swap.
 
 $\frac{y}{x}$ is the price of token X in terms of Y. Since token prices in a pool are reciprocals of each other,
@@ -95,20 +101,18 @@ amounts of reserves, that's why reserves can be depleted.
 
 Why using $\sqrt{p}$ instead of $p$? There are two reasons:
 
-1. Square root calculation is tricky and expensive in terms of gas consumption. Thus, it's easier to store the square root
-without calculating it in the contracts.
+1. Square root calculation is not precise and causes rounding errors. Thus, it's easier to store the square root without
+calculating it in the contracts.
 1. $\sqrt{P}$ has an interesting connection to $L$: $L$ is also the relation between the change in output amount and 
 the change in $\sqrt{P}$.
 
     $$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
 
-    [TODO: prove this]
-
+[TODO: prove this]
 
 ## Pricing
 
-The formula of the shifted curve tells us that real reserves are changes in $x$ and $y$ when transitioning from virtual
-to real reserves. Thus, real reserves are:
+Pool reserves in Uniswap V3 are defined as:
 
 $$x = \frac{L}{\sqrt{P}}$$
 $$y = L \sqrt{P}$$
