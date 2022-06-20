@@ -9,6 +9,8 @@ weight: 2
 # bookSearchExclude: false
 ---
 
+{{< katex display >}} {{</ katex >}}
+
 # Calculating liquidity
 
 Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.
@@ -127,11 +129,11 @@ $$\Delta y = L\sqrt{p(i_c)} - L\sqrt{p(i_l)} = L(\sqrt{p(i_c)} - \sqrt{p(i_l)})$
 
 Knowing this, let's return to the trading formula of real reserves:
 
-$$(x_{real} + \frac{L}{\sqrt{p_b}})(y_{real} + L\sqrt{p_a}) = L^{2}$$
+$$(x + \frac{L}{\sqrt{p_b}})(y + L\sqrt{p_a}) = L^{2}$$
 
 So, there are two possible situations:
-1. $x_{real}$ can be 0 when the entire reserve of $x$ is bought from the pool.
-1. $y_{real}$ can be 0 when the entire reserve of $y$ is bought from the pool.
+1. $x$ can be 0 when the entire reserve of $x$ is bought from the pool.
+1. $y$ can be 0 when the entire reserve of $y$ is bought from the pool.
 
 And these situations also serve as constraints: the amount of $L$ we deposit **must** satisfy both of them.
 
@@ -149,8 +151,8 @@ $$L = x\frac{\sqrt{p_a}\sqrt{p_b}}{\sqrt{p_b}-\sqrt{p_a}}$$
 
 Now, let's find a similar formula for the situation when $x$ is zero:
 
-$$\frac{L}{\sqrt{p_b}}(y_{real} + L\sqrt{p_a}) = L^{2}$$
-$$L = \frac{y_{real}}{\sqrt{p_b}-\sqrt{p_a}}$$
+$$\frac{L}{\sqrt{p_b}}(y + L\sqrt{p_a}) = L^{2}$$
+$$L = \frac{y}{\sqrt{p_b}-\sqrt{p_a}}$$
 
 [TODO: show the calculations]
 
@@ -169,7 +171,7 @@ After converting to Q64.96, we get:
 $$L = 1519655488681761046528$$
 
 Solving the other $L$:
-$$L = \frac{y_{real}}{\sqrt{p_b}-\sqrt{p_a}} = \frac{5000USDC}{74.16-70.71}$$
+$$L = \frac{y}{\sqrt{p_b}-\sqrt{p_a}} = \frac{5000USDC}{74.16-70.71}$$
 $$L = 1377504647646213046272$$
 
 > In Python:
@@ -190,3 +192,29 @@ $$L = 1377504647646213046272$$
 > ```
 
 Of these two we're picking the smaller one, `1377504647646213046272`.
+
+## Token Amounts Calculation, Again
+
+Since we choose the amounts we're going to deposit, the amounts can be wrong. We cannot deposit any amounts at any price
+ranges; liquidity amounts need to aligned with the shape of curve in the price range we're depositing into. Thus, even
+though users choose amounts, the contract needs to re-calculate them, and actual amounts will be slightly different (at
+least because of rounding). Luckily, we can re-use the formulas from the previous paragraph:
+
+$$L = x\frac{\sqrt{p_a}\sqrt{p_b}}{\sqrt{p_b}-\sqrt{p_a}}$$
+$$L = \frac{y}{\sqrt{p_b}-\sqrt{p_a}}$$
+
+From them, we can find $x$ and $y$:
+
+$$ x = \frac{L(\sqrt{p_b}-\sqrt{p_a})}{\sqrt{p_b}\sqrt{p_a}}$$
+$$ y = L(\sqrt{p_b}\sqrt{p_a}) $$
+
+To sum it up, when providing liquidity, users:
+1. choose the price range they want to provide liquidity into,
+1. choose the amounts of tokens they want to provide.
+
+Contracts then:
+1. calculate $L$ based on the amounts and the price range chosen by the user,
+1. calculate exact amounts the user needs to deposit.
+
+The amounts users choose are upper bounds, and contracts guarantee that users won't send more tokens than they've chosen.
+We'll see how this works in a later milestone.
