@@ -44,7 +44,7 @@ Since we've agreed to use ETH as the $x$ reserve and USDC as the $y$ reserve, th
 
 $$\sqrt{p_c} = \sqrt{\frac{5000}{1}} = \sqrt{5000} \approx 70.71$$
 
-$$\sqrt{p_l} = \sqrt{\frac{4500}{1}} \approx 67.08$$
+$$\sqrt{p_l} = \sqrt{\frac{4545}{1}} \approx 67.42$$
 
 $$\sqrt{p_u} = \sqrt{\frac{5500}{1}} \approx 74.16$$
 
@@ -62,14 +62,18 @@ $$i = log_{\sqrt{1.0001}} \sqrt{p(i)}$$
 
 Let's find the ticks:
 1. Current tick: $i_c = log_{\sqrt{1.0001}} 70.71 = 85176$
-1. Lower tick: $i_l = log_{\sqrt{1.0001}} 67.08 = 84122$
+1. Lower tick: $i_l = log_{\sqrt{1.0001}} 67.42 = 84222$
 1. Upper tick: $i_u = log_{\sqrt{1.0001}} 74.16 = 86129$
 
 > To calculate these, I used Python:
 > ```python
->  import math
->  math.log(math.sqrt(5000), math.sqrt(1.0001))
->  > 85176.19043995449
+> import math
+>
+> def price_to_tick(p):
+>   return math.floor(math.log(p, 1.0001))
+>
+> price_to_tick(5000)
+> > 85176
 >```
 > Feel free using any other language.
 
@@ -77,7 +81,7 @@ That's it for price range calculation!
 
 Last thing to note here is that Uniswap uses Q64.96 number to store $\sqrt{p}$. This is a fixed point number that has
 64 bits for the integer part and 96 bits for the fractional part. In our above calculations, prices are floating point
-numbers: `70.71`, `67.08`, `74.16`. We need to convert them to Q64.96. Luckily, this is simple: we need to multiply the
+numbers: `70.71`, `67.42`, `74.16`. We need to convert them to Q64.96. Luckily, this is simple: we need to multiply the
 numbers by the maximum value of the fractional part of Q64.96, which is $2^{96}$. We'll get:
 
 $$\sqrt{p_c} = 5602277097478614198912276234240$$
@@ -88,7 +92,10 @@ $$\sqrt{p_u} = 5875717789736564987741329162240$$
 
 > In Python:
 > ```python
-> int(math.sqrt(5000) * 2**96)
+> def price_to_sqrt(p):
+>   return int(math.sqrt(p) * 2**96)
+>
+> price_to_sqrt(5000)
 > > 5602277097478614198912276234240
 > ```
 > Notice that we're multiplying before converting to integer. Otherwise, we'll use precision.
@@ -165,33 +172,30 @@ price range. For $y$, $p_a$ is the lower bound and $p_b$ is the current price.
 
 [TODO: add graph, x_real, y_real, from the whitepaper]
 
-$$L = x\frac{\sqrt{p_a}\sqrt{p_b}}{\sqrt{p_b}-\sqrt{p_a}} = 1 ETH * \frac{67.08 * 70.71}{70.71 - 67.08}$$
+$$L = x\frac{\sqrt{p_a}\sqrt{p_b}}{\sqrt{p_b}-\sqrt{p_a}} = 1 ETH * \frac{67.42 * 70.71}{70.71 - 67.42}$$
 After converting to Q64.96, we get:
 
-$$L = 1519655488681761046528$$
+$$L = 1519437308014769733632$$
 
 Solving the other $L$:
 $$L = \frac{y}{\sqrt{p_b}-\sqrt{p_a}} = \frac{5000USDC}{74.16-70.71}$$
-$$L = 1377504647646213046272$$
+$$L = 1517882343751509868544$$
 
 > In Python:
 > ```python
-> def tick_to_sqrtp(i):
->     return int(1.0001**(i/2) * 2**96)
->
-> pl = tick_to_sqrtp(84122)
-> pc = tick_to_sqrtp(85176)
-> pu = tick_to_sqrtp(86129)
+> pl = price_to_sqrt(4545)
+> pc = price_to_sqrt(5000)
+> pu = price_to_sqrt(5500)
 > 
-> q96 = 0x1000000000000000000000000
+> q96 = 2**96
 > liqX = ((1 * (10 ** 18)) * (pu * pc) / q96) / (pu - pc)
 > liqY = (5000 * (10 ** 18)) * q96 / (pc - pl)
 > 
-> int(min(x,y))
-> > 1377504647646213046272
+> liq = int(min(liqX, liqY))
+> > 1517882343751509868544
 > ```
 
-Of these two we're picking the smaller one, `1377504647646213046272`.
+Of these two we're picking the smaller one, `1517882343751509868544`.
 
 ## Token Amounts Calculation, Again
 
@@ -206,7 +210,19 @@ $$L = \frac{y}{\sqrt{p_b}-\sqrt{p_a}}$$
 From them, we can find $x$ and $y$:
 
 $$ x = \frac{L(\sqrt{p_b}-\sqrt{p_a})}{\sqrt{p_b}\sqrt{p_a}}$$
-$$ y = L(\sqrt{p_b}\sqrt{p_a}) $$
+$$ y = L(\sqrt{p_b}-\sqrt{p_a}) $$
+
+> In Python:
+> ```python
+> amount0 = int((liq * q96 * (pu - pc)) / pu / pc)
+> amount1 = int((liq * (pc - pl)) / q96)
+> (amount0, amount1)
+> > (998976618347425280, 5000000000000000000000)
+> ```
+> As you can see, the number are close to the amounts we want to provide, but ETH is slightly smaller.
+
+> **Hint**: use `cast --from-wei AMOUNT` to convert from wei to ether. For example:  
+> `cast --from-wei 998976618347425280` will give you `0.998976618347425280`.
 
 To sum it up, when providing liquidity, users:
 1. choose the price range they want to provide liquidity into,

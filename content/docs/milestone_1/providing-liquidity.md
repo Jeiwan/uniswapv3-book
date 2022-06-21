@@ -228,86 +228,17 @@ Each position is uniquely identified by three keys: owner address, lower tick in
 positions in a `bytes32 => Info` map and are using hashes of concatenated owner address, lower tick, and upper tick as
 keys. This is cheaper than storing three nested maps.
 
-We're not done yet! Next, we need to calculate the amounts that the user must deposit. Luckily, we have 
-
-part: we don't want to calculate $\sqrt{x*y}$ in the contract, so we need to calculate the token amounts corresponding to
-the price range and the amount of liquidity selected by the user.
+We're not done yet! Next, we need to calculate the amounts that the user must deposit. Luckily, we have already figured
+out the formulas and calculated the exact amounts in the previous part. So, we're going to hardcode the amounts:
 
 ```solidity
-amount0 = SqrtPriceMath.getAmount0Delta(
-    _slot0.sqrtPriceX96,
-    14214576466144435, // upperTick, sqrt(p(i_c+100)), wei
-    amount
-);
-
-amount1 = SqrtPriceMath.getAmount1Delta(
-    14073146103223374, // lowerTick, sqrt(p(i_c-100)), wei
-    _slot0.sqrtPriceX96,
-    amount
-);
+amount0 = 0.998976618347425280 ether;
+amount1 = 5000 ether;
 ```
 
-Two values are hardcoded in this piece:
-1. `14214576466144435` is the square root of the price at the upper bound.
-1. `14073146103223374` is the square root of the price at the lower bound.
+> We'll replace these with actual calculations in a later chapter.
 
-We do this so we don't need to implement the tick-to-price calculation in the contract to not over-complicate this chapter.
-We'll return to this a little bit later!
-
-Let's look at `getAmount0Delta`:
-```solidity
-// src/lib/SqrtPriceMath.sol
-function getAmount0Delta(
-    uint160 sqrtPriceAX96,
-    uint160 sqrtPriceBX96,
-    uint128 liquidity
-) internal pure returns (uint256) {
-    if (sqrtPriceAX96 > sqrtPriceBX96)
-        (sqrtPriceAX96, sqrtPriceBX96) = (sqrtPriceBX96, sqrtPriceAX96);
-
-    uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
-    uint256 numerator2 = sqrtPriceBX96 - sqrtPriceAX96;
-
-    require(sqrtPriceAX96 > 0);
-
-    return
-        Math.divRoundingUp(
-            numerator1 * numerator2,
-            (sqrtPriceAX96 * sqrtPriceBX96)
-        );
-}
-```
-
-This logic implements the $\Delta x$ formula we found in the theoretical part. First, we sort the prices so the difference
-between them is positive. Then, we unpack `liquidity`: it's a Q64.96 number, we want to turn it into a `uint256` for
-further calculations. Then, we implement the $\Delta x$ formula and round the result up to nearest integer–we're doing
-this because we want the amount to include the full price range. If we don't do this, the amount might be too low to satisfy
-the swap along the full price range.
-
-Now, let's look at `getAmount1Delta`:
-```solidity
-// src/lib/SqrtPriceMath.sol
-function getAmount1Delta(
-    uint160 sqrtPriceAX96,
-    uint160 sqrtPriceBX96,
-    uint128 liquidity
-) internal pure returns (uint256) {
-    if (sqrtPriceAX96 > sqrtPriceBX96)
-        (sqrtPriceAX96, sqrtPriceBX96) = (sqrtPriceBX96, sqrtPriceAX96);
-
-    return
-        Math.mulDivRoundingUp(
-            liquidity,
-            sqrtPriceBX96 - sqrtPriceAX96,
-            FixedPoint96.Q96
-        );
-}
-```
-As you might've guessed, it implements the $\Delta y$ formula. The result is divided by `FixedPoint96.Q96` to adjust
-for the fractional part of `liquidity`.
-
-
-Now, we're ready to take tokens from user. This is done via a callback:
+Now, we're ready to take tokens from the user. This is done via a callback:
 ```solidity
 uint256 balance0Before;
 uint256 balance1Before;
@@ -453,8 +384,8 @@ contract UniswapV3PoolTest is Test {
         pool = new UniswapV3Pool(
             address(token0),
             address(token1),
-            14143684505937315, // 0.0002 ETH/USDC, 1.0001^(85174/2)
-            85174
+            uint160(5602277097478614198912276234240),
+            85176
         );
     }
 

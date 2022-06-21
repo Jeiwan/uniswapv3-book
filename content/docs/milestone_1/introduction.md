@@ -22,7 +22,7 @@ direction. Also, we'll calculate all the required math manually to get better in
 Let's model the situation we'll build:
 1. There will be an ETH-USDC pool contract. ETH will be the $x$ reserve; USDC will be the $y$ reserve.
 1. We'll set the current price to 5000 USDC per 1 ETH.
-1. The range we'll provide liquidity is 4500-5500 USDC per 1 ETH.
+1. The range we'll provide liquidity is 4545-5500 USDC per 1 ETH.
 1. We'll buy some ETH from the pool. At this point, since we have only one price range, we want the price of the trade
 to stay within the price range.
 
