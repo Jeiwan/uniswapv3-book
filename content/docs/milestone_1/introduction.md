@@ -30,4 +30,9 @@ Visually, this model looks like this:
 
 [TODO: graph the model]
 
-Before getting to code, let's figure out the math and calculate all the parameters of the model.
+Before getting to code, let's figure out the math and calculate all the parameters of the model. To keep things simple,
+I'll do all math calculations in Python. This will allow us to focus on the calculations without diving into the nuances
+of mathematical operations in Solidity. This also means that, in smart contracts, we'll hardcode all the amounts and
+values. This might look like a fake, but we want to start with simple contracts that work.
+
+For your convenience, I put all the Python calculations in [unimath.py](https://github.com/Jeiwan/uniswapv3-code/blob/main/unimath.py).
