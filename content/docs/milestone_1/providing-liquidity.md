@@ -359,7 +359,7 @@ contract ERC20Mintable is ERC20 {
 ```
 
 Our `ERC20Mintable` inherits all functionality from `solmate/tokens/ERC20.sol` and we additionally implement public `mint`
-method which will allows us to mint any number of tokens.
+method which will allow us to mint any number of tokens.
 
 ### Minting
 
@@ -380,15 +380,164 @@ contract UniswapV3PoolTest is Test {
     function setUp() public {
         token0 = new ERC20Mintable("Ether", "ETH", 18);
         token1 = new ERC20Mintable("USDC", "USDC", 18);
-
-        pool = new UniswapV3Pool(
-            address(token0),
-            address(token1),
-            uint160(5602277097478614198912276234240),
-            85176
-        );
     }
 
     ...
 ```
-First, we deploy ETH and USDC tokens. They both have 18 decimals. After that, we deploy and initialize our pool.
+In the `setUp` function, we do things that are required for all our test cases–tokens deployment. We'll need the two
+tokens in every future test case (and we'll add more tokens later on). However, we're not going to deploy the pool here
+because each test case will need a pool with different parameters.
+
+To make pool setting up cleaner and simpler, we'll do this in a separate function, `setupTestCase`, that takes a set of
+test case parameters. In our first test case, we'll test successful liquidity minting. This is what the test case
+parameters look like:
+```solidity
+function testMintSuccess() public {
+    TestCaseParams memory params = TestCaseParams({
+        wethBalance: 1 ether,
+        usdcBalance: 5000 ether,
+        currentTick: 85176,
+        lowerTick: 84222,
+        upperTick: 86129,
+        liquidity: 1517882343751509868544,
+        currentSqrtP: 5602277097478614198912276234240,
+        shouldTransferInCallback: true,
+        mintLiqudity: true
+    });
+    (uint256 poolBalance0, uint256 poolBalance1) = setupTestCase(params);
+```
+1. We're planning to deposit 1 ETH and 5000 USDC into the pool.
+1. We want the current tick to be 85176, and lower and upper ticks being 84222 and 86129 respectively.
+1. We're specifying the precalculated liquidity and current $\sqrt{P}$.
+1. We also want to deposit liquidity (`mintLiquidity` parameter) and transfer tokens when requested by the pool contract
+(`shouldTransferInCallback`). We don't want to do this in each test case, so we want this to be optional.
+
+Next, we're calling `setupTestCase` with the above parameters:
+```solidity
+function setupTestCase(TestCaseParams memory params)
+    internal
+    returns (uint256 poolBalance0, uint256 poolBalance1)
+{
+    token0.mint(address(this), params.wethBalance);
+    token1.mint(address(this), params.usdcBalance);
+
+    pool = new UniswapV3Pool(
+        address(token0),
+        address(token1),
+        params.currentSqrtP,
+        params.currentTick
+    );
+
+    if (params.mintLiqudity) {
+        (poolBalance0, poolBalance1) = pool.mint(
+            address(this),
+            params.lowerTick,
+            params.upperTick,
+            params.liquidity
+        );
+    }
+
+    shouldTransferInCallback = params.shouldTransferInCallback;
+}
+```
+In this function, we're minting tokens and deploying a pool (unconditionally), as well as providing liquidity when
+`mintLiquidity` is set and setting `shouldTransferInCallback` flag. We'll then check the flag in the mint callback:
+```solidity
+function uniswapV3MintCallback(uint256 amount0, uint256 amount1) public {
+    if (shouldTransferInCallback) {
+        token0.transfer(msg.sender, amount0);
+        token1.transfer(msg.sender, amount1);
+    }
+}
+```
+Recall that test contracts act as users. Thus, this test contract must implement `uniswapV3MintCallback` so it could
+call the `mint` function.
+
+Setting up test cases like that is not mandatory, you can do it however feels most comfortable to you. Test contracts are
+just contracts. You can implement whatever helper functions you want.
+
+In `testMintSuccess`, we want to test that the pool contract:
+1. takes the correct amounts of tokens from us;
+1. creates a position with correct key and liquidity;
+1. initializes the upper and lower ticks we've specified;
+1. has proper current $\sqrt{P}$ and $L$.
+
+Let's do this.
+
+Minting happens in `setupTestCase`, so we don't need to do this again. The function also returns the amounts we have
+provided, so let's check them:
+```solidity
+uint256 expectedAmount0 = 0.998976618347425280 ether;
+uint256 expectedAmount1 = 5000 ether;
+assertEq(
+    poolBalance0,
+    expectedAmount0,
+    "incorrect token0 deposited amount"
+);
+assertEq(
+    poolBalance1,
+    expectedAmount1,
+    "incorrect token1 deposited amount"
+);
+```
+We expect specific pre-calculated amounts. And we can also check that these amounts were actually transferred to the pool:
+```solidity
+assertEq(token0.balanceOf(address(pool)), expectedAmount0);
+assertEq(token1.balanceOf(address(pool)), expectedAmount1);
+```
+
+Next, we need to check the position the pool created for us. Remember that the key in `positions` mapping is a hash? We
+need to calculate it manually and then get our position from the contract:
+```solidity
+bytes32 positionKey = keccak256(
+    abi.encodePacked(address(this), params.lowerTick, params.upperTick)
+);
+uint128 posLiquidity = pool.positions(positionKey);
+assertEq(posLiquidity, params.liquidity);
+```
+
+> Since `Position.Info` is a [struct](https://docs.soliditylang.org/en/latest/types.html#structs), it gets destructured
+when fetched: each field gets fetched separately.
+
+[TODO: double-check]
+
+Next come the ticks. Again, it's straightforward:
+```solidity
+(bool tickInitialized, uint128 tickLiquidity) = pool.ticks(
+    params.lowerTick
+);
+assertTrue(tickInitialized);
+assertEq(tickLiquidity, params.liquidity);
+
+(tickInitialized, tickLiquidity) = pool.ticks(params.upperTick);
+assertTrue(tickInitialized);
+assertEq(tickLiquidity, params.liquidity);
+```
+
+And finally $\sqrt{P}$ and $L$:
+```solidity
+(uint160 sqrtPriceX96, int24 tick) = pool.slot0();
+assertEq(
+    sqrtPriceX96,
+    5602277097478614198912276234240,
+    "invalid current sqrtP"
+);
+assertEq(tick, 85176, "invalid current tick");
+assertEq(
+    pool.liquidity(),
+    1517882343751509868544,
+    "invalid current liquidity"
+);
+```
+
+As you can see, writing tests in Solidity is not hard!
+
+### Failures
+
+Of course, testing only successful scenarios is not enough. We also need to test failing cases. What can go wrong when
+providing liquidity? Here are a couple of hints:
+1. Upper and lower ticks are too big or too low.
+1. Zero liquidity is provided.
+1. Liquidity provider doesn't have enough of tokens.
+
+I'll leave it for you to implement these scenarios! Feel free peeking at [the code in the repo](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_1/test/UniswapV3Pool.t.sol).
