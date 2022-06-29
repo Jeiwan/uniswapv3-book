@@ -271,4 +271,4 @@ Notice that swapping doesn't change the current liquidity–in a later chapter, 
 
 ## Homework
 
-Write a test that fails with `InsufficientInputAmount` error.
+Write a test that fails with `InsufficientInputAmount` error. Keep in mind that there's a hidden bug 🙂
