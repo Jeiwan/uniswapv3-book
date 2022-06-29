@@ -1,4 +1,4 @@
-baseURL = 'https://jeiwan.net/uniswapv3-book'
+baseURL = 'https://uniswapv3book.com'
 languageCode = 'en-us'
 title = 'Uniswap V3 Development Book'
 theme = 'hugo-book'
