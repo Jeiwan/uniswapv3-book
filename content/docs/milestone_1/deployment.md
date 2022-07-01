@@ -271,3 +271,16 @@ Nice! The first value is the current $\sqrt{P}$ and the second value is the curr
 
 > Since `--abi-decode` requires full function signature we have to specify "a()" even though we only want to decode
 function output.
+
+### ABI
+
+To simplify interaction with contracts, Solidity compiler can output ABI, Application Binary Interface.
+
+ABI is a JSON file that contains the description of all public methods and events of a contract. The goal of this file
+is to make it easier to encode function parameters and decode return values. To get ABI with Forge, use this command:
+
+```shell
+$ forge inspect UniswapV3Pool abi
+```
+
+Feel free skimming through the file better understand its content.
