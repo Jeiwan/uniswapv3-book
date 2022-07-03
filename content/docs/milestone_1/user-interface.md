@@ -132,6 +132,10 @@ const addLiquidity = (account, { token0, token1, manager }, { managerAddress, po
   const lowerTick = 84222;
   const upperTick = 86129;
   const liquidity = ethers.BigNumber.from("1517882343751509868544");
+  const extra = ethers.utils.defaultAbiCoder.encode(
+    ["address", "address", "address"],
+    [token0.address, token1.address, account]
+  );
   ...
 ```
 
@@ -164,7 +168,7 @@ the user has approved full amounts, we call `manager.mint` to add liquidity:
       }
     })
     .then(() => {
-      return manager.mint(poolAddress, lowerTick, upperTick, liquidity)
+      return manager.mint(poolAddress, lowerTick, upperTick, liquidity, extra)
         .then(tx => tx.wait())
     })
     .then(() => {
@@ -200,8 +204,12 @@ transaction (one with a smaller nonce) was mined.
 To swap tokens, we use the same pattern: get parameters from the user, check allowance, call `swap` on the manager.
 
 ```js
-const swap = (amountIn, account, { tokenIn, manager }, { managerAddress, poolAddress }) => {
+const swap = (amountIn, account, { tokenIn, manager, token0, token1 }, { managerAddress, poolAddress }) => {
   const amountInWei = ethers.utils.parseEther(amountIn);
+  const extra = ethers.utils.defaultAbiCoder.encode(
+    ["address", "address", "address"],
+    [token0.address, token1.address, account]
+  );
 
   tokenIn.allowance(account, managerAddress)
     .then((allowance) => {
@@ -210,7 +218,7 @@ const swap = (amountIn, account, { tokenIn, manager }, { managerAddress, poolAdd
       }
     })
     .then(() => {
-      return manager.swap(poolAddress).then(tx => tx.wait())
+      return manager.swap(poolAddress, extra).then(tx => tx.wait())
     })
     .then(() => {
       alert('Swap succeeded!');
