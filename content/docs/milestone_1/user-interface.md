@@ -224,6 +224,52 @@ const swap = (amountIn, account, { tokenIn, manager }, { managerAddress, poolAdd
 The only new thing here is `ethers.utils.parseEther()` function, which use to convert user-friendly amount (42 USDC) to
 wei, the smallest unit in Ethereum.
 
+### Subscribing to Changes
+
+For a decentralized application, it's important to reflect the current blockchain state. For example, in the case of a
+decentralized exchange, it's critical to properly calculate swap prices based on current pool reserves; outdated data
+can cause slippage and make a swap transaction fail.
+
+While developing the pool contract, we learned about events, which act as blockchain data indexes: whenever smart contract
+state is modified, it's a good practice to emit an event since events are indexed for quick search. What we're going to
+do now, is to subscribe to contract events to keep our front-end app updated. Let's build an event feed.
+
+If you checked the ABI file as I recommended to you earlier, you saw that it also contains description of events: event
+name and its fields. Well, [Ether.js parses them](https://docs.ethers.io/v5/api/contract/contract/#Contract--events) and
+provides an interface to subscribe to new events. Let's see how this works.
+
+To subscribe to events, we can use `on(EVENT_NAME, handler)` (allows to subscribe multiple times) and
+`once(EVENT_NAME, handler)` (subscribes only one) functions. The callback receives all the fields of the event + the
+event itself as parameters:
+```js
+const subscribeToEvents = (pool, callback) => {
+  pool.once("Mint", (sender, owner, tickLower, tickUpper, amount, amount0, amount1, event) => callback(event));
+  pool.once("Swap", (sender, recipient, amount0, amount1, sqrtPriceX96, liquidity, tick, event) => callback(event));
+}
+```
+
+To filter and fetch previous events, we can use `queryFilter`:
+```js
+Promise.all([
+  pool.queryFilter("Mint", "earliest", "latest"),
+  pool.queryFilter("Swap", "earliest", "latest"),
+]).then(([mints, swaps]) => {
+  ...
+});
+```
+
+You probably noticed that some event fields are marked as `indexed`–such fields are indexed by Ethereum nodes, which lets
+search events by specific values in such fields. For example, the `Swap` event has `sender` and `recipient` fields
+indexed, so we can search by swap sender and recipient. And again, Ethere.js makes this easier:
+```js
+const swapFilter = pool.filters.Swap(sender, recipient);
+const swaps = await pool.queryFilter(swapFilter, fromBlock, toBlock);
+```
+
 ---
 
-And, we're done with milestone 1! 🎉🍾
+And that's it! We're done with milestone 1!
+
+<p style="font-size:3rem; text-align: center">
+🎉🍾🍾🍾🎉
+</p>
