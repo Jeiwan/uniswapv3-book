@@ -12,6 +12,7 @@ weight: 1
 {{< katex display >}} {{</ katex >}}
 
 > You'll find the complete code of this chapter in [this Github branch](https://github.com/Jeiwan/uniswapv3-code/tree/milestone_2).
+> This milestone introduces a lot of code changes in existing contracts.
 
 # Second Swap
 
