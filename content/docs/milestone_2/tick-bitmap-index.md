@@ -9,6 +9,8 @@ weight: 4
 # bookSearchExclude: false
 ---
 
+{{< katex display >}} {{</ katex >}}
+
 # Tick Bitmap Index
 
 As the first step towards dynamic swaps, we need to implement an index of ticks. In the previous milestone, we used to
@@ -115,3 +117,97 @@ print(bin(word ^ mask))
 ```
 
 You'll see that 184th bit (counting from the right starting at 0) has flipped to 0.
+
+### Finding Next Tick
+
+Next step is finding ticks with liquidity using the bitmap index.
+
+During swapping, we need to find a tick with liquidity that's before or after the current tick (that is: to the left or
+to the right of it). In the previous milestone, we used to [calculate and hard code it](https://github.com/Jeiwan/uniswapv3-code/blob/85b8605c37a9065c141a234ee2c18d9507eeba22/src/UniswapV3Pool.sol#L142),
+but now we need to find such tick using the bitmap index. We'll do this in `TickMath.nextInitializedTickWithinOneWord`
+method. In this function, we'll need to implement two scenarios:
+
+1. When selling token $X$ (ETH in our case), find next initialized tick in the current tick's word and **to the right** of the current tick.
+1. When selling token $Y$ (USDC in our case), find next initialized tick in the next (current + 1) tick's word and **to the left** of the current tick.
+
+This corresponds to the price movement when making swaps in either directions:
+
+[TODO: add illustration, price change direction and tick change direction]
+
+We include the current price when price grows.
+
+Now, let's look at the implementation:
+```solidity
+function nextInitializedTickWithinOneWord(
+    mapping(int16 => uint256) storage self,
+    int24 tick,
+    int24 tickSpacing,
+    bool lte
+) internal view returns (int24 next, bool initialized) {
+    int24 compressed = tick / tickSpacing;
+    ...
+```
+
+1. First arguments makes this function a method of `mapping(int16 => uint256)`.
+1. `tick` is the current tick.
+1. `tickSpacing` is always 1 until we start using it in Milestone 3.
+1. `lte` is the flag that sets the direction. When `true`, we're selling token $X$ and searching for next initialized tick
+to the right of the current one. When `false,` it's the other way around.
+
+```solidity
+if (lte) {
+    (int16 wordPos, uint8 bitPos) = position(compressed);
+    uint256 mask = (1 << bitPos) - 1 + (1 << bitPos);
+    uint256 masked = self[wordPos] & mask;
+    ...
+```
+
+When selling $X$, we're:
+1. taking current tick's word and bit positions;
+1. making a mask where all bits to the right of the current bit position, including it, are ones (`mask` is all ones,
+its length = `bitPos`);
+1. applying the mask to the current tick's word.
+
+```solidity
+    ...
+    initialized = masked != 0;
+    next = initialized
+        ? (compressed - int24(uint24(bitPos - BitMath.mostSignificantBit(masked)))) * tickSpacing
+        : (compressed - int24(uint24(bitPos))) * tickSpacing;
+    ...
+```
+Next, `masked` won't equal 0 if at least one bit of it is set to 1. If so, there's an initialized tick; if not, there
+isn't (not in the current word). Depending on the result, we either return the index of the next initialized tick or the
+leftmost bit in the next word–this will allow to search for initialized ticks in the word during another loop cycle.
+
+```solidity
+    ...
+} else {
+    (int16 wordPos, uint8 bitPos) = position(compressed + 1);
+    uint256 mask = ~((1 << bitPos) - 1);
+    uint256 masked = self[wordPos] & mask;
+    ...
+```
+
+Similarly, when selling $Y$, we're:
+1. taking next tick's word and bit positions;
+1. making a different mask, where all bits to the left of next tick bit position are ones and all the bits to the right
+are zeros;
+1. applying the mask to the next tick's word.
+
+Again, if there's no initialized ticks to the left, the rightmost bit of the previous word is returned:
+```solidity
+    ...
+    initialized = masked != 0;
+    // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
+    next = initialized
+        ? (compressed + 1 + int24(uint24((BitMath.leastSignificantBit(masked) - bitPos)))) * tickSpacing
+        : (compressed + 1 + int24(uint24((type(uint8).max - bitPos)))) * tickSpacing;
+}
+```
+
+And that's it!
+
+As you can see, `nextInitializedTickWithinOneWord` doesn't find the exact tick–it's scope of search is current or next
+tick's word. Indeed, we don't want to iterate over all the words since the we don't send boundaries on the bitmap index.
+This function, however, plays well with `swap` function–soon, we'll see this.
