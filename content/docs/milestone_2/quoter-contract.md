@@ -117,3 +117,16 @@ Let's recap to better understand the algorithm:
 1. in `quote`, the revert is caught, revert reason is decoded and returned as the result of calling `quote`.
 
 I hope this is clear!
+
+## Quoter Limitation
+
+This design has one significant limitation: since `quote` calls `swap` function of Pool contract, and `swap` function is
+not a pure or view function (because it modifies contract state), `quote` cannot also be pure or view. `swap` modifies
+state and so does `quote`, even if not in Quoter contract. But we treat `quote` as a getter, a function that only reads
+contract data. This inconsistency means that EVM will use [CALL](https://www.evm.codes/#f1) opcode instead of [CALLSTATIC](https://www.evm.codes/#fa)
+when `quote` is called. This is not a big problem since Quoter reverts in the swap callback, and reverting reset state
+modified during a call–this guarantees that `quote` won't modify state of Pool contract.
+
+Another inconvenience that comes from this issue is that calling `quote` from a client library (ethers.js, web3.js, etc.)
+will trigger a transaction. To fix this, we'll need to force the library to make a static call. We'll see how to do this
+in ethers.js later in this milestone.
