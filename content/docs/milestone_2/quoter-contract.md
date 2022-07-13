@@ -105,3 +105,15 @@ takes 3 bytes (`int24`). This is so we could use `abi.decode()` to decode the da
 encodes all integers as 32-byte words.
 
 Aaaand, done.
+
+## Recap
+
+Let's recap to better understand the algorithm:
+1. `quote` calls `swap` of a pool with input amount and swap direction;
+1. `swap` performs a real swap, it runs the loop to fill the input amount specified by user;
+1. to get tokens from user, `swap` calls the swap callback on the caller;
+1. the caller (Quote contract) implements the callback, in which it reverts with output amount, new price, and new tick;
+1. the revert bubbles up to the initial `quote` call;
+1. in `quote`, the revert is caught, revert reason is decoded and returned as the result of calling `quote`.
+
+I hope this is clear!
