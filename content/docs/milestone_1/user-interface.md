@@ -246,13 +246,12 @@ If you checked the ABI file as I recommended to you earlier, you saw that it als
 name and its fields. Well, [Ether.js parses them](https://docs.ethers.io/v5/api/contract/contract/#Contract--events) and
 provides an interface to subscribe to new events. Let's see how this works.
 
-To subscribe to events, we can use `on(EVENT_NAME, handler)` (allows to subscribe multiple times) and
-`once(EVENT_NAME, handler)` (subscribes only one) functions. The callback receives all the fields of the event + the
-event itself as parameters:
+To subscribe to events, we'll use `on(EVENT_NAME, handler)` function. The callback receives all the fields of the event
++ the event itself as parameters:
 ```js
 const subscribeToEvents = (pool, callback) => {
-  pool.once("Mint", (sender, owner, tickLower, tickUpper, amount, amount0, amount1, event) => callback(event));
-  pool.once("Swap", (sender, recipient, amount0, amount1, sqrtPriceX96, liquidity, tick, event) => callback(event));
+  pool.on("Mint", (sender, owner, tickLower, tickUpper, amount, amount0, amount1, event) => callback(event));
+  pool.on("Swap", (sender, recipient, amount0, amount1, sqrtPriceX96, liquidity, tick, event) => callback(event));
 }
 ```
 
