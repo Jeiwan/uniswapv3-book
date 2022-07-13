@@ -18,7 +18,7 @@
 1. ~~Calculated ticks and sqrt(P)~~
 1. ~~Second swap (1-to-0)~~
 1. ~~Quoter contract~~
-1. Updated front end
+1. ~~Updated front end~~
 
 ### Milestone 3: Multi-tick swaps
 1. Multi-tick swaps, theory
