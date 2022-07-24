@@ -24,8 +24,7 @@
 1. Multi-tick swaps, theory
 1. First multi-tick swap
 1. Insufficient liquidity
-
-(No front-end changes here)
+1. Update 'Add Liquidity' interface
 
 ### Milestone 4: Fees
 1. Trading fees, theory
