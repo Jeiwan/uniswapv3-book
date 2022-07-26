@@ -9,6 +9,8 @@ weight: 5
 # bookSearchExclude: false
 ---
 
+{{< katex display >}} {{</ katex >}}
+
 # Liquidity Calculation
 
 Of the whole math of Uniswap V3, what we haven't yet implemented in Solidity is liquidity calculation. In the Python
