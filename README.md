@@ -21,11 +21,11 @@
 1. ~~Updated front end~~
 
 ### Milestone 3: Cross-tick swaps
-1. Cross-tick swaps, theory
-1. Adding liquidity to different price ranges
-1. Cross-tick swaps, implementation
-1. Slippage protection
-1. Update 'Add Liquidity' interface
+1. ~~Cross-tick swaps, theory~~
+1. ~~Adding liquidity to different price ranges~~
+1. ~~Cross-tick swaps, implementation~~
+1. ~~Slippage protection~~
+1. ~~Update 'Add Liquidity' interface~~
 
 ### Milestone 4: Factory contract
 1. Factory, theory
