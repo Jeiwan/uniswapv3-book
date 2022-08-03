@@ -47,13 +47,8 @@
 1. Front end: add a chart with historical prices obtained via the price oracle
 (Oracle CLI tool as a helper)
 
-### Milestone 6: NFT positions
+### Milestone 6: Extras
+1. Overview and implementation of flash loans
 1. Implementing NFT position manager (wrapping positions in NFTs)
 1. Overview of NFTSVG contract (as a home work maybe)
-
-### Milestone 7: Flash loans
-1. Overview of flash loans
-1. Implementation in Pool contract
-
-### Milestone 8 (Advanced)
 1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
