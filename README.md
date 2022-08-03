@@ -1,5 +1,7 @@
 # 🚧 Uniswap V3 Development Book 🚧
 
+![Front-end application screenshot](/screenshot.png)
+
 ## Table of Contents
 
 ### Introduction
