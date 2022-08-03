@@ -29,7 +29,7 @@
 1. ~~Slippage protection~~
 1. ~~Update 'Add Liquidity' interface~~
 
-### Milestone 4: Factory contract
+### Milestone 4: Multi-pool Swaps
 1. Factory, theory
 1. Deploying via Factory
 1. Using Factory everywhere (Manager, Quoter, UI)
