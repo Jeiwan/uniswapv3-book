@@ -1,0 +1,172 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Factory Contract #  Uniswap is designed in a way that assumes many discrete Pool contracts, with each pool handling swaps of one token pair. This looks problematic when we want to swap between two tokens that don&rsquo;t have a pool–is there&rsquo;s no pool, no swaps are possible. However, we can still do intermediate swaps: first swap to a token that has pairs with either of the tokens and then swap this token to the target token."><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="Factory Contract"><meta property="og:description" content="Factory Contract #  Uniswap is designed in a way that assumes many discrete Pool contracts, with each pool handling swaps of one token pair. This looks problematic when we want to swap between two tokens that don&rsquo;t have a pool–is there&rsquo;s no pool, no swaps are possible. However, we can still do intermediate swaps: first swap to a token that has pairs with either of the tokens and then swap this token to the target token."><meta property="og:type" content="article"><meta property="og:url" content="https://uniswapv3book.com/docs/milestone_4/factory-contract/"><meta property="article:section" content="docs"><title>Factory Contract | Uniswap V3 Development Book</title><link rel=manifest href=/manifest.json><link rel=icon href=/favicon.png type=image/x-icon><link rel=stylesheet href=/book.min.82c5dbd23447cee0b4c2aa3ed08ce0961faa40e1fa370eee4f8c9f02e0d46b5f.css integrity="sha256-gsXb0jRHzuC0wqo+0Izglh+qQOH6Nw7uT4yfAuDUa18=" crossorigin=anonymous><script defer src=/flexsearch.min.js></script>
+<script defer src=/en.search.min.dbd40938b8adb7018c60356d5f65955a7949218b4865733b7240e27e59fa9ae7.js integrity="sha256-29QJOLittwGMYDVtX2WVWnlJIYtIZXM7ckDifln6muc=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/><span>Uniswap V3 Development Book</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li class=book-section-flat><span>Milestone 0</span><ul><li><a href=/docs/introduction/amm/>Introduction to markets</a></li><li><a href=/docs/introduction/cfmm/>Constant Function Market Makers</a></li><li><a href=/docs/introduction/uniswap-v3/>Uniswap V3</a></li><li><a href=/docs/introduction/dev-environment/>Development Environment</a></li></ul></li><li class=book-section-flat><span>Milestone 1. First Swap</span><ul><li><a href=/docs/milestone_1/introduction/>Introduction</a></li><li><a href=/docs/milestone_1/calculating-liquidity/>Calculating Liquidity</a></li><li><a href=/docs/milestone_1/providing-liquidity/>Providing Liquidity</a></li><li><a href=/docs/milestone_1/first-swap/>First Swap</a></li><li><a href=/docs/milestone_1/manager-contract/>Manager Contract</a></li><li><a href=/docs/milestone_1/deployment/>Deployment</a></li><li><a href=/docs/milestone_1/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 2. Second Swap</span><ul><li><a href=/docs/milestone_2/introduction/>Introduction</a></li><li><a href=/docs/milestone_2/output-amount-calculation/>Output Amount Calculation</a></li><li><a href=/docs/milestone_2/math-in-solidity/>Math in Solidity</a></li><li><a href=/docs/milestone_2/tick-bitmap-index/>Tick Bitmap Index</a></li><li><a href=/docs/milestone_2/generalize-minting/>Generalize Minting</a></li><li><a href=/docs/milestone_2/generalize-swapping/>Generalize Swapping</a></li><li><a href=/docs/milestone_2/quoter-contract/>Quoter Contract</a></li><li><a href=/docs/milestone_2/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 3. Cross-tick Swaps</span><ul><li><a href=/docs/milestone_3/introduction/>Introduction</a></li><li><a href=/docs/milestone_3/different-ranges/>Different Price Ranges</a></li><li><a href=/docs/milestone_3/cross-tick-swaps/>Cross-Tick Swaps</a></li><li><a href=/docs/milestone_3/slippage-protection/>Slippage Protection</a></li><li><a href=/docs/milestone_3/liquidity-calculation/>Liquidity Calculation</a></li><li><a href=/docs/milestone_3/more-on-fixed-point-numbers/>A Little Bit More on Fixed-point Numbers</a></li><li><a href=/docs/milestone_3/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 4. Multi-pool Swaps</span><ul><li><a href=/docs/milestone_4/introduction/>Introduction</a></li><li><a href=/docs/milestone_4/factory-contract/ class=active>Factory Contract</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/svg/menu.svg class=book-icon alt=Menu></label>
+<strong>Factory Contract</strong>
+<label for=toc-control><img src=/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#factory-contract>Factory Contract</a><ul><li><a href=#create-and-create2-opcodes><code>CREATE</code> and <code>CREATE2</code> Opcodes</a></li><li><a href=#tick-spacing>Tick Spacing</a></li><li><a href=#factory-implementation>Factory Implementation</a></li><li><a href=#pool-initialization>Pool Initialization</a></li><li><a href=#pooladdress-library><code>PoolAddress</code> Library</a></li><li><a href=#simplified-interfaces-of-manager-and-quoter>Simplified Interfaces of Manager and Quoter</a></li></ul></li></ul></nav></aside></header><article class=markdown><h1 id=factory-contract>Factory Contract
+<a class=anchor href=#factory-contract>#</a></h1><p>Uniswap is designed in a way that assumes many discrete Pool contracts, with each pool handling swaps of one token pair.
+This looks problematic when we want to swap between two tokens that don&rsquo;t have a pool–is there&rsquo;s no pool, no swaps are
+possible. However, we can still do intermediate swaps: first swap to a token that has pairs with either of the tokens
+and then swap this token to the target token. This can also go deeper and have more intermediate tokens. However,
+doing this manually is cumbersome, and, luckily, we can the process easier by implementing it in our smart contracts.</p><p><strong>Factory contract</strong> is a contract that serves multiple purposes:</p><ol><li>It acts as a centralized registry of Pool contracts. Using a factory, you can find all deployed pools, their tokens,
+and addresses.</li><li>It simplifies deployment of Pool contracts. EVM allows to deploy smart contracts from smart contracts–Factory uses
+this feature to make pools deployment a breeze.</li><li>It makes pool addresses predictable and allows to calculate them without making calls to the registry. This makes
+pools easily discoverable.</li></ol><p>Let&rsquo;s build Factory contract! But before this, we need to learn a new mechanism.</p><h2 id=create-and-create2-opcodes><code>CREATE</code> and <code>CREATE2</code> Opcodes
+<a class=anchor href=#create-and-create2-opcodes>#</a></h2><p>EVM has two ways of deploying contracts: via <code>CREATE</code> or via <code>CREATE2</code> opcode. The only difference between them is how
+new contract address is generated:
+1 <code>CREATE</code> uses deployer&rsquo;s account <code>nonce</code> to generate a contract address (in pseudocode):
+<code>KECCAK256(deployer.address, deployer.nonce)</code>
+<code>nonce</code> is an account-specific counter of transactions. Using <code>nonce</code> in new contract address generation makes it hard
+to compute an address in other contracts or off-chain apps, mainly because, to find the nonce a contract was deployed at,
+one needs to scan historical account transactions.</p><ol><li><code>CREATE2</code> uses a custom <em>salt</em> to generate a contract address. This is just an arbitrary sequence of bytes chosen
+by a developer, which is used to make address generation deterministic (and reduces the chance of a collision).</li></ol><p>We need to know the difference because Factory uses <code>CREATE2</code> when deploying Pool contracts so pools get unique <strong>and</strong>
+deterministic addresses that can be computed in other contracts and off-chain apps. Specifically, for salt, Factory
+computes a hash using these pool parameters:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>keccak256(abi.encodePacked(token0, token1, tickSpacing))
+</span></span></code></pre></div><p><code>token0</code> and <code>token</code> are the addresses of pool tokens, and <code>tickSpacing</code> is something we haven&rsquo;t learned yet. Let&rsquo;s fix
+that!</p><h2 id=tick-spacing>Tick Spacing
+<a class=anchor href=#tick-spacing>#</a></h2><p>Recall the loop in <code>swap</code> function:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>while</span> (
+</span></span><span style=display:flex><span>    state.amountSpecifiedRemaining <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span>
+</span></span><span style=display:flex><span>    state.sqrtPriceX96 <span style=color:#f92672>!=</span> sqrtPriceLimitX96
+</span></span><span style=display:flex><span>) {
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    (step.nextTick, ) <span style=color:#f92672>=</span> tickBitmap.nextInitializedTickWithinOneWord(...);
+</span></span><span style=display:flex><span>    (state.sqrtPriceX96, step.amountIn, step.amountOut) <span style=color:#f92672>=</span> SwapMath.computeSwapStep(...);
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>This loop finds initialized ticks that have some liquidity by iterating them in either of the directions. This iterating,
+however, is not an expensive operation: if a tick is away, the code would need to pass all the tick the current and the
+target one, which consumes gas. To make this loop more gas-efficient, Uniswap pools have <code>tickSpacing</code> setting which acts
+as a scaling factor: <code>1</code> means every tick is counted, <code>10</code> means only every 10th tick is counted, <code>60</code> means only every
+60th tick is counter, and so on.</p><p>[TODO: illustrate]</p><p>However, the higher the tick spacing the lower the precision. Low volatility pairs (e.g. stablecoin pairs) need higher
+precision because price movements are narrow in such pairs. Medium and high volatility pairs need lower precision since
+price movement are wide in such pairs. To handle this diversity, Uniswap allows to pick a tick spacing when a pair is
+deployed. Uniswap allows deployers to choose from these options: 10, 60, or 200. And we&rsquo;ll have only 10 and 60 for
+simplicity.</p><p>Thus, each pool is uniquely identified by this set of parameters:</p><ol><li><code>token0</code>,</li><li><code>token1</code>,</li><li><code>tickSpacing</code>;</li></ol><blockquote><p>And, yes, there can pools with the same tokens but different tick spacing.</p></blockquote><p>Factory contract uses this set of parameters as a unique identifier of a pool and passes it as a salt to generate a new
+pool contract address.</p><blockquote><p>From now on, we&rsquo;ll assume 60 tick spacing for all our pools.</p></blockquote><h2 id=factory-implementation>Factory Implementation
+<a class=anchor href=#factory-implementation>#</a></h2><p>In the constructor of Factory, we need to initialize supported tick spacings:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Factory.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Factory</span> <span style=color:#66d9ef>is</span> IUniswapV3PoolDeployer {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>uint24</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>bool</span>) <span style=color:#66d9ef>public</span> tickSpacings;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>        tickSpacings[<span style=color:#ae81ff>10</span>] <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>        tickSpacings[<span style=color:#ae81ff>60</span>] <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ...
+</span></span></code></pre></div><blockquote><p>We could&rsquo;ve made them constants, but we&rsquo;ll need to have it as a mapping for a later milestone.</p></blockquote><p>Factory contract is a contract with only one function <code>createPool</code>. The function begins with necessary checks we need to
+make before creating a pool:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Factory.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Factory</span> <span style=color:#66d9ef>is</span> IUniswapV3PoolDeployer {
+</span></span><span style=display:flex><span>    PoolParameters <span style=color:#66d9ef>public</span> parameters;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>address</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>address</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>uint24</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>address</span>)))
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>public</span> pools;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>createPool</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> tokenX,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> tokenY,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint24</span> tickSpacing
+</span></span><span style=display:flex><span>    ) <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>address</span> pool) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (tokenX <span style=color:#f92672>==</span> tokenY) revert TokensMustBeDifferent();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>tickSpacings[tickSpacing]) revert UnsupportedTickSpacing();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        (tokenX, tokenY) <span style=color:#f92672>=</span> tokenX <span style=color:#f92672>&lt;</span> tokenY
+</span></span><span style=display:flex><span>            <span style=color:#f92672>?</span> (tokenX, tokenY)
+</span></span><span style=display:flex><span>            <span style=color:#f92672>:</span> (tokenY, tokenX);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (tokenX <span style=color:#f92672>==</span> <span style=color:#66d9ef>address</span>(<span style=color:#ae81ff>0</span>)) revert TokenXCannotBeZero();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (pools[tokenX][tokenY][tickSpacing] <span style=color:#f92672>!=</span> <span style=color:#66d9ef>address</span>(<span style=color:#ae81ff>0</span>))
+</span></span><span style=display:flex><span>            revert PoolAlreadyExists();
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        ...
+</span></span></code></pre></div><p>Notice that this is first time when we&rsquo;re sorting tokens:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>(tokenX, tokenY) <span style=color:#f92672>=</span> tokenX <span style=color:#f92672>&lt;</span> tokenY
+</span></span><span style=display:flex><span>    <span style=color:#f92672>?</span> (tokenX, tokenY)
+</span></span><span style=display:flex><span>    <span style=color:#f92672>:</span> (tokenY, tokenX);
+</span></span></code></pre></div><p>From now on, we&rsquo;ll also expect pool token addresses to be sorted, i.e. <code>token0</code> goes before <code>token1</code> when sorted. We need
+this for consistency, to make salt consistent.</p><blockquote><p>This change also affects how we deploy tokens in tests and the deployment script: we need to ensure that WETH is always
+<code>token0</code> to make price calculations simpler in Solidity (otherwise, we&rsquo;d need to use fractional prices, like 1/5000). If
+WETH is not <code>token0</code> in your tests, change the order of token deployments.</p></blockquote><p>After that, we prepare pool parameters and deploy a pool:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>parameters <span style=color:#f92672>=</span> PoolParameters({
+</span></span><span style=display:flex><span>    factory<span style=color:#f92672>:</span> <span style=color:#66d9ef>address</span>(this),
+</span></span><span style=display:flex><span>    token0<span style=color:#f92672>:</span> tokenX,
+</span></span><span style=display:flex><span>    token1<span style=color:#f92672>:</span> tokenY,
+</span></span><span style=display:flex><span>    tickSpacing<span style=color:#f92672>:</span> tickSpacing
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pool <span style=color:#f92672>=</span> <span style=color:#66d9ef>address</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> UniswapV3Pool{
+</span></span><span style=display:flex><span>        salt<span style=color:#f92672>:</span> keccak256(abi.encodePacked(tokenX, tokenY, tickSpacing))
+</span></span><span style=display:flex><span>    }()
+</span></span><span style=display:flex><span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>delete</span> parameters;
+</span></span></code></pre></div><p>This piece looks weird because <code>parameters</code> is not used. Uniswap uses <em>Inversion of Control</em> to pass parameters to a
+pool during deployment. Let&rsquo;s look at updated Pool contract constructor:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Pool.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Pool</span> <span style=color:#66d9ef>is</span> IUniswapV3Pool {
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>        (factory, token0, token1, tickSpacing) <span style=color:#f92672>=</span> IUniswapV3PoolDeployer(
+</span></span><span style=display:flex><span>            msg.sender
+</span></span><span style=display:flex><span>        ).parameters();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    ..
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Aha! Pool expects its deployer to implement <code>IUniswapV3PoolDeployer</code> interface (which only defines <code>parameters</code> getter)
+and calls it in the constructor during deployment to get the parameters. This is what the flow looks like:</p><ol><li><code>Factory</code>: defines <code>parameters</code> state variable (implements <code>IUniswapV3PoolDeployer</code>) and sets them before
+deploying a pool.</li><li><code>Factory</code>: deploys a pool.</li><li><code>Pool</code>: in the constructor, calls <code>parameters()</code> function on its deployer and expects that pool parameters are
+returned.</li><li><code>Factory</code>: calls <code>delete parameters;</code> to clean up the slot of <code>parameters</code> state variable and cut gas consumption.
+This is a temporary state variable that has a value only during a call to <code>createPool()</code>.</li></ol><p>After a pool is created, we keep in <code>pools</code> mapping (so it can be found by its tokens) and emit an event:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>    pools[tokenX][tokenY][tickSpacing] <span style=color:#f92672>=</span> pool;
+</span></span><span style=display:flex><span>    pools[tokenY][tokenX][tickSpacing] <span style=color:#f92672>=</span> pool;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    emit PoolCreated(tokenX, tokenY, tickSpacing, pool);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=pool-initialization>Pool Initialization
+<a class=anchor href=#pool-initialization>#</a></h2><p>As you have noticed from the code above, we no longer set <code>sqrtPriceX96</code> and <code>tick</code> in Pool&rsquo;s constructor–this is now
+done in a separate function, <code>initialize</code>, that needs to be called after pool is deployed:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Pool.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>initialize</span>(<span style=color:#66d9ef>uint160</span> sqrtPriceX96) <span style=color:#66d9ef>public</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (slot0.sqrtPriceX96 <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>) revert AlreadyInitialized();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> tick <span style=color:#f92672>=</span> TickMath.getTickAtSqrtRatio(sqrtPriceX96);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    slot0 <span style=color:#f92672>=</span> Slot0({sqrtPriceX96<span style=color:#f92672>:</span> sqrtPriceX96, tick<span style=color:#f92672>:</span> tick});
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>So this is how we deploy pools now:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>UniswapV3Factory factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> UniswapV3Factory();
+</span></span><span style=display:flex><span>UniswapV3Pool pool <span style=color:#f92672>=</span> UniswapV3Pool(factory.createPool(token0, token1, tickSpacing));
+</span></span><span style=display:flex><span>pool.initialize(sqrtP(currentPrice));
+</span></span></code></pre></div><h2 id=pooladdress-library><code>PoolAddress</code> Library
+<a class=anchor href=#pooladdress-library>#</a></h2><p>Let&rsquo;s now implement a library that will help us calculate pool contract addresses from other contracts. This library
+will have only one function, <code>computeAddress</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/PoolAddress.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>library</span> PoolAddress {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>computeAddress</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> factory,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> token0,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> token1,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint24</span> tickSpacing
+</span></span><span style=display:flex><span>    ) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>pure</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>address</span> pool) {
+</span></span><span style=display:flex><span>        require(token0 <span style=color:#f92672>&lt;</span> token1);
+</span></span><span style=display:flex><span>        ...
+</span></span></code></pre></div><p>The function needs to know pool parameters (this they&rsquo;re used to build a salt) and Factory contract address. It expects
+the tokens to be sorted, which we discussed above.</p><p>Now, the core of the function:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>pool <span style=color:#f92672>=</span> <span style=color:#66d9ef>address</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint160</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint256</span>(
+</span></span><span style=display:flex><span>            keccak256(
+</span></span><span style=display:flex><span>                abi.encodePacked(
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>hex&#34;ff&#34;</span>,
+</span></span><span style=display:flex><span>                    factory,
+</span></span><span style=display:flex><span>                    keccak256(
+</span></span><span style=display:flex><span>                        abi.encodePacked(token0, token1, tickSpacing)
+</span></span><span style=display:flex><span>                    ),
+</span></span><span style=display:flex><span>                    keccak256(type(<span style=color:#a6e22e>UniswapV3Pool</span>).creationCode)
+</span></span><span style=display:flex><span>                )
+</span></span><span style=display:flex><span>            )
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>);
+</span></span></code></pre></div><p>This is what <code>CREATE2</code> does under the hood to calculate new token address. Let&rsquo;s unwind it:</p><ol><li>First, we calculate salt (<code>abi.encodePacked(token0, token1, tickSpacing)</code>) and hash it.</li><li>Then, we obtain Pool contract code (<code>type(UniswapV3Pool).creationCode</code>) and also hash it.</li><li>Then, we build a sequence of bytes that includes: <code>0xff</code>, Factory contract address, hashed salt, and hashed Pool
+contract code.</li><li>We then hash the sequence and convert it to an address.</li></ol><p>These steps implement contract address generation as it&rsquo;s defined in <a href=https://eips.ethereum.org/EIPS/eip-1014>EIP-1014</a>,
+which is the EIP that added <code>CREATE2</code> opcode. Let&rsquo;s look closer at the values that constitute the hashed byte sequence:</p><ol><li><code>0xff</code>, as defined in the EIP, is used to distinguish addresses generated by <code>CREATE</code> and <code>CREATE2</code>;</li><li><code>factory</code> is the address of the deployer, in our case a Factory contract;</li><li>salt was discussed earlier–it&rsquo;s away to identify a unique Pool contract;</li><li>hashed contract code is needed to protect from collisions: different contract can have the same salt, but their core
+will be different.</li></ol><p>So, according to this scheme, a contract address is a hash of the values that uniquely identify this contract, including
+its deployer, code, and unique parameters. We can use this function from anywhere to find out a pool address without
+making any external calls and without querying the factory. Easy-peasy!</p><h2 id=simplified-interfaces-of-manager-and-quoter>Simplified Interfaces of Manager and Quoter
+<a class=anchor href=#simplified-interfaces-of-manager-and-quoter>#</a></h2><p>In Manager and Quoter contracts, we no longer need to ask users for pool address! This makes interaction with the contracts
+easier because users don&rsquo;t need to know pool addresses, they only need to know tokens. However, users also need to specify
+tick spacing because it&rsquo;s included in pool&rsquo;s salt.</p><p>Moreover, we no longer need to ask users for the <code>zeroForOne</code> flag because we can now always figure it out thanks to
+tokens sorting. <code>zeroForOne</code> is true when &ldquo;from token&rdquo; is less than &ldquo;to token&rdquo;, since pool&rsquo;s <code>token0</code> is always less than
+<code>token1</code>. Likewise, <code>zeroForOne</code> is always false when &ldquo;from token&rdquo; is greater than &ldquo;to token&rdquo;.</p><blockquote><p>Addresses are hashes, and hashes are numbers, so we can say &ldquo;less than&rdquo; or &ldquo;greater that&rdquo; when comparing addresses.</p></blockquote></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(n){const e=window.getSelection(),t=document.createRange();t.selectNodeContents(n),e.removeAllRanges(),e.addRange(t)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#factory-contract>Factory Contract</a><ul><li><a href=#create-and-create2-opcodes><code>CREATE</code> and <code>CREATE2</code> Opcodes</a></li><li><a href=#tick-spacing>Tick Spacing</a></li><li><a href=#factory-implementation>Factory Implementation</a></li><li><a href=#pool-initialization>Pool Initialization</a></li><li><a href=#pooladdress-library><code>PoolAddress</code> Library</a></li><li><a href=#simplified-interfaces-of-manager-and-quoter>Simplified Interfaces of Manager and Quoter</a></li></ul></li></ul></nav></div></aside></main></body></html>
