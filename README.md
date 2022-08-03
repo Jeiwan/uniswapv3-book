@@ -30,9 +30,10 @@
 1. ~~Update 'Add Liquidity' interface~~
 
 ### Milestone 4: Multi-pool Swaps
-1. Factory, theory
-1. Deploying via Factory
-1. Using Factory everywhere (Manager, Quoter, UI)
+1. ~~Factory, theory~~
+1. ~~Deploying via Factory~~
+1. ~~Using Factory everywhere (Manager, Quoter, UI)~~
+1. Path library
 1. Chained swaps
 1. Auto Router (simple implementation, DFS maybe).
 1. Front end: allow to create pairs via the UI
