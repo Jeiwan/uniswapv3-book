@@ -17,10 +17,11 @@ these tokens is not possible. This is not so in Uniswap since it allows multi-po
 to add multi-pool swaps to our implementation. Here's the plan:
 
 1. First, we'll learn about and implement Factory contract.
-2. Then, we'll see how chained or multi-pool swaps work and implement Path library.
-3. Then, we'll update the front-end app to support multi-pool swaps. At this step we'll implement a basic router that
+1. Then, we'll see how chained or multi-pool swaps work and implement Path library.
+1. Then, we'll update the front-end app to support multi-pool swaps. At this step we'll implement a basic router that
 finds a path between two tokens.
-4. After finishing this chapter, our implementation will be able to handle multi-pool swaps, for example, swapping WBTC
+1. Along the way, we'll also learn about tick spacing which is a way of optimizing swaps.
+1. After finishing this chapter, our implementation will be able to handle multi-pool swaps, for example, swapping WBTC
 for WETH via different stablecoins: WETH → USDC → USDT → WBTC.
 
 Let's begin!
