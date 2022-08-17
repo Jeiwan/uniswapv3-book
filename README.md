@@ -44,7 +44,6 @@
 1. Collecting fees
 1. Withdrawing fees
 1. Removing liquidity (burn)
-1. Protocol fees
 1. Overview of the price oracle in Uniswap V3
 1. Implementation in Pool contract
 1. Front end: allow to add/remove liquidity through the UI
@@ -55,4 +54,5 @@
 1. Overview and implementation of flash loans
 1. Implementing NFT position manager (wrapping positions in NFTs)
 1. Overview of NFTSVG contract (as a home work maybe)
+1. Protocol fees
 1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
