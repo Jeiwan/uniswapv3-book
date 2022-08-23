@@ -40,10 +40,10 @@
 1. ~~Tick Rounding~~
 
 ### Milestone 5: Fees and price oracle
-1. Trading fees, theory
-1. Collecting fees
-1. Withdrawing fees
-1. Removing liquidity (burn)
+1. ~~Trading fees, theory~~
+1. ~~Collecting fees~~
+1. ~~Withdrawing fees~~
+1. ~~Removing liquidity (burn)~~
 1. Overview of the price oracle in Uniswap V3
 1. Implementation in Pool contract
 1. Front end: allow to add/remove liquidity through the UI
