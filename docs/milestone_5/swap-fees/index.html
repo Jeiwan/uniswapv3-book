@@ -1,0 +1,388 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="function renderKatex(element) { renderMathInElement(document.body, { delimiters: [ { left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }, { left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true } ], throwOnError: false }); }    \[ \]  Swap Fees #  As a mentioned in the introduction, swap fees is a core mechanism of Uniswap. Liquidity providers need to get paid for the liquidity they provide, otherwise they&rsquo;ll just use it somewhere else."><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="Swap Fees"><meta property="og:description" content="function renderKatex(element) { renderMathInElement(document.body, { delimiters: [ { left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }, { left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true } ], throwOnError: false }); }    \[ \]  Swap Fees #  As a mentioned in the introduction, swap fees is a core mechanism of Uniswap. Liquidity providers need to get paid for the liquidity they provide, otherwise they&rsquo;ll just use it somewhere else."><meta property="og:type" content="article"><meta property="og:url" content="https://uniswapv3book.com/docs/milestone_5/swap-fees/"><meta property="article:section" content="docs"><title>Swap Fees | Uniswap V3 Development Book</title><link rel=manifest href=/manifest.json><link rel=icon href=/favicon.png type=image/x-icon><link rel=stylesheet href=/book.min.82c5dbd23447cee0b4c2aa3ed08ce0961faa40e1fa370eee4f8c9f02e0d46b5f.css integrity="sha256-gsXb0jRHzuC0wqo+0Izglh+qQOH6Nw7uT4yfAuDUa18=" crossorigin=anonymous><script defer src=/flexsearch.min.js></script>
+<script defer src=/en.search.min.2aa7b8055cf0b2ac4aab58ca4aaddc32cb89572d03c4e573d4aced06e67dfd03.js integrity="sha256-Kqe4BVzwsqxKq1jKSq3cMsuJVy0DxOVz1KztBuZ9/QM=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/><span>Uniswap V3 Development Book</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li class=book-section-flat><span>Milestone 0</span><ul><li><a href=/docs/introduction/amm/>Introduction to markets</a></li><li><a href=/docs/introduction/cfmm/>Constant Function Market Makers</a></li><li><a href=/docs/introduction/uniswap-v3/>Uniswap V3</a></li><li><a href=/docs/introduction/dev-environment/>Development Environment</a></li></ul></li><li class=book-section-flat><span>Milestone 1. First Swap</span><ul><li><a href=/docs/milestone_1/introduction/>Introduction</a></li><li><a href=/docs/milestone_1/calculating-liquidity/>Calculating Liquidity</a></li><li><a href=/docs/milestone_1/providing-liquidity/>Providing Liquidity</a></li><li><a href=/docs/milestone_1/first-swap/>First Swap</a></li><li><a href=/docs/milestone_1/manager-contract/>Manager Contract</a></li><li><a href=/docs/milestone_1/deployment/>Deployment</a></li><li><a href=/docs/milestone_1/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 2. Second Swap</span><ul><li><a href=/docs/milestone_2/introduction/>Introduction</a></li><li><a href=/docs/milestone_2/output-amount-calculation/>Output Amount Calculation</a></li><li><a href=/docs/milestone_2/math-in-solidity/>Math in Solidity</a></li><li><a href=/docs/milestone_2/tick-bitmap-index/>Tick Bitmap Index</a></li><li><a href=/docs/milestone_2/generalize-minting/>Generalize Minting</a></li><li><a href=/docs/milestone_2/generalize-swapping/>Generalize Swapping</a></li><li><a href=/docs/milestone_2/quoter-contract/>Quoter Contract</a></li><li><a href=/docs/milestone_2/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 3. Cross-tick Swaps</span><ul><li><a href=/docs/milestone_3/introduction/>Introduction</a></li><li><a href=/docs/milestone_3/different-ranges/>Different Price Ranges</a></li><li><a href=/docs/milestone_3/cross-tick-swaps/>Cross-Tick Swaps</a></li><li><a href=/docs/milestone_3/slippage-protection/>Slippage Protection</a></li><li><a href=/docs/milestone_3/liquidity-calculation/>Liquidity Calculation</a></li><li><a href=/docs/milestone_3/more-on-fixed-point-numbers/>A Little Bit More on Fixed-point Numbers</a></li><li><a href=/docs/milestone_3/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 4. Multi-pool Swaps</span><ul><li><a href=/docs/milestone_4/introduction/>Introduction</a></li><li><a href=/docs/milestone_4/factory-contract/>Factory Contract</a></li><li><a href=/docs/milestone_4/path/>Swap Path</a></li><li><a href=/docs/milestone_4/multi-pool-swaps/>Multi-pool Swaps</a></li><li><a href=/docs/milestone_4/user-interface/>User Interface</a></li><li><a href=/docs/milestone_4/tick-rounding/>Tick Rounding</a></li></ul></li><li class=book-section-flat><span>Milestone 5. Fees and Price Oracle</span><ul><li><a href=/docs/milestone_5/introduction/>Introduction</a></li><li><a href=/docs/milestone_5/swap-fees/ class=active>Swap Fees</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/svg/menu.svg class=book-icon alt=Menu></label>
+<strong>Swap Fees</strong>
+<label for=toc-control><img src=/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#swap-fees>Swap Fees</a><ul><li><a href=#how-swap-fees-are-collected>How Swap Fees are Collected</a></li><li><a href=#calculating-position-accumulated-fees>Calculating Position Accumulated Fees</a></li><li><a href=#collecting-fees-on-swaps>Collecting Fees on Swaps</a><ul><li><a href=#adding-required-state-variables>Adding Required State Variables</a></li><li><a href=#collecting-fees>Collecting Fees</a></li><li><a href=#updating-fee-trackers-in-ticks>Updating Fee Trackers in Ticks</a></li><li><a href=#updating-global-fee-trackers>Updating Global Fee Trackers</a></li></ul></li><li><a href=#fee-tracking-in-positions-management>Fee Tracking in Positions Management</a><ul><li><a href=#initialization-of-fee-trackers-in-ticks>Initialization of Fee Trackers in Ticks</a></li><li><a href=#updating-position-fees-and-token-amounts>Updating Position Fees and Token Amounts</a></li></ul></li><li><a href=#removing-liquidity>Removing Liquidity</a><ul><li><a href=#burning-liquidity>Burning Liquidity</a></li></ul></li></ul></li></ul></nav></aside></header><article class=markdown><link rel=stylesheet href=/katex/katex.min.css><script>function renderKatex(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}],throwOnError:!1})}</script><script defer src=/katex/katex.min.js></script>
+<script defer src=/katex/auto-render.min.js onload=renderKatex(document.body)></script><span>
+\[ \]</span><h1 id=swap-fees>Swap Fees
+<a class=anchor href=#swap-fees>#</a></h1><p>As a mentioned in the introduction, swap fees is a core mechanism of Uniswap. Liquidity providers need to get paid for
+the liquidity they provide, otherwise they&rsquo;ll just use it somewhere else. To incentivize them, trades pay a small fee
+during each swap. These fees then distributed among all liquidity providers pro rata (proportionally to their share).</p><p>To better understand the mechanism of fees collection and distribution, let&rsquo;s see how they flow.</p><h2 id=how-swap-fees-are-collected>How Swap Fees are Collected
+<a class=anchor href=#how-swap-fees-are-collected>#</a></h2><p>[TODO: illustrate]</p><p>Swap fees are collected only when a price range is engaged (used in trades). So we need to track the moments when price
+range boundaries get crossed. This is when a price range gets engaged and this is when we want to start collecting
+fees for it:</p><ol><li>when price is increasing and a tick is crossed from left to right;</li><li>when price is decreasing and a tick is crossed from right to left.</li></ol><p>This is when a price range gets disengaged:</p><ol><li>when price is increasing and a tick is crossed from right to left;</li><li>when price is decreasing and a tick is crossed from left to right.</li></ol><p>[TODO: illustrate]</p><p>Besides knowing when a price range gets engaged/disengaged, we also want to keep track of how much fees each price
+range accumulated.</p><p>To make fees accounting simpler, Uniswap V3 tracks <strong>the global fees generated by 1 unit of liquidity</strong>. Price range
+fees are then calculated based on the global ones: fees accumulated outside of a price range are subtracted from the
+global fees. Fees accumulated outside of a price range are tracked when a tick is crossed (and ticks are crossed when
+swaps move the price; fees are collected during swaps). With this approach, we don&rsquo;t need to update fees accumulated
+by each position on very swap–this allows to save a lot of gas and make interaction with pools cheaper.</p><p>Let&rsquo;s recap so we have a clear picture before moving on:</p><ol><li>Fees are paid by users who swap tokens. A small amount is subtracted from input token and accumulated on pool&rsquo;s
+balance.</li><li>Each pool has <code>feeGrowthGlobal0X128</code> and <code>feeGrowthGlobal1X128</code> state variables that track total accumulated fees per
+unit of liquidity (that is, fee amount divided by pool&rsquo;s liquidity).</li><li>Notice that at this point actual positions are not updated to optimize gas usage.</li><li>Ticks keep record of fees accumulated outside of them. When adding a new position and activating a tick (adding
+liquidity to a previously empty tick), the tick records how much fees were accumulated outside of it (by convention,
+we assume all fees were accumulated <strong>below the tick</strong>).</li><li>Whenever a tick is activated, fees accumulated outside of the tick are updated as the difference between global fees
+accumulated outside of the tick and the fees accumulated outside of the tick since the last time it was crossed.</li><li>Having ticks that know how much fees were accumulated outside of them will allow us to calculated how much fees were
+accumulated inside of a position (position is a range between two ticks).</li><li>Knowing how much fees were accumulated inside a position will allow us to calculate the shares of fees liquidity
+providers are eligible for. If a position wasn&rsquo;t involved in swapping, it&rsquo;ll have zero fees accumulated inside of it and
+the liquidity providers who provided liquidity into this range will have no profits from it.</li></ol><p>Now, let&rsquo;s see how to calculate fees accumulated by a position (step 6).</p><h2 id=calculating-position-accumulated-fees>Calculating Position Accumulated Fees
+<a class=anchor href=#calculating-position-accumulated-fees>#</a></h2><p>To calculated total fees accumulated by a position, we need to consider two cases: when current price is inside the
+position and when it&rsquo;s outside of the position. In both cases, we subtract fees collected outside of the lower and the
+upper ticks of the position from fees collected globally. However, we calculate those fees differently depending on
+current price.</p><p>When current price is inside the position, we subtract the fees that have been collected outside of ticks by this moment:</p><p>[TODO: illustrate]</p><p>When current price is outside of the position, we need to update fees collected by either upper or lower ticks before
+subtracting them from fees collecting globally. We update them only for the calculations and don&rsquo;t overwrite them in
+ticks because the ticks don&rsquo;t get crossed.</p><p>This is how we update fees collected outside of a tick:</p><p>$$f_{o}(i) = f_{g} - f_{o}(i)$$</p><p>Fees collected outside of a tick ($f_{o}(i)$) is the difference between fees collected globally ($f_{g}$) and fees
+collected outside of the tick when it crossed last time. We kind of reset the counter when a tick is crossed.</p><p>To calculate fees collected inside a position:</p><p>$$f_{r} = f_{g} - f_{b}(i_{l}) - f_{a}(i_{u})$$</p><p>We subtract fees collected below its lower tick ($f_{b}(i_{l})$) and above its upper tick ($f_{a}(i_{u})$) from fees
+collected globally outside of the range ($f_{g}$). This is what we saw on the illustration above.</p><p>Now, when current price is above the lower tick (i.e. the position is engaged), we don&rsquo;t need to update fees accumulated
+below the lower tick and can simply take them from the lower tick. The same is true for fees collected outside of the
+upper tick when current price is below upper tick. In the two other cases, we need to consider updated fees:</p><ol><li>when taking fees collected below the lower tick and current price is also below the tick (the lower tick hasn&rsquo;t been
+crossed recently);</li><li>when taking fees above the upper tick and current price is also above the tick (the upper tick hasn&rsquo;t been crossed
+recently).</li></ol><p>I hope this all is not too confusing. Luckily, we now know everything to start coding!</p><h2 id=collecting-fees-on-swaps>Collecting Fees on Swaps
+<a class=anchor href=#collecting-fees-on-swaps>#</a></h2><p>To keep it simple, we&rsquo;ll add fees to our codebase step by step. And we&rsquo;ll begin with fees collection.</p><h3 id=adding-required-state-variables>Adding Required State Variables
+<a class=anchor href=#adding-required-state-variables>#</a></h3><p>First thing we need to do is to add the fee amount parameter to Pool–every pool will have a fixed, immutable, fee
+configured during deployment. In the previous chapter, we added Factory contract that unified and simplified pools
+deployment. One of the required pool parameters was tick spacing. Now, we&rsquo;re going to replace it with fee amount and
+we&rsquo;ll tie fee amounts to tick spacing: the bigger the fee amount, the larger the tick spacing. This is so that low
+volatility pools (stablecoin ones) have lower fees.</p><p>Let&rsquo;s update Factory:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Factory.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Factory</span> <span style=color:#66d9ef>is</span> IUniswapV3PoolDeployer {
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>uint24</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>uint24</span>) <span style=color:#66d9ef>public</span> fees; <span style=color:#75715e>// `tickSpacings` replaced by `fees`
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>        fees[<span style=color:#ae81ff>500</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>10</span>;
+</span></span><span style=display:flex><span>        fees[<span style=color:#ae81ff>3000</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>60</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>createPool</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> tokenX,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> tokenY,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint24</span> fee
+</span></span><span style=display:flex><span>    ) <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>address</span> pool) {
+</span></span><span style=display:flex><span>        ...
+</span></span><span style=display:flex><span>        parameters <span style=color:#f92672>=</span> PoolParameters({
+</span></span><span style=display:flex><span>            factory<span style=color:#f92672>:</span> <span style=color:#66d9ef>address</span>(this),
+</span></span><span style=display:flex><span>            token0<span style=color:#f92672>:</span> tokenX,
+</span></span><span style=display:flex><span>            token1<span style=color:#f92672>:</span> tokenY,
+</span></span><span style=display:flex><span>            tickSpacing<span style=color:#f92672>:</span> fees[fee],
+</span></span><span style=display:flex><span>            fee<span style=color:#f92672>:</span> fee
+</span></span><span style=display:flex><span>        });
+</span></span><span style=display:flex><span>        ...
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Fee amounts are hundredths of a basis point. That is, 1 fee unit is 0.0001%, 500 is 0.05%, and 3000 is 0.3%.</p><p>Next step is to start accumulating fees in Pool. For that, we&rsquo;ll add two global fee accumulator variables:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Pool.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>contract</span> <span style=color:#a6e22e>UniswapV3Pool</span> <span style=color:#66d9ef>is</span> IUniswapV3Pool {
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint24</span> <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>immutable</span> fee;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> <span style=color:#66d9ef>public</span> feeGrowthGlobal0X128;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> <span style=color:#66d9ef>public</span> feeGrowthGlobal1X128;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The one with index 0 tracks fees accumulated in <code>token0</code>, the one with index 1 tracks fees accumulated in <code>token1</code>.</p><h3 id=collecting-fees>Collecting Fees
+<a class=anchor href=#collecting-fees>#</a></h3><p>Now we need to update <code>SwapMath.computeSwapStep</code>–this is where we calculate swap amounts and this is also where
+we&rsquo;ll calculate and subtract swap fees. In the function, we replace all occurrences of <code>amountRemaining</code> with
+<code>amountRemainingLessFee</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>uint256</span> amountRemainingLessFee <span style=color:#f92672>=</span> PRBMath.mulDiv(
+</span></span><span style=display:flex><span>    amountRemaining,
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>1</span>e6 <span style=color:#f92672>-</span> fee,
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>1</span>e6
+</span></span><span style=display:flex><span>);
+</span></span></code></pre></div><p>Thus, we subtract the fee from input token amount and calculate output amount from a smaller input amount.</p><p>The function now also returns the fee amount collected during the step–it&rsquo;s calculated differently depending on whether
+the upper limit of the range was reached or not:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>bool</span> max <span style=color:#f92672>=</span> sqrtPriceNextX96 <span style=color:#f92672>==</span> sqrtPriceTargetX96;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>max) {
+</span></span><span style=display:flex><span>    feeAmount <span style=color:#f92672>=</span> amountRemaining <span style=color:#f92672>-</span> amountIn;
+</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>    feeAmount <span style=color:#f92672>=</span> Math.mulDivRoundingUp(amountIn, fee, <span style=color:#ae81ff>1</span>e6 <span style=color:#f92672>-</span> fee);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>When it&rsquo;s not reached, the current price range has enough liquidity to fulfill the swap, thus we simply return the
+difference between the amount we needed to fulfill and the actual amount fulfilled. Notice that <code>amountRemainingLessFee</code>
+is not involved here since the actual final amount was calculated in <code>amountIn</code> (it&rsquo;s calculated from actual liquidity).</p><p>When the target price is reached, we cannot subtract fees from the entire <code>amountRemaining</code> because the current price
+range doesn&rsquo;t have enough liquidity to fulfill the swap. Thus, fee amount is subtracted from the amount the current
+price range has fulfilled (<code>amountIn</code>).</p><p>After <code>SwapMath.computeSwapStep</code> has returned, we need to update fees accumulated by the swap. Notice that there&rsquo;s only
+one variable to track them because, when staring a swap, we already know the input token:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>SwapState <span style=color:#66d9ef>memory</span> state <span style=color:#f92672>=</span> SwapState({
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    feeGrowthGlobalX128<span style=color:#f92672>:</span> zeroForOne
+</span></span><span style=display:flex><span>        <span style=color:#f92672>?</span> feeGrowthGlobal0X128
+</span></span><span style=display:flex><span>        <span style=color:#f92672>:</span> feeGrowthGlobal1X128
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(...) <span style=color:#f92672>=</span> SwapMath.computeSwapStep(...);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>state.feeGrowthGlobalX128 <span style=color:#f92672>+=</span> PRBMath.mulDiv(
+</span></span><span style=display:flex><span>    step.feeAmount,
+</span></span><span style=display:flex><span>    FixedPoint128.Q128,
+</span></span><span style=display:flex><span>    state.liquidity
+</span></span><span style=display:flex><span>);
+</span></span></code></pre></div><p>This is where adjust collected fees by the amount of liquidity to later distribute fees among liquidity providers in a
+fair way.</p><h3 id=updating-fee-trackers-in-ticks>Updating Fee Trackers in Ticks
+<a class=anchor href=#updating-fee-trackers-in-ticks>#</a></h3><p>Next, we need to update the fee trackers in a tick, if it was crossed during a swap (crossing a tick means we&rsquo;re entering
+a new price range):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>if</span> (state.sqrtPriceX96 <span style=color:#f92672>==</span> step.sqrtPriceNextX96) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int128</span> liquidityDelta <span style=color:#f92672>=</span> ticks.cross(
+</span></span><span style=display:flex><span>        step.nextTick,
+</span></span><span style=display:flex><span>        (
+</span></span><span style=display:flex><span>            zeroForOne
+</span></span><span style=display:flex><span>                <span style=color:#f92672>?</span> state.feeGrowthGlobalX128
+</span></span><span style=display:flex><span>                <span style=color:#f92672>:</span> feeGrowthGlobal0X128
+</span></span><span style=display:flex><span>        ),
+</span></span><span style=display:flex><span>        (
+</span></span><span style=display:flex><span>            zeroForOne
+</span></span><span style=display:flex><span>                <span style=color:#f92672>?</span> feeGrowthGlobal1X128
+</span></span><span style=display:flex><span>                <span style=color:#f92672>:</span> state.feeGrowthGlobalX128
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Since we haven&rsquo;t yet updated <code>feeGrowthGlobal0X128/feeGrowthGlobal1X128</code> state variables at this moment, we pass
+<code>state.feeGrowthGlobalX128</code> as either of the fee parameters depending on swap direction. <code>cross</code> function updates the
+fee trackers according to the logic we discussed above:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/Tick.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>cross</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>int24</span> <span style=color:#f92672>=&gt;</span> Tick.Info) <span style=color:#66d9ef>storage</span> self,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> tick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthGlobal0X128,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthGlobal1X128
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>int128</span> liquidityDelta) {
+</span></span><span style=display:flex><span>    Tick.Info <span style=color:#66d9ef>storage</span> info <span style=color:#f92672>=</span> self[tick];
+</span></span><span style=display:flex><span>    info.feeGrowthOutside0X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        feeGrowthGlobal0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>        info.feeGrowthOutside0X128;
+</span></span><span style=display:flex><span>    info.feeGrowthOutside1X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        feeGrowthGlobal1X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>        info.feeGrowthOutside1X128;
+</span></span><span style=display:flex><span>    liquidityDelta <span style=color:#f92672>=</span> info.liquidityNet;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><blockquote><p>We haven&rsquo;t added the initialization of <code>feeGrowthOutside0X128/feeGrowthOutside1X128</code> variables–we&rsquo;ll do this in a later
+step.</p></blockquote><h3 id=updating-global-fee-trackers>Updating Global Fee Trackers
+<a class=anchor href=#updating-global-fee-trackers>#</a></h3><p>And, finally, after the swap is fulfilled, we can update the global fee trackers:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>if</span> (zeroForOne) {
+</span></span><span style=display:flex><span>    feeGrowthGlobal0X128 <span style=color:#f92672>=</span> state.feeGrowthGlobalX128;
+</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>    feeGrowthGlobal1X128 <span style=color:#f92672>=</span> state.feeGrowthGlobalX128;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Again, during a swap, only one of them is updated because fees are taken from the input token, which is either of <code>token0</code>
+or <code>token1</code> depending on swap direction.</p><p>That&rsquo;s it for swapping! Let&rsquo;s now see what happens to fees when liquidity is added.</p><h2 id=fee-tracking-in-positions-management>Fee Tracking in Positions Management
+<a class=anchor href=#fee-tracking-in-positions-management>#</a></h2><p>When adding or removing liquidity (we haven&rsquo;t implemented the latter yet), we also need to initialize or update fees.
+Fees need to be tracked both in ticks (fees accumulated outside of ticks) and positions (fees accumulated inside of
+positions). In case of positions, we also need to keep track of and update the amounts of tokens collected as fees–or
+in other words, we convert fees per liquidity to token amounts. The latter is needed so that when a liquidity provider
+removes liquidity, they get extra tokens collected as swap fees.</p><p>Let&rsquo;s do it step by step again.</p><h3 id=initialization-of-fee-trackers-in-ticks>Initialization of Fee Trackers in Ticks
+<a class=anchor href=#initialization-of-fee-trackers-in-ticks>#</a></h3><p>In <code>Tick.update</code> function, whenever a tick is initialized (adding liquidity to a previously empty tick), we initialize
+its fee trackers. However, we&rsquo;re only doing so when the tick is below current price, i.e. when it&rsquo;s inside of the current
+price range:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/Tick.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>update</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>int24</span> <span style=color:#f92672>=&gt;</span> Tick.Info) <span style=color:#66d9ef>storage</span> self,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> tick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> currentTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int128</span> liquidityDelta,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthGlobal0X128,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthGlobal1X128,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bool</span> upper
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>bool</span> flipped) {
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (liquidityBefore <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// by convention, assume that all previous fees were collected below
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>// the tick
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>if</span> (tick <span style=color:#f92672>&lt;=</span> currentTick) {
+</span></span><span style=display:flex><span>            tickInfo.feeGrowthOutside0X128 <span style=color:#f92672>=</span> feeGrowthGlobal0X128;
+</span></span><span style=display:flex><span>            tickInfo.feeGrowthOutside1X128 <span style=color:#f92672>=</span> feeGrowthGlobal1X128;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        tickInfo.initialized <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>If it&rsquo;s not inside of the current price range, its fee trackers will be 0 and they&rsquo;ll be update when the tick is crossed
+next time.</p><h3 id=updating-position-fees-and-token-amounts>Updating Position Fees and Token Amounts
+<a class=anchor href=#updating-position-fees-and-token-amounts>#</a></h3><p>Next step is to calculate the fees and tokens accumulated by a position. Since a position is a range between two ticks,
+we&rsquo;ll calculated these values using the fee trackers we added to ticks on the previous step. The next function might
+look messy, but it&rsquo;s implements the exact price range fee formulas we saw earlier:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/Tick.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getFeeGrowthInside</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mapping</span>(<span style=color:#66d9ef>int24</span> <span style=color:#f92672>=&gt;</span> Tick.Info) <span style=color:#66d9ef>storage</span> self,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick_,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick_,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> currentTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthGlobal0X128,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthGlobal1X128
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>internal</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>view</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>uint256</span> feeGrowthInside0X128, <span style=color:#66d9ef>uint256</span> feeGrowthInside1X128)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    Tick.Info <span style=color:#66d9ef>storage</span> lowerTick <span style=color:#f92672>=</span> self[lowerTick_];
+</span></span><span style=display:flex><span>    Tick.Info <span style=color:#66d9ef>storage</span> upperTick <span style=color:#f92672>=</span> self[upperTick_];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthBelow0X128;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthBelow1X128;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (currentTick <span style=color:#f92672>&gt;=</span> lowerTick_) {
+</span></span><span style=display:flex><span>        feeGrowthBelow0X128 <span style=color:#f92672>=</span> lowerTick.feeGrowthOutside0X128;
+</span></span><span style=display:flex><span>        feeGrowthBelow1X128 <span style=color:#f92672>=</span> lowerTick.feeGrowthOutside1X128;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        feeGrowthBelow0X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>            feeGrowthGlobal0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>            lowerTick.feeGrowthOutside0X128;
+</span></span><span style=display:flex><span>        feeGrowthBelow1X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>            feeGrowthGlobal0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>            lowerTick.feeGrowthOutside1X128;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthAbove0X128;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthAbove1X128;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (currentTick <span style=color:#f92672>&lt;</span> upperTick_) {
+</span></span><span style=display:flex><span>        feeGrowthAbove0X128 <span style=color:#f92672>=</span> upperTick.feeGrowthOutside0X128;
+</span></span><span style=display:flex><span>        feeGrowthAbove1X128 <span style=color:#f92672>=</span> upperTick.feeGrowthOutside1X128;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        feeGrowthAbove0X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>            feeGrowthGlobal0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>            upperTick.feeGrowthOutside0X128;
+</span></span><span style=display:flex><span>        feeGrowthAbove1X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>            feeGrowthGlobal0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>            upperTick.feeGrowthOutside1X128;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    feeGrowthInside0X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        feeGrowthGlobal0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>        feeGrowthBelow0X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>        feeGrowthAbove0X128;
+</span></span><span style=display:flex><span>    feeGrowthInside1X128 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        feeGrowthGlobal1X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>        feeGrowthBelow1X128 <span style=color:#f92672>-</span>
+</span></span><span style=display:flex><span>        feeGrowthAbove1X128;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Here, we&rsquo;re calculating fees accumulated between two ticks (inside a price range). For this, we first calculate fees
+accumulated below the lower tick and then fees calculated above the upper tick. In the end, we subtract those fees from
+the globally accumulated ones. This is the formula we saw earlier:</p><p>$$f_{r} = f_{g} - f_{b}(i_{l}) - f_{a}(i_{u})$$</p><p>After finding the fees accumulated inside of a position, we&rsquo;re ready to update fee and token amounts trackers of the
+position:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/lib/Position.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>update</span>(
+</span></span><span style=display:flex><span>    Info <span style=color:#66d9ef>storage</span> self,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int128</span> liquidityDelta,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthInside0X128,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> feeGrowthInside1X128
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> tokensOwed0 <span style=color:#f92672>=</span> <span style=color:#66d9ef>uint128</span>(
+</span></span><span style=display:flex><span>        PRBMath.mulDiv(
+</span></span><span style=display:flex><span>            feeGrowthInside0X128 <span style=color:#f92672>-</span> self.feeGrowthInside0LastX128,
+</span></span><span style=display:flex><span>            self.liquidity,
+</span></span><span style=display:flex><span>            FixedPoint128.Q128
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> tokensOwed1 <span style=color:#f92672>=</span> <span style=color:#66d9ef>uint128</span>(
+</span></span><span style=display:flex><span>        PRBMath.mulDiv(
+</span></span><span style=display:flex><span>            feeGrowthInside1X128 <span style=color:#f92672>-</span> self.feeGrowthInside1LastX128,
+</span></span><span style=display:flex><span>            self.liquidity,
+</span></span><span style=display:flex><span>            FixedPoint128.Q128
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    self.liquidity <span style=color:#f92672>=</span> LiquidityMath.addLiquidity(
+</span></span><span style=display:flex><span>        self.liquidity,
+</span></span><span style=display:flex><span>        liquidityDelta
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    self.feeGrowthInside0LastX128 <span style=color:#f92672>=</span> feeGrowthInside0X128;
+</span></span><span style=display:flex><span>    self.feeGrowthInside1LastX128 <span style=color:#f92672>=</span> feeGrowthInside1X128;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (tokensOwed0 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> tokensOwed1 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        self.tokensOwed0 <span style=color:#f92672>+=</span> tokensOwed0;
+</span></span><span style=display:flex><span>        self.tokensOwed1 <span style=color:#f92672>+=</span> tokensOwed1;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>When calculating owed tokens, we multiply fees accumulated by the position by liquidity–the reverse of what we did
+during swapping. In the end, we update the fee trackers and add the token amounts to the previously tracked ones.</p><p>Now, whenever a position is modified (during addition or removal of liquidity), we calculate fees collected by a
+position and update the position:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#75715e>// src/UniswapV3Pool.sol
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>mint</span>(...) {
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bool</span> flippedLower <span style=color:#f92672>=</span> ticks.update(params.lowerTick, ...);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bool</span> flippedUpper <span style=color:#f92672>=</span> ticks.update(params.upperTick, ...);
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>    (<span style=color:#66d9ef>uint256</span> feeGrowthInside0X128, <span style=color:#66d9ef>uint256</span> feeGrowthInside1X128) <span style=color:#f92672>=</span> ticks
+</span></span><span style=display:flex><span>        .getFeeGrowthInside(
+</span></span><span style=display:flex><span>            params.lowerTick,
+</span></span><span style=display:flex><span>            params.upperTick,
+</span></span><span style=display:flex><span>            slot0_.tick,
+</span></span><span style=display:flex><span>            feeGrowthGlobal0X128_,
+</span></span><span style=display:flex><span>            feeGrowthGlobal1X128_
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    position.update(
+</span></span><span style=display:flex><span>        params.liquidityDelta,
+</span></span><span style=display:flex><span>        feeGrowthInside0X128,
+</span></span><span style=display:flex><span>        feeGrowthInside1X128
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=removing-liquidity>Removing Liquidity
+<a class=anchor href=#removing-liquidity>#</a></h2><p>We&rsquo;re now ready to add the only core feature we haven&rsquo;t implemented yet–removal of liquidity. As opposed to minting,
+we&rsquo;ll call this function <code>burn</code>. This is the function that will let liquidity providers remove a fraction of or whole
+liquidity from a position they previously added liquidity to. In addition to that, it&rsquo;ll also calculate the fee tokens
+liquidity providers are eligible for. However, actual transferring of tokens will be done in a separate function–
+<code>collect</code>.</p><h3 id=burning-liquidity>Burning Liquidity
+<a class=anchor href=#burning-liquidity>#</a></h3><p>Burning liquidity is opposed to minting. Our current design and implementation makes it a hassle-free task: burning
+liquidity is simply minting with the negative sign. It&rsquo;s like adding a negative amount of liquidity.</p><blockquote><p>To implement <code>burn</code>, I needed to refactor the code and extract everything related to position management (updating
+ticks and position, and token amounts calculation) into <code>_modifyPosition</code> function, which is used by both <code>mint</code> and
+<code>burn</code> function.</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>burn</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> amount
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>uint256</span> amount0, <span style=color:#66d9ef>uint256</span> amount1) {
+</span></span><span style=display:flex><span>    (
+</span></span><span style=display:flex><span>        Position.Info <span style=color:#66d9ef>storage</span> position,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int256</span> amount0Int,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int256</span> amount1Int
+</span></span><span style=display:flex><span>    ) <span style=color:#f92672>=</span> _modifyPosition(
+</span></span><span style=display:flex><span>            ModifyPositionParams({
+</span></span><span style=display:flex><span>                owner<span style=color:#f92672>:</span> msg.sender,
+</span></span><span style=display:flex><span>                lowerTick<span style=color:#f92672>:</span> lowerTick,
+</span></span><span style=display:flex><span>                upperTick<span style=color:#f92672>:</span> upperTick,
+</span></span><span style=display:flex><span>                liquidityDelta<span style=color:#f92672>:</span> <span style=color:#f92672>-</span>(<span style=color:#66d9ef>int128</span>(amount))
+</span></span><span style=display:flex><span>            })
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    amount0 <span style=color:#f92672>=</span> <span style=color:#66d9ef>uint256</span>(<span style=color:#f92672>-</span>amount0Int);
+</span></span><span style=display:flex><span>    amount1 <span style=color:#f92672>=</span> <span style=color:#66d9ef>uint256</span>(<span style=color:#f92672>-</span>amount1Int);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (amount0 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> amount1 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        (position.tokensOwed0, position.tokensOwed1) <span style=color:#f92672>=</span> (
+</span></span><span style=display:flex><span>            position.tokensOwed0 <span style=color:#f92672>+</span> <span style=color:#66d9ef>uint128</span>(amount0),
+</span></span><span style=display:flex><span>            position.tokensOwed1 <span style=color:#f92672>+</span> <span style=color:#66d9ef>uint128</span>(amount1)
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    emit Burn(msg.sender, lowerTick, upperTick, amount, amount0, amount1);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>In <code>burn</code> function, we first update a position and remove some amount of liquidity from it. Then, we update the token
+amount owed by the position–they now include amounts accumulated via fees as well as amounts that were previously
+provided as liquidity. We can also see this as conversion of position liquidity into token amounts owed by the position–
+these amounts won&rsquo;t be used as liquidity anymore and can be freely redeemed by calling <code>collect</code> function.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>collect</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>address</span> recipient,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> amount0Requested,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint128</span> amount1Requested
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>uint128</span> amount0, <span style=color:#66d9ef>uint128</span> amount1) {
+</span></span><span style=display:flex><span>    Position.Info <span style=color:#66d9ef>memory</span> position <span style=color:#f92672>=</span> positions.get(
+</span></span><span style=display:flex><span>        msg.sender,
+</span></span><span style=display:flex><span>        lowerTick,
+</span></span><span style=display:flex><span>        upperTick
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    amount0 <span style=color:#f92672>=</span> amount0Requested <span style=color:#f92672>&gt;</span> position.tokensOwed0
+</span></span><span style=display:flex><span>        <span style=color:#f92672>?</span> position.tokensOwed0
+</span></span><span style=display:flex><span>        <span style=color:#f92672>:</span> amount0Requested;
+</span></span><span style=display:flex><span>    amount1 <span style=color:#f92672>=</span> amount1Requested <span style=color:#f92672>&gt;</span> position.tokensOwed1
+</span></span><span style=display:flex><span>        <span style=color:#f92672>?</span> position.tokensOwed1
+</span></span><span style=display:flex><span>        <span style=color:#f92672>:</span> amount1Requested;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (amount0 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        position.tokensOwed0 <span style=color:#f92672>-=</span> amount0;
+</span></span><span style=display:flex><span>        IERC20(token0).transfer(recipient, amount0);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (amount1 <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        position.tokensOwed1 <span style=color:#f92672>-=</span> amount1;
+</span></span><span style=display:flex><span>        IERC20(token1).transfer(recipient, amount1);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    emit Collect(
+</span></span><span style=display:flex><span>        msg.sender,
+</span></span><span style=display:flex><span>        recipient,
+</span></span><span style=display:flex><span>        lowerTick,
+</span></span><span style=display:flex><span>        upperTick,
+</span></span><span style=display:flex><span>        amount0,
+</span></span><span style=display:flex><span>        amount1
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>This function simply transfers tokens from a pool and ensures that only valid amounts can be transferred (one cannot
+transfer out more than they burned + fees).</p><p>There&rsquo;s also a way to collect fees only without burning liquidity: burn 0 amount of liquidity and then call <code>collect</code>.
+During burning, the position will be updated and token amounts it owes will be updated as well.</p><p>And, that&rsquo;s it! Our pool implementation is complete now!</p></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(n){const e=window.getSelection(),t=document.createRange();t.selectNodeContents(n),e.removeAllRanges(),e.addRange(t)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#swap-fees>Swap Fees</a><ul><li><a href=#how-swap-fees-are-collected>How Swap Fees are Collected</a></li><li><a href=#calculating-position-accumulated-fees>Calculating Position Accumulated Fees</a></li><li><a href=#collecting-fees-on-swaps>Collecting Fees on Swaps</a><ul><li><a href=#adding-required-state-variables>Adding Required State Variables</a></li><li><a href=#collecting-fees>Collecting Fees</a></li><li><a href=#updating-fee-trackers-in-ticks>Updating Fee Trackers in Ticks</a></li><li><a href=#updating-global-fee-trackers>Updating Global Fee Trackers</a></li></ul></li><li><a href=#fee-tracking-in-positions-management>Fee Tracking in Positions Management</a><ul><li><a href=#initialization-of-fee-trackers-in-ticks>Initialization of Fee Trackers in Ticks</a></li><li><a href=#updating-position-fees-and-token-amounts>Updating Position Fees and Token Amounts</a></li></ul></li><li><a href=#removing-liquidity>Removing Liquidity</a><ul><li><a href=#burning-liquidity>Burning Liquidity</a></li></ul></li></ul></li></ul></nav></div></aside></main></body></html>
