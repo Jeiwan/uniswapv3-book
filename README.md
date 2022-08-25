@@ -44,8 +44,8 @@
 1. ~~Collecting fees~~
 1. ~~Withdrawing fees~~
 1. ~~Removing liquidity (burn)~~
-1. Overview of the price oracle in Uniswap V3
-1. Implementation in Pool contract
+1. ~~Overview of the price oracle in Uniswap V3~~
+1. ~~Implementation in Pool contract~~
 1. Front end: allow to add/remove liquidity through the UI
 1. Front end: add a chart with historical prices obtained via the price oracle
 (Oracle CLI tool as a helper)
