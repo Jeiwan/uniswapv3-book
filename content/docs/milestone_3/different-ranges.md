@@ -19,13 +19,13 @@ The way we implemented it, our Pool contract creates only price ranges that incl
 function mint(
     ...
     amount0 = Math.calcAmount0Delta(
-        TickMath.getSqrtRatioAtTick(slot0_.tick),
+        slot0_.sqrtPriceX96,
         TickMath.getSqrtRatioAtTick(upperTick),
         amount
     );
 
     amount1 = Math.calcAmount1Delta(
-        TickMath.getSqrtRatioAtTick(slot0_.tick),
+        slot0_.sqrtPriceX96,
         TickMath.getSqrtRatioAtTick(lowerTick),
         amount
     );
@@ -114,13 +114,13 @@ scenario we implemented earlier):
 ```solidity
 } else if (slot0_.tick < upperTick) {
     amount0 = Math.calcAmount0Delta(
-        TickMath.getSqrtRatioAtTick(slot0_.tick),
+        slot0_.sqrtPriceX96,
         TickMath.getSqrtRatioAtTick(upperTick),
         amount
     );
 
     amount1 = Math.calcAmount1Delta(
-        TickMath.getSqrtRatioAtTick(slot0_.tick),
+        slot0_.sqrtPriceX96,
         TickMath.getSqrtRatioAtTick(lowerTick),
         amount
     );
