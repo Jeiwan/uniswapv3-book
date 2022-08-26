@@ -547,6 +547,7 @@ function testObserve() public {
     ...
     pool.increaseObservationCardinalityNext(3);
 
+    vm.warp(2);
     pool.swap(address(this), false, swapAmount, sqrtP(6000), extra);
 
     vm.warp(7);
@@ -557,9 +558,10 @@ function testObserve() public {
     ...
 ```
 
-> `vm.warp` is a cheat-code provided by Foundry: it forwards to a block with the specified timestamp.
+> `vm.warp` is a cheat-code provided by Foundry: it forwards to a block with the specified timestamp. 2, 7, 20 – these
+are block timestamps.
 
-The first swap is make at block with timestamp 1, the second one is made at timestamp 7, and the third one is made at
+The first swap is make at block with timestamp 2, the second one is made at timestamp 7, and the third one is made at
 timestamp 20. We can then read the observations:
 
 ```solidity
@@ -567,26 +569,27 @@ timestamp 20. We can then read the observations:
     secondsAgos = new uint32[](4);
     secondsAgos[0] = 0;
     secondsAgos[1] = 13;
-    secondsAgos[2] = 18;
-    secondsAgos[3] = 19;
+    secondsAgos[2] = 17;
+    secondsAgos[3] = 18;
 
     int56[] memory tickCumulatives = pool.observe(secondsAgos);
-    assertEq(tickCumulatives[0], 1607077);
-    assertEq(tickCumulatives[1], 511164);
-    assertEq(tickCumulatives[2], 85194);
-    assertEq(tickCumulatives[3], 0);
+    assertEq(tickCumulatives[0], 1607059);
+    assertEq(tickCumulatives[1], 511146);
+    assertEq(tickCumulatives[2], 170370);
+    assertEq(tickCumulatives[3], 85176);
     ...
 ```
 
-1. The earliest observed price is 0, which is the initial observation that's set when the pool is deployed.
-1. After the first swap, tick 85176 was observed (which is the initial price of the pool). However, it wasn't tracked
-because the swap was made in the same block where the pool was deployed.
-1. Next returned accumulated price is 85194 (~5008 USDC/ETH), which was the price after the first swap. Since we requested
-this point 1 second after the observation, the accumulated price is simply `1 * 85194`.
-1. Next returned accumulated price is 511164, which is `6 * 85194`–we requested the point 6 seconds after the observation
-was made.
-1. Finally, the most recent observation is 1607077, which is `(1607077 - 511164) / (20 - 7) = 84301`, which is ~4581
-USDC/ETH, the price after the second swap that was observed after the third swap.
+1. The earliest observed price is 0, which is the initial observation that's set when the pool is deployed. However,
+since the cardinality was set to 3 and we made 3 swaps, it was overwritten by the last observation.
+1. During the first swap, tick 85176 was observed, which is the initial price of the pool–recall that the price before
+a swap is observed.
+1. Next returned accumulated price is 170370, which is `85176 + 85194`. The former is the previous accumulator value,
+the latter is the price after the first swap that was observed during the second swap.
+1. Next returned accumulated price is 511146, which is `(511146 - 170370) / (17 - 13) = 85194`, the accumulated price
+between the second and the third swap.
+1. Finally, the most recent observation is 1607059, which is `(1607059 - 511146) / (20 - 7) = 84301`, which is ~4581
+USDC/ETH, the price after the second swap that was observed during the third swap.
 
 I hope this makes sense!
 
@@ -598,14 +601,21 @@ secondsAgos[0] = 0;
 secondsAgos[1] = 5;
 secondsAgos[2] = 10;
 secondsAgos[3] = 15;
-secondsAgos[4] = 19;
+secondsAgos[4] = 18;
 
 tickCumulatives = pool.observe(secondsAgos);
-assertEq(tickCumulatives[0], 1607077);
-assertEq(tickCumulatives[1], 1185572);
-assertEq(tickCumulatives[2], 764067);
-assertEq(tickCumulatives[3], 340776);
-assertEq(tickCumulatives[4], 0);
+assertEq(tickCumulatives[0], 1607059);
+assertEq(tickCumulatives[1], 1185554);
+assertEq(tickCumulatives[2], 764049);
+assertEq(tickCumulatives[3], 340758);
+assertEq(tickCumulatives[4], 85176);
 ```
 
-This results in prices: 4581.03, 4581.03, 4747.6, 911.5, which are the average prices within the requested intervals.
+This results in prices: 4581.03, 4581.03, 4747.6, 5008.91, which are the average prices within the requested intervals.
+
+> Here's how to compute those values in Python:
+> ```python
+> vals = [1607059, 1185554, 764049, 340758, 85176]
+> secs = [0, 5, 10, 15, 18]
+> [1.0001**((vals[i] - vals[i+1]) / (secs[i+1] - secs[i])) for i in range(len(vals)-1)]
+> ```
