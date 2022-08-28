@@ -48,9 +48,12 @@
 1. ~~Implementation in Pool contract~~
 1. ~~Front end: allow to add/remove liquidity through the UI~~
 
-### Milestone 6: Extras
-1. Overview and implementation of flash loans
-1. Implementing NFT position manager (wrapping positions in NFTs)
-1. Overview of NFTSVG contract (as a home work maybe)
-1. Protocol fees
-1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
+### Milestone 6: NFT-positions
+1. NFT-position manager contract
+1. Basic NFTSVG contract
+1. Front end: add an endpoint to render NFT-positions
+
+### Milestone 7: Extras
+1. MOVE TO MILESTONE 4: Overview and implementation of flash loans
+1. MOVE TO MILESTONE 5: Protocol fees
+1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
