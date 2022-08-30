@@ -27,6 +27,7 @@
 1. ~~Adding liquidity to different price ranges~~
 1. ~~Cross-tick swaps, implementation~~
 1. ~~Slippage protection~~
+1. Flash loans
 1. ~~Update 'Add Liquidity' interface~~
 
 ### Milestone 4: Multi-pool Swaps
@@ -44,6 +45,7 @@
 1. ~~Collecting fees~~
 1. ~~Withdrawing fees~~
 1. ~~Removing liquidity (burn)~~
+1. Protocol fees
 1. ~~Overview of the price oracle in Uniswap V3~~
 1. ~~Implementation in Pool contract~~
 1. ~~Front end: allow to add/remove liquidity through the UI~~
@@ -54,6 +56,4 @@
 1. Front end: add an endpoint to render NFT-positions
 
 ### Milestone 7: Extras
-1. MOVE TO MILESTONE 4: Overview and implementation of flash loans
-1. MOVE TO MILESTONE 5: Protocol fees
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
