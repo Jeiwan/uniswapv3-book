@@ -27,7 +27,7 @@
 1. ~~Adding liquidity to different price ranges~~
 1. ~~Cross-tick swaps, implementation~~
 1. ~~Slippage protection~~
-1. Flash loans
+1. ~~Flash loans~~
 1. ~~Update 'Add Liquidity' interface~~
 
 ### Milestone 4: Multi-pool Swaps
@@ -45,7 +45,7 @@
 1. ~~Collecting fees~~
 1. ~~Withdrawing fees~~
 1. ~~Removing liquidity (burn)~~
-1. Protocol fees
+1. ~~Protocol fees~~
 1. ~~Overview of the price oracle in Uniswap V3~~
 1. ~~Implementation in Pool contract~~
 1. ~~Front end: allow to add/remove liquidity through the UI~~
