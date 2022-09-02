@@ -51,9 +51,9 @@
 1. ~~Front end: allow to add/remove liquidity through the UI~~
 
 ### Milestone 6: NFT-positions
-1. NFT-position manager contract
-1. Basic NFTSVG contract
-1. Front end: add an endpoint to render NFT-positions
+1. ~~NFT-position manager contract~~
+1. ~~Basic NFTSVG contract~~
+1. ~~Front end: add an endpoint to render NFT-positions~~
 
-### Milestone 7: Extras
+### TODO
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
