@@ -409,3 +409,16 @@ permissions to allow only permitted file operations. Specifically, to make the a
 ```toml
 fs_permissions = [{access='read',path='.'}]
 ```
+
+This is how you can read the SVG from `tokenURI` output:
+```shell
+$ cat test/fixtures/tokenuri0 \
+    | awk -F ',' '{print $2}' \
+    | base64 -d - \
+    | jq -r .image \
+    | awk -F ',' '{print $2}' \
+    | base64 -d - > nft.svg \
+    && open nft.svg
+```
+
+> This is the [jq tool](https://stedolan.github.io/jq/), a CLI JSON parser.
