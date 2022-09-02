@@ -1,0 +1,278 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="NFT Renderer #  Now we need to build an NFT renderer: a library that will handle calls to tokenURI in the NFT manager contract. It will render JSON metadata and SVG for each minted token. As we discussed earlier, we&rsquo;ll use the data URI syntax, which requires base64 encoding–this means we&rsquo;ll need a base64 encoder in Solidity. But first, let&rsquo;s look at how our tokens will look like.
+SVG Template #  I built this simplified variation of the Uniswap V3 NFTs:"><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="NFT Renderer"><meta property="og:description" content="NFT Renderer #  Now we need to build an NFT renderer: a library that will handle calls to tokenURI in the NFT manager contract. It will render JSON metadata and SVG for each minted token. As we discussed earlier, we&rsquo;ll use the data URI syntax, which requires base64 encoding–this means we&rsquo;ll need a base64 encoder in Solidity. But first, let&rsquo;s look at how our tokens will look like.
+SVG Template #  I built this simplified variation of the Uniswap V3 NFTs:"><meta property="og:type" content="article"><meta property="og:url" content="https://uniswapv3book.com/docs/milestone_6/nft-renderer/"><meta property="article:section" content="docs"><title>NFT Renderer | Uniswap V3 Development Book</title><link rel=manifest href=/manifest.json><link rel=icon href=/favicon.png type=image/x-icon><link rel=stylesheet href=/book.min.82c5dbd23447cee0b4c2aa3ed08ce0961faa40e1fa370eee4f8c9f02e0d46b5f.css integrity="sha256-gsXb0jRHzuC0wqo+0Izglh+qQOH6Nw7uT4yfAuDUa18=" crossorigin=anonymous><script defer src=/flexsearch.min.js></script>
+<script defer src=/en.search.min.9246fb63ffe75a2c9fcdf99687fa38ca76d428a65f0cd4168de41f7e87c63d0a.js integrity="sha256-kkb7Y//nWiyfzfmWh/o4ynbUKKZfDNQWjeQffofGPQo=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/><span>Uniswap V3 Development Book</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li class=book-section-flat><span>Milestone 0</span><ul><li><a href=/docs/introduction/amm/>Introduction to markets</a></li><li><a href=/docs/introduction/cfmm/>Constant Function Market Makers</a></li><li><a href=/docs/introduction/uniswap-v3/>Uniswap V3</a></li><li><a href=/docs/introduction/dev-environment/>Development Environment</a></li></ul></li><li class=book-section-flat><span>Milestone 1. First Swap</span><ul><li><a href=/docs/milestone_1/introduction/>Introduction</a></li><li><a href=/docs/milestone_1/calculating-liquidity/>Calculating Liquidity</a></li><li><a href=/docs/milestone_1/providing-liquidity/>Providing Liquidity</a></li><li><a href=/docs/milestone_1/first-swap/>First Swap</a></li><li><a href=/docs/milestone_1/manager-contract/>Manager Contract</a></li><li><a href=/docs/milestone_1/deployment/>Deployment</a></li><li><a href=/docs/milestone_1/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 2. Second Swap</span><ul><li><a href=/docs/milestone_2/introduction/>Introduction</a></li><li><a href=/docs/milestone_2/output-amount-calculation/>Output Amount Calculation</a></li><li><a href=/docs/milestone_2/math-in-solidity/>Math in Solidity</a></li><li><a href=/docs/milestone_2/tick-bitmap-index/>Tick Bitmap Index</a></li><li><a href=/docs/milestone_2/generalize-minting/>Generalize Minting</a></li><li><a href=/docs/milestone_2/generalize-swapping/>Generalize Swapping</a></li><li><a href=/docs/milestone_2/quoter-contract/>Quoter Contract</a></li><li><a href=/docs/milestone_2/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 3. Cross-tick Swaps</span><ul><li><a href=/docs/milestone_3/introduction/>Introduction</a></li><li><a href=/docs/milestone_3/different-ranges/>Different Price Ranges</a></li><li><a href=/docs/milestone_3/cross-tick-swaps/>Cross-Tick Swaps</a></li><li><a href=/docs/milestone_3/slippage-protection/>Slippage Protection</a></li><li><a href=/docs/milestone_3/liquidity-calculation/>Liquidity Calculation</a></li><li><a href=/docs/milestone_3/more-on-fixed-point-numbers/>A Little Bit More on Fixed-point Numbers</a></li><li><a href=/docs/milestone_3/flash-loans/>Flash Loans</a></li><li><a href=/docs/milestone_3/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 4. Multi-pool Swaps</span><ul><li><a href=/docs/milestone_4/introduction/>Introduction</a></li><li><a href=/docs/milestone_4/factory-contract/>Factory Contract</a></li><li><a href=/docs/milestone_4/path/>Swap Path</a></li><li><a href=/docs/milestone_4/multi-pool-swaps/>Multi-pool Swaps</a></li><li><a href=/docs/milestone_4/user-interface/>User Interface</a></li><li><a href=/docs/milestone_4/tick-rounding/>Tick Rounding</a></li></ul></li><li class=book-section-flat><span>Milestone 5. Fees and Price Oracle</span><ul><li><a href=/docs/milestone_5/introduction/>Introduction</a></li><li><a href=/docs/milestone_5/swap-fees/>Swap Fees</a></li><li><a href=/docs/milestone_5/flash-loan-fees/>Flash Loan Fees</a></li><li><a href=/docs/milestone_5/protocol-fees/>Protocol Fees</a></li><li><a href=/docs/milestone_5/price-oracle/>Price Oracle</a></li><li><a href=/docs/milestone_5/user-interface/>User Interface</a></li></ul></li><li class=book-section-flat><span>Milestone 6: NFT positions</span><ul><li><a href=/docs/milestone_6/introduction/>Introduction</a></li><li><a href=/docs/milestone_6/erc721-overview/>ERC721 Overview</a></li><li><a href=/docs/milestone_6/nft-manager/>NFT Manager</a></li><li><a href=/docs/milestone_6/nft-renderer/ class=active>NFT Renderer</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/svg/menu.svg class=book-icon alt=Menu></label>
+<strong>NFT Renderer</strong>
+<label for=toc-control><img src=/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#nft-renderer>NFT Renderer</a><ul><li><a href=#svg-template>SVG Template</a></li><li><a href=#dependencies>Dependencies</a></li><li><a href=#format-of-the-result>Format of the Result</a></li><li><a href=#implementing-the-renderer>Implementing the Renderer</a><ul><li><a href=#svg-rendering>SVG Rendering</a></li><li><a href=#json-rendering>JSON Rendering</a></li><li><a href=#filling-the-gap-in-tokenuri>Filling the Gap in <code>tokenURI</code></a></li></ul></li></ul></li><li><a href=#gas-costs>Gas Costs</a></li><li><a href=#testing>Testing</a></li></ul></nav></aside></header><article class=markdown><h1 id=nft-renderer>NFT Renderer
+<a class=anchor href=#nft-renderer>#</a></h1><p>Now we need to build an NFT renderer: a library that will handle calls to <code>tokenURI</code> in the NFT manager contract. It
+will render JSON metadata and SVG for each minted token. As we discussed earlier, we&rsquo;ll use the data URI syntax, which
+requires base64 encoding–this means we&rsquo;ll need a base64 encoder in Solidity. But first, let&rsquo;s look at how our tokens
+will look like.</p><h2 id=svg-template>SVG Template
+<a class=anchor href=#svg-template>#</a></h2><p>I built this simplified variation of the Uniswap V3 NFTs:</p><p><img src=/images/milestone_6_nft_template.png alt="SVG template for NFT tokens"></p><p>This is what its code looks like;</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-svg data-lang=svg><span style=display:flex><span><span style=color:#f92672>&lt;svg</span> <span style=color:#a6e22e>xmlns=</span><span style=color:#e6db74>&#34;http://www.w3.org/2000/svg&#34;</span> <span style=color:#a6e22e>viewBox=</span><span style=color:#e6db74>&#34;0 0 300 480&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;style&gt;</span>
+</span></span><span style=display:flex><span>    .tokens {
+</span></span><span style=display:flex><span>      font: bold 30px sans-serif;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    .fee {
+</span></span><span style=display:flex><span>      font: normal 26px sans-serif;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    .tick {
+</span></span><span style=display:flex><span>      font: normal 18px sans-serif;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;/style&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;rect</span> <span style=color:#a6e22e>width=</span><span style=color:#e6db74>&#34;300&#34;</span> <span style=color:#a6e22e>height=</span><span style=color:#e6db74>&#34;480&#34;</span> <span style=color:#a6e22e>fill=</span><span style=color:#e6db74>&#34;hsl(330,40%,40%)&#34;</span> <span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;rect</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>width=</span><span style=color:#e6db74>&#34;240&#34;</span> <span style=color:#a6e22e>height=</span><span style=color:#e6db74>&#34;420&#34;</span> <span style=color:#a6e22e>rx=</span><span style=color:#e6db74>&#34;15&#34;</span> <span style=color:#a6e22e>ry=</span><span style=color:#e6db74>&#34;15&#34;</span> <span style=color:#a6e22e>fill=</span><span style=color:#e6db74>&#34;hsl(330,90%,50%)&#34;</span> <span style=color:#a6e22e>stroke=</span><span style=color:#e6db74>&#34;#000&#34;</span> <span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;rect</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;87&#34;</span> <span style=color:#a6e22e>width=</span><span style=color:#e6db74>&#34;240&#34;</span> <span style=color:#a6e22e>height=</span><span style=color:#e6db74>&#34;42&#34;</span> <span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;text</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;39&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;120&#34;</span> <span style=color:#a6e22e>class=</span><span style=color:#e6db74>&#34;tokens&#34;</span> <span style=color:#a6e22e>fill=</span><span style=color:#e6db74>&#34;#fff&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    WETH/USDC
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;/text&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;rect</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;132&#34;</span> <span style=color:#a6e22e>width=</span><span style=color:#e6db74>&#34;240&#34;</span> <span style=color:#a6e22e>height=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;text</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;39&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;120&#34;</span> <span style=color:#a6e22e>dy=</span><span style=color:#e6db74>&#34;36&#34;</span> <span style=color:#a6e22e>class=</span><span style=color:#e6db74>&#34;fee&#34;</span> <span style=color:#a6e22e>fill=</span><span style=color:#e6db74>&#34;#fff&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    0.05%
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;/text&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;rect</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;342&#34;</span> <span style=color:#a6e22e>width=</span><span style=color:#e6db74>&#34;240&#34;</span> <span style=color:#a6e22e>height=</span><span style=color:#e6db74>&#34;24&#34;</span> <span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;text</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;39&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;360&#34;</span> <span style=color:#a6e22e>class=</span><span style=color:#e6db74>&#34;tick&#34;</span> <span style=color:#a6e22e>fill=</span><span style=color:#e6db74>&#34;#fff&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    Lower tick: 123456
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;/text&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;rect</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;372&#34;</span> <span style=color:#a6e22e>width=</span><span style=color:#e6db74>&#34;240&#34;</span> <span style=color:#a6e22e>height=</span><span style=color:#e6db74>&#34;24&#34;</span> <span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;text</span> <span style=color:#a6e22e>x=</span><span style=color:#e6db74>&#34;39&#34;</span> <span style=color:#a6e22e>y=</span><span style=color:#e6db74>&#34;360&#34;</span> <span style=color:#a6e22e>dy=</span><span style=color:#e6db74>&#34;30&#34;</span> <span style=color:#a6e22e>class=</span><span style=color:#e6db74>&#34;tick&#34;</span> <span style=color:#a6e22e>fill=</span><span style=color:#e6db74>&#34;#fff&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    Upper tick: 123456
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&lt;/text&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;/svg&gt;</span>
+</span></span></code></pre></div><p>This is a simple SVG template, and we&rsquo;re going to make a Solidity contract that fills the fields in this template and
+returns it in <code>tokenURI</code>. The fields that will be filled uniquely for each token:</p><ol><li>the color of the background, which is set in the first two <code>rect</code>s; the hue component (330 in the template) will be
+unique for each token;</li><li>the names of the tokens of a pool the position is added to (WETH/USDC in the template);</li><li>the fee of a pool (0.05%);</li><li>tick values of the boundaries of the position (123456).</li></ol><p>Here are examples of NFTs our contract will be able to produce:</p><p><img src=/images/milestone_6_nft_example_2.png alt="NFT example 1">
+<img src=/images/milestone_6_nft_example_3.png alt="NFT example 2"></p><h2 id=dependencies>Dependencies
+<a class=anchor href=#dependencies>#</a></h2><p>Solidity doesn&rsquo;t provide native base64 encoding tool so we&rsquo;ll use a third-party one. Specifically, we&rsquo;ll use <a href=https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Base64.sol>the one from OpenZeppelin</a>.</p><p>Another tedious thing about Solidity is that is has very poor support for operations with strings. For example, there&rsquo;s
+no way to convert integers to strings–but we need that to render pool fee and position ticks in the SVG template. We&rsquo;ll
+use <a href=https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Strings.sol>the Strings library from OpenZeppelin</a>
+to do that.</p><h2 id=format-of-the-result>Format of the Result
+<a class=anchor href=#format-of-the-result>#</a></h2><p>The data produced by the renderer will have this format:</p><pre tabindex=0><code>data:application/json;base64,BASE64_ENCODED_JSON
+</code></pre><p>The JSON will look like that:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;Uniswap V3 Position&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;description&#34;</span>: <span style=color:#e6db74>&#34;USDC/DAI 0.05%, Lower tick: -520, Upper text: 490&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;image&#34;</span>: <span style=color:#e6db74>&#34;BASE64_ENCODED_SVG&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>And image will be the above template filled with position data and encoded in base64.</p><h2 id=implementing-the-renderer>Implementing the Renderer
+<a class=anchor href=#implementing-the-renderer>#</a></h2><p>We&rsquo;ll implement the renderer in a separate library contract to not make the NFT manager contract too noisy:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>library</span> NFTRenderer {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>RenderParams</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> pool;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>address</span> owner;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int24</span> lowerTick;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int24</span> upperTick;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>uint24</span> fee;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>render</span>(RenderParams <span style=color:#66d9ef>memory</span> params) {
+</span></span><span style=display:flex><span>        ...
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>In the <code>render</code> function, we&rsquo;ll first render an SVG, then the JSON metadata. For the sake of cleaner code, we&rsquo;ll break
+down each step into smaller steps.</p><p>We begin with fetching tokens symbols:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>render</span>(RenderParams <span style=color:#66d9ef>memory</span> params) {
+</span></span><span style=display:flex><span>    IUniswapV3Pool pool <span style=color:#f92672>=</span> IUniswapV3Pool(params.pool);
+</span></span><span style=display:flex><span>    IERC20 token0 <span style=color:#f92672>=</span> IERC20(pool.token0());
+</span></span><span style=display:flex><span>    IERC20 token1 <span style=color:#f92672>=</span> IERC20(pool.token1());
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> symbol0 <span style=color:#f92672>=</span> token0.symbol();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> symbol1 <span style=color:#f92672>=</span> token1.symbol();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ...
+</span></span></code></pre></div><h3 id=svg-rendering>SVG Rendering
+<a class=anchor href=#svg-rendering>#</a></h3><p>Then we can render the SVG template:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> image <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&lt;svg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 300 480&#39;&gt;&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&lt;style&gt;.tokens { font: bold 30px sans-serif; }&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;.fee { font: normal 26px sans-serif; }&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;.tick { font: normal 18px sans-serif; }&lt;/style&gt;&#34;</span>,
+</span></span><span style=display:flex><span>    renderBackground(params.owner, params.lowerTick, params.upperTick),
+</span></span><span style=display:flex><span>    renderTop(symbol0, symbol1, params.fee),
+</span></span><span style=display:flex><span>    renderBottom(params.lowerTick, params.upperTick),
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&lt;/svg&gt;&#34;</span>
+</span></span><span style=display:flex><span>);
+</span></span></code></pre></div><p>The template is broken down into multiple steps:</p><ol><li>first comes the header, which includes the CSS styles;</li><li>then the background is rendered;</li><li>then the top position information is rendered (token symbols and fee);</li><li>finally, the bottom information is rendered (position ticks).</li></ol><p>The background is simply two <code>rect</code>s. To render them we need to find the unique hue of this token and then we concatenate
+all the pieces together:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>renderBackground</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>address</span> owner,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>pure</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> background) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bytes32</span> key <span style=color:#f92672>=</span> keccak256(abi.encodePacked(owner, lowerTick, upperTick));
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint256</span> hue <span style=color:#f92672>=</span> <span style=color:#66d9ef>uint256</span>(key) <span style=color:#f92672>%</span> <span style=color:#ae81ff>360</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    background <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;rect width=&#34;300&#34; height=&#34;480&#34; fill=&#34;hsl(&#39;</span>,
+</span></span><span style=display:flex><span>        Strings.toString(hue),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;,40%,40%)&#34;/&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;rect x=&#34;30&#34; y=&#34;30&#34; width=&#34;240&#34; height=&#34;420&#34; rx=&#34;15&#34; ry=&#34;15&#34; fill=&#34;hsl(&#39;</span>,
+</span></span><span style=display:flex><span>        Strings.toString(hue),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;,100%,50%)&#34; stroke=&#34;#000&#34;/&gt;&#39;</span>
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The top template renders token symbols and pool fee:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>renderTop</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> symbol0,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> symbol1,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint24</span> fee
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>pure</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> top) {
+</span></span><span style=display:flex><span>    top <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;rect x=&#34;30&#34; y=&#34;87&#34; width=&#34;240&#34; height=&#34;42&#34;/&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;text x=&#34;39&#34; y=&#34;120&#34; class=&#34;tokens&#34; fill=&#34;#fff&#34;&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        symbol0,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;/&#34;</span>,
+</span></span><span style=display:flex><span>        symbol1,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;&lt;/text&gt;&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;rect x=&#34;30&#34; y=&#34;132&#34; width=&#34;240&#34; height=&#34;30&#34;/&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;text x=&#34;39&#34; y=&#34;120&#34; dy=&#34;36&#34; class=&#34;fee&#34; fill=&#34;#fff&#34;&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        feeToText(fee),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;&lt;/text&gt;&#34;</span>
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Fees are rendered as numbers with a fractional part. Since all possible fees are known in advance we don&rsquo;t need to
+convert integers to fractional numbers and can simply hardcode the values:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>feeToText</span>(<span style=color:#66d9ef>uint256</span> fee)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>internal</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pure</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> feeString)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (fee <span style=color:#f92672>==</span> <span style=color:#ae81ff>500</span>) {
+</span></span><span style=display:flex><span>        feeString <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;0.05%&#34;</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (fee <span style=color:#f92672>==</span> <span style=color:#ae81ff>3000</span>) {
+</span></span><span style=display:flex><span>        feeString <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;0.3%&#34;</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>In the bottom part we render position ticks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>renderBottom</span>(<span style=color:#66d9ef>int24</span> lowerTick, <span style=color:#66d9ef>int24</span> upperTick)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>internal</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pure</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> bottom)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    bottom <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;rect x=&#34;30&#34; y=&#34;342&#34; width=&#34;240&#34; height=&#34;24&#34;/&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;text x=&#34;39&#34; y=&#34;360&#34; class=&#34;tick&#34; fill=&#34;#fff&#34;&gt;Lower tick: &#39;</span>,
+</span></span><span style=display:flex><span>        tickToText(lowerTick),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;&lt;/text&gt;&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;rect x=&#34;30&#34; y=&#34;372&#34; width=&#34;240&#34; height=&#34;24&#34;/&gt;&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&lt;text x=&#34;39&#34; y=&#34;360&#34; dy=&#34;30&#34; class=&#34;tick&#34; fill=&#34;#fff&#34;&gt;Upper tick: &#39;</span>,
+</span></span><span style=display:flex><span>        tickToText(upperTick),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;&lt;/text&gt;&#34;</span>
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Since ticks can be positive and negative, we nee to render them properly (with or without the minus sign):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>tickToText</span>(<span style=color:#66d9ef>int24</span> tick)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>internal</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pure</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> tickString)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    tickString <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        tick <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>?</span> <span style=color:#e6db74>&#34;-&#34;</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;&#34;</span>,
+</span></span><span style=display:flex><span>        tick <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>?</span> Strings.toString(<span style=color:#66d9ef>uint256</span>(<span style=color:#66d9ef>uint24</span>(<span style=color:#f92672>-</span>tick)))
+</span></span><span style=display:flex><span>            <span style=color:#f92672>:</span> Strings.toString(<span style=color:#66d9ef>uint256</span>(<span style=color:#66d9ef>uint24</span>(tick)))
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=json-rendering>JSON Rendering
+<a class=anchor href=#json-rendering>#</a></h3><p>Now, let&rsquo;s return to the <code>render</code> function and render the JSON. First, we need to render a token description:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>render</span>(RenderParams <span style=color:#66d9ef>memory</span> params) {
+</span></span><span style=display:flex><span>    ... SVG rendering ...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> description <span style=color:#f92672>=</span> renderDescription(
+</span></span><span style=display:flex><span>        symbol0,
+</span></span><span style=display:flex><span>        symbol1,
+</span></span><span style=display:flex><span>        params.fee,
+</span></span><span style=display:flex><span>        params.lowerTick,
+</span></span><span style=display:flex><span>        params.upperTick
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ...
+</span></span></code></pre></div><p>Token description is a text string that contains all the same information that we render in token&rsquo;s SVG:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>renderDescription</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> symbol0,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> symbol1,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>uint24</span> fee,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> lowerTick,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int24</span> upperTick
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>pure</span> <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> description) {
+</span></span><span style=display:flex><span>    description <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        symbol0,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;/&#34;</span>,
+</span></span><span style=display:flex><span>        symbol1,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34; &#34;</span>,
+</span></span><span style=display:flex><span>        feeToText(fee),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;, Lower tick: &#34;</span>,
+</span></span><span style=display:flex><span>        tickToText(lowerTick),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;, Upper text: &#34;</span>,
+</span></span><span style=display:flex><span>        tickToText(upperTick)
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We can now assemble the JSON metadata:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>render</span>(RenderParams <span style=color:#66d9ef>memory</span> params) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> image <span style=color:#f92672>=</span> ...SVG rendering...
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> description <span style=color:#f92672>=</span> ...description rendering...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> json <span style=color:#f92672>=</span> <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;{&#34;name&#34;:&#34;Uniswap V3 Position&#34;,&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&#34;description&#34;:&#34;&#39;</span>,
+</span></span><span style=display:flex><span>        description,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&#34;,&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&#34;image&#34;:&#34;data:image/svg+xml;base64,&#39;</span>,
+</span></span><span style=display:flex><span>        Base64.encode(<span style=color:#66d9ef>bytes</span>(image)),
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;&#34;}&#39;</span>
+</span></span><span style=display:flex><span>    );
+</span></span></code></pre></div><p>And, finally, we can return the result:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span>.concat(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;data:application/json;base64,&#34;</span>,
+</span></span><span style=display:flex><span>        Base64.encode(<span style=color:#66d9ef>bytes</span>(json))
+</span></span><span style=display:flex><span>    );
+</span></span></code></pre></div><h3 id=filling-the-gap-in-tokenuri>Filling the Gap in <code>tokenURI</code>
+<a class=anchor href=#filling-the-gap-in-tokenuri>#</a></h3><p>Now we&rsquo;re ready to return to the <code>tokenURI</code> function in the NFT manager contract and add actual rendering:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>tokenURI</span>(<span style=color:#66d9ef>uint256</span> tokenId)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>view</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>returns</span> (<span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    TokenPosition <span style=color:#66d9ef>memory</span> tokenPosition <span style=color:#f92672>=</span> positions[tokenId];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (tokenPosition.pool <span style=color:#f92672>==</span> <span style=color:#66d9ef>address</span>(<span style=color:#ae81ff>0x00</span>)) revert WrongToken();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    IUniswapV3Pool pool <span style=color:#f92672>=</span> IUniswapV3Pool(tokenPosition.pool);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>        NFTRenderer.render(
+</span></span><span style=display:flex><span>            NFTRenderer.RenderParams({
+</span></span><span style=display:flex><span>                pool<span style=color:#f92672>:</span> tokenPosition.pool,
+</span></span><span style=display:flex><span>                owner<span style=color:#f92672>:</span> <span style=color:#66d9ef>address</span>(this),
+</span></span><span style=display:flex><span>                lowerTick<span style=color:#f92672>:</span> tokenPosition.lowerTick,
+</span></span><span style=display:flex><span>                upperTick<span style=color:#f92672>:</span> tokenPosition.upperTick,
+</span></span><span style=display:flex><span>                fee<span style=color:#f92672>:</span> pool.fee()
+</span></span><span style=display:flex><span>            })
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h1 id=gas-costs>Gas Costs
+<a class=anchor href=#gas-costs>#</a></h1><p>With all its benefits, storing data on-chain has a huge disadvantage: contract deployments become very expensive. When
+deploying a contract, you pay for the size of the contract, and all the strings and templates increase gas spending
+significantly. This gets even worse the more advanced your SVGs are: the more there are shapes, CSS styles, animations,
+etc. the more expensive it gets.</p><p>Keep in mind that the NFT renderer we implemented above is not gas optimized: you can see the repetitive <code>rect</code> and <code>text</code>
+tag strings that can be extracted into internal functions. I sacrifices gas costs for the readability of the contract.
+In real NFT projects that store all data on-chain, code readability is usually very poor due to have gas cost optimizations.</p><h1 id=testing>Testing
+<a class=anchor href=#testing>#</a></h1><p>The last thing I wanted to focus here is how we can test the NFT images. It&rsquo;s very important to keep all changes in
+NFT images tracked to ensure no change breaks rendering. For this, we need a way to test the output of <code>tokenURI</code> and
+its different variations (we can even pre-render the whole collection and have tests to ensure no image get broken during
+development).</p><p>To test the output of <code>tokenURI</code>, I added this custom assertion:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span>assertTokenURI(
+</span></span><span style=display:flex><span>    nft.tokenURI(tokenId0),
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;tokenuri0&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;invalid token URI&#34;</span>
+</span></span><span style=display:flex><span>);
+</span></span></code></pre></div><p>The first argument is the actual output and the second argument is the name of the file that stores the expected one.
+The assertion load the content of the file and compares it with the actual one:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>assertTokenURI</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> actual,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> expectedFixture,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> errMessage
+</span></span><span style=display:flex><span>) <span style=color:#66d9ef>internal</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> <span style=color:#66d9ef>memory</span> expected <span style=color:#f92672>=</span> vm.readFile(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>string</span>.concat(<span style=color:#e6db74>&#34;./test/fixtures/&#34;</span>, expectedFixture)
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    assertEq(actual, <span style=color:#66d9ef>string</span>(expected), errMessage);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We can do this in Solidity thanks to the <code>vm.readFile()</code> cheat code provided by <code>forge-std</code> library, which is a helper
+library that comes with Forge. Not only this is simple and convenient, this is also secure: we can configure filesystem
+permissions to allow only permitted file operations. Specifically, to make the above test work, we need to add this
+<code>fs_permissions</code> rule to <code>foundry.toml</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=display:flex><span><span style=color:#a6e22e>fs_permissions</span> = [{<span style=color:#a6e22e>access</span>=<span style=color:#e6db74>&#39;read&#39;</span>,<span style=color:#a6e22e>path</span>=<span style=color:#e6db74>&#39;.&#39;</span>}]
+</span></span></code></pre></div></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(n){const e=window.getSelection(),t=document.createRange();t.selectNodeContents(n),e.removeAllRanges(),e.addRange(t)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#nft-renderer>NFT Renderer</a><ul><li><a href=#svg-template>SVG Template</a></li><li><a href=#dependencies>Dependencies</a></li><li><a href=#format-of-the-result>Format of the Result</a></li><li><a href=#implementing-the-renderer>Implementing the Renderer</a><ul><li><a href=#svg-rendering>SVG Rendering</a></li><li><a href=#json-rendering>JSON Rendering</a></li><li><a href=#filling-the-gap-in-tokenuri>Filling the Gap in <code>tokenURI</code></a></li></ul></li></ul></li><li><a href=#gas-costs>Gas Costs</a></li><li><a href=#testing>Testing</a></li></ul></nav></div></aside></main></body></html>
