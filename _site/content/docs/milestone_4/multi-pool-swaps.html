@@ -1,0 +1,363 @@
+<h1 id="multi-pool-swaps">Multi-pool Swaps</h1>
+
+<p>We’re now proceeding to the core of this milestone–implementing multi-pool swaps in our contracts. We won’t touch Pool
+contract in this milestone because it’s a core contract that should implement only core features. Multi-pool swaps is a
+utility feature, and we’ll implement it in Manager and Quoter contracts.</p>
+
+<h2 id="updating-manager-contract">Updating Manager Contract</h2>
+
+<h3 id="single-pool-and-multi-pool-swaps">Single-pool and Multi-pool Swaps</h3>
+<p>In our current implementation, <code class="language-plaintext highlighter-rouge">swap</code> function in Manager contract supports only single-pool swaps and takes pool address
+in parameters:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">swap</span><span class="p">(</span>
+    <span class="kt">address</span> <span class="n">poolAddress_</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">zeroForOne</span><span class="p">,</span>
+    <span class="kt">uint256</span> <span class="n">amountSpecified</span><span class="p">,</span>
+    <span class="kt">uint160</span> <span class="n">sqrtPriceLimitX96</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span>
+<span class="p">)</span> <span class="k">public</span> <span class="k">returns</span> <span class="p">(</span><span class="kt">int256</span><span class="p">,</span> <span class="kt">int256</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>We’re going to split it into two functions: single-pool swap and multi-pool swap. These functions will have different
+set of parameters:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">SwapSingleParams</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">tokenIn</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">tokenOut</span><span class="p">;</span>
+    <span class="kt">uint24</span> <span class="n">tickSpacing</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amountIn</span><span class="p">;</span>
+    <span class="kt">uint160</span> <span class="n">sqrtPriceLimitX96</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="n">SwapParams</span> <span class="p">{</span>
+    <span class="kt">bytes</span> <span class="n">path</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">recipient</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amountIn</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">minAmountOut</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">SwapSingleParams</code> takes pool parameters, input amount, and a limiting price–this is pretty much identical to what
+we had before. Notice, that <code class="language-plaintext highlighter-rouge">data</code> is not longer required.</li>
+  <li><code class="language-plaintext highlighter-rouge">SwapParams</code> takes path, output amount recipient, input amount, and minimal output amount. The latter parameter
+replaces <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code> because, when doing multi-pool swaps, we cannot use the slippage protection from Pool
+contract (which uses a limiting price). We need to implement another slippage protection, which checks final output amount
+and compares it with <code class="language-plaintext highlighter-rouge">minAmountOut</code>: the slippage protection fails when final output amount is less than <code class="language-plaintext highlighter-rouge">minAmountOut</code>.</li>
+</ol>
+
+<h3 id="core-swapping-logic">Core Swapping Logic</h3>
+
+<p>Let’s implement an internal <code class="language-plaintext highlighter-rouge">_swap</code> function that will be called by both single- and multi-pool swap functions. It’ll
+prepare parameters and call <code class="language-plaintext highlighter-rouge">Pool.swap</code>.</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">_swap</span><span class="p">(</span>
+    <span class="kt">uint256</span> <span class="n">amountIn</span><span class="p">,</span>
+    <span class="kt">address</span> <span class="n">recipient</span><span class="p">,</span>
+    <span class="kt">uint160</span> <span class="n">sqrtPriceLimitX96</span><span class="p">,</span>
+    <span class="n">SwapCallbackData</span> <span class="k">memory</span> <span class="n">data</span>
+<span class="p">)</span> <span class="k">internal</span> <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">amountOut</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">SwapCallbackData</code> is a new data structure that contains data we pass between swap functions and <code class="language-plaintext highlighter-rouge">uniswapV3SwapCallback</code>:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">SwapCallbackData</span> <span class="p">{</span>
+    <span class="kt">bytes</span> <span class="n">path</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">payer</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">path</code> is a swap path (it contain only one pool) and <code class="language-plaintext highlighter-rouge">payer</code> is the address that provides input tokens in swaps–we’ll
+have different payers during multi-pool swaps.</p>
+
+<p>First thing we do in <code class="language-plaintext highlighter-rouge">_swap</code>, is extracting pool parameters using <code class="language-plaintext highlighter-rouge">Path</code> library:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// function _swap(...) {
+</span><span class="p">(</span><span class="kt">address</span> <span class="n">tokenIn</span><span class="p">,</span> <span class="kt">address</span> <span class="n">tokenOut</span><span class="p">,</span> <span class="kt">uint24</span> <span class="n">tickSpacing</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="p">.</span><span class="n">path</span>
+    <span class="p">.</span><span class="n">decodeFirstPool</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>Then we identify swap direction:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">bool</span> <span class="n">zeroForOne</span> <span class="o">=</span> <span class="n">tokenIn</span> <span class="o">&lt;</span> <span class="n">tokenOut</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Then we make an actual swap:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// function _swap(...) {
+</span><span class="p">(</span><span class="kt">int256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">int256</span> <span class="n">amount1</span><span class="p">)</span> <span class="o">=</span> <span class="n">getPool</span><span class="p">(</span>
+    <span class="n">tokenIn</span><span class="p">,</span>
+    <span class="n">tokenOut</span><span class="p">,</span>
+    <span class="n">tickSpacing</span>
+<span class="p">).</span><span class="n">swap</span><span class="p">(</span>
+        <span class="n">recipient</span><span class="p">,</span>
+        <span class="n">zeroForOne</span><span class="p">,</span>
+        <span class="n">amountIn</span><span class="p">,</span>
+        <span class="n">sqrtPriceLimitX96</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="o">?</span> <span class="p">(</span>
+                <span class="n">zeroForOne</span>
+                    <span class="o">?</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">MIN_SQRT_RATIO</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="o">:</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">MAX_SQRT_RATIO</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="o">:</span> <span class="n">sqrtPriceLimitX96</span><span class="p">,</span>
+        <span class="n">abi</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="p">);</span>
+</code></pre></div></div>
+
+<p>This piece is identical to what we had before but this time we’re calling <code class="language-plaintext highlighter-rouge">getPool</code> to find pool address. <code class="language-plaintext highlighter-rouge">getPool</code> is
+a function that sorts tokens and calls <code class="language-plaintext highlighter-rouge">PoolAddress.computeAddress</code>:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">getPool</span><span class="p">(</span>
+    <span class="kt">address</span> <span class="n">token0</span><span class="p">,</span>
+    <span class="kt">address</span> <span class="n">token1</span><span class="p">,</span>
+    <span class="kt">uint24</span> <span class="n">tickSpacing</span>
+<span class="p">)</span> <span class="k">internal</span> <span class="k">view</span> <span class="k">returns</span> <span class="p">(</span><span class="n">IUniswapV3Pool</span> <span class="n">pool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">(</span><span class="n">token0</span><span class="p">,</span> <span class="n">token1</span><span class="p">)</span> <span class="o">=</span> <span class="n">token0</span> <span class="o">&lt;</span> <span class="n">token1</span>
+        <span class="o">?</span> <span class="p">(</span><span class="n">token0</span><span class="p">,</span> <span class="n">token1</span><span class="p">)</span>
+        <span class="o">:</span> <span class="p">(</span><span class="n">token1</span><span class="p">,</span> <span class="n">token0</span><span class="p">);</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span>
+        <span class="n">PoolAddress</span><span class="p">.</span><span class="n">computeAddress</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">token0</span><span class="p">,</span> <span class="n">token1</span><span class="p">,</span> <span class="n">tickSpacing</span><span class="p">)</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>After making a swap, we need to figure out which of the amounts is the output one:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// function _swap(...) {
+</span><span class="n">amountOut</span> <span class="o">=</span> <span class="kt">uint256</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">zeroForOne</span> <span class="o">?</span> <span class="n">amount1</span> <span class="o">:</span> <span class="n">amount0</span><span class="p">));</span>
+</code></pre></div></div>
+
+<p>And that’s it. Let’s now look at how single-pool swap works.</p>
+
+<h3 id="single-pool-swapping">Single-pool Swapping</h3>
+
+<p><code class="language-plaintext highlighter-rouge">swapSingle</code> acts simply as a wrapper of <code class="language-plaintext highlighter-rouge">_swap</code>:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">swapSingle</span><span class="p">(</span><span class="n">SwapSingleParams</span> <span class="k">calldata</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">amountOut</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">amountOut</span> <span class="o">=</span> <span class="n">_swap</span><span class="p">(</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">amountIn</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">sqrtPriceLimitX96</span><span class="p">,</span>
+        <span class="n">SwapCallbackData</span><span class="p">({</span>
+            <span class="n">path</span><span class="o">:</span> <span class="n">abi</span><span class="p">.</span><span class="n">encodePacked</span><span class="p">(</span>
+                <span class="n">params</span><span class="p">.</span><span class="n">tokenIn</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">.</span><span class="n">tickSpacing</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">.</span><span class="n">tokenOut</span>
+            <span class="p">),</span>
+            <span class="n">payer</span><span class="o">:</span> <span class="n">msg</span><span class="p">.</span><span class="n">sender</span>
+        <span class="p">})</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Notice that we’re building a one-pool path here: single-pool swap is a multi-pool swap with one pool 🙂.</p>
+
+<h3 id="multi-pool-swapping">Multi-pool Swapping</h3>
+
+<p>Multi-pool swapping is only slightly more difficult than single-pool one. Let’s look at it:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">swap</span><span class="p">(</span><span class="n">SwapParams</span> <span class="k">memory</span> <span class="n">params</span><span class="p">)</span> <span class="k">public</span> <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">amountOut</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">payer</span> <span class="o">=</span> <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">hasMultiplePools</span><span class="p">;</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>First swap is paid by user because it’s user who provides input tokens.</p>
+
+<p>Then, we start iterating over pools in a path:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">...</span>
+<span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">hasMultiplePools</span> <span class="o">=</span> <span class="n">params</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">hasMultiplePools</span><span class="p">();</span>
+
+    <span class="n">params</span><span class="p">.</span><span class="n">amountIn</span> <span class="o">=</span> <span class="n">_swap</span><span class="p">(</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">amountIn</span><span class="p">,</span>
+        <span class="n">hasMultiplePools</span> <span class="o">?</span> <span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">)</span> <span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">recipient</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">,</span>
+        <span class="n">SwapCallbackData</span><span class="p">({</span>
+            <span class="n">path</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">getFirstPool</span><span class="p">(),</span>
+            <span class="n">payer</span><span class="o">:</span> <span class="n">payer</span>
+        <span class="p">})</span>
+    <span class="p">);</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>On each iteration, we’re calling <code class="language-plaintext highlighter-rouge">_swap</code>:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">params.amountIn</code> tracks input amounts. During the first swap it’s the amount provided by user. During next swaps
+its the amounts returned from previous swaps.</li>
+  <li><code class="language-plaintext highlighter-rouge">hasMultiplePools ? address(this) : params.recipient</code>–if there are multiple pools in the path, recipient is the manager
+contract, it’ll store tokens between swaps. If there’s only one pool (last one) in the path, recipient is the one
+specified in parameters (usually the same user that initiates the swap).</li>
+  <li><code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code> is set to 0 to disable slippage protection in Pool contract.</li>
+  <li>Last parameter is what we pass to <code class="language-plaintext highlighter-rouge">uniswapV3SwapCallback</code>–we’ll look at it shortly.</li>
+</ol>
+
+<p>After making one swap, we need to proceed to next pool in a path or return:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="p">...</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">hasMultiplePools</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">payer</span> <span class="o">=</span> <span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">);</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">params</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">skipToken</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">amountOut</span> <span class="o">=</span> <span class="n">params</span><span class="p">.</span><span class="n">amountIn</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is where we’re changing payer and removing processed pools from path.</p>
+
+<p>Finally, the new slippage protection:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="n">amountOut</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">.</span><span class="n">minAmountOut</span><span class="p">)</span>
+    <span class="nb">revert</span> <span class="n">TooLittleReceived</span><span class="p">(</span><span class="n">amountOut</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="swap-callback">Swap Callback</h3>
+
+<p>Let’s look at updated swap callback:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">uniswapV3SwapCallback</span><span class="p">(</span>
+    <span class="kt">int256</span> <span class="n">amount0</span><span class="p">,</span>
+    <span class="kt">int256</span> <span class="n">amount1</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data_</span>
+<span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+    <span class="n">SwapCallbackData</span> <span class="k">memory</span> <span class="n">data</span> <span class="o">=</span> <span class="n">abi</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="n">data_</span><span class="p">,</span> <span class="p">(</span><span class="n">SwapCallbackData</span><span class="p">));</span>
+    <span class="p">(</span><span class="kt">address</span> <span class="n">tokenIn</span><span class="p">,</span> <span class="kt">address</span> <span class="n">tokenOut</span><span class="p">,</span> <span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">decodeFirstPool</span><span class="p">();</span>
+
+    <span class="kt">bool</span> <span class="n">zeroForOne</span> <span class="o">=</span> <span class="n">tokenIn</span> <span class="o">&lt;</span> <span class="n">tokenOut</span><span class="p">;</span>
+
+    <span class="kt">int256</span> <span class="n">amount</span> <span class="o">=</span> <span class="n">zeroForOne</span> <span class="o">?</span> <span class="n">amount0</span> <span class="o">:</span> <span class="n">amount1</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">payer</span> <span class="o">==</span> <span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">IERC20</span><span class="p">(</span><span class="n">tokenIn</span><span class="p">).</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="kt">uint256</span><span class="p">(</span><span class="n">amount</span><span class="p">));</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">IERC20</span><span class="p">(</span><span class="n">tokenIn</span><span class="p">).</span><span class="n">transferFrom</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">.</span><span class="n">payer</span><span class="p">,</span>
+            <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span>
+            <span class="kt">uint256</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The callback expects encoded <code class="language-plaintext highlighter-rouge">SwapCallbackData</code> with path and payer address. It extracts pool tokens from the path,
+figures out swap direction (<code class="language-plaintext highlighter-rouge">zeroForOne</code>), and the amount the contract needs to transfer out. Then, it acts differently
+depending on payer address:</p>
+<ol>
+  <li>If payer is the current contract (this is so when making consecutive swaps), it transfers tokens to the next pool (the
+one that called this callback) from current contract’s balance.</li>
+  <li>If payer is a different address (the user that initiated the swap), it transfers tokens from user’s balance–this is
+what we had before.</li>
+</ol>
+
+<h2 id="updating-quoter-contract">Updating Quoter Contract</h2>
+
+<p>Quoter is another contract that needs to be updated because we want to use it to find output amounts in multi-pool swaps.
+Similarly to Manager, we’ll have two variants of <code class="language-plaintext highlighter-rouge">quote</code> function: single-pool and multi-pool one. Let’s look at the
+former first.</p>
+
+<h3 id="single-pool-quoting">Single-pool Quoting</h3>
+<p>We need to make only a couple of changes in our current <code class="language-plaintext highlighter-rouge">quote</code> implementation:</p>
+<ol>
+  <li>rename it to <code class="language-plaintext highlighter-rouge">quoteSingle</code>;</li>
+  <li>extract parameters into a struct (this is mostly a cosmetic change);</li>
+  <li>take token address and tick spacing in the parameters instead of a pool address.</li>
+</ol>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// src/UniswapV3Quoter.sol
+</span><span class="k">struct</span> <span class="n">QuoteSingleParams</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">tokenIn</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">tokenOut</span><span class="p">;</span>
+    <span class="kt">uint24</span> <span class="n">tickSpacing</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amountIn</span><span class="p">;</span>
+    <span class="kt">uint160</span> <span class="n">sqrtPriceLimitX96</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">function</span> <span class="n">quoteSingle</span><span class="p">(</span><span class="n">QuoteSingleParams</span> <span class="k">memory</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="k">returns</span> <span class="p">(</span>
+        <span class="kt">uint256</span> <span class="n">amountOut</span><span class="p">,</span>
+        <span class="kt">uint160</span> <span class="n">sqrtPriceX96After</span><span class="p">,</span>
+        <span class="kt">int24</span> <span class="n">tickAfter</span>
+    <span class="p">)</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>And the only change we have in the body of the function is usage of <code class="language-plaintext highlighter-rouge">getPool</code> to find pool address:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="p">...</span>
+    <span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">getPool</span><span class="p">(</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">tokenIn</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">tokenOut</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">tickSpacing</span>
+    <span class="p">);</span>
+
+    <span class="kt">bool</span> <span class="n">zeroForOne</span> <span class="o">=</span> <span class="n">params</span><span class="p">.</span><span class="n">tokenIn</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">.</span><span class="n">tokenOut</span><span class="p">;</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<h3 id="multi-pool-quoting">Multi-pool Quoting</h3>
+
+<p>Multi-pool quoting implementation is similar to the multi-pool swapping one, but it uses fewer parameters.</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">quote</span><span class="p">(</span><span class="kt">bytes</span> <span class="k">memory</span> <span class="n">path</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amountIn</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="k">returns</span> <span class="p">(</span>
+        <span class="kt">uint256</span> <span class="n">amountOut</span><span class="p">,</span>
+        <span class="kt">uint160</span><span class="p">[]</span> <span class="k">memory</span> <span class="n">sqrtPriceX96AfterList</span><span class="p">,</span>
+        <span class="kt">int24</span><span class="p">[]</span> <span class="k">memory</span> <span class="n">tickAfterList</span>
+    <span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">sqrtPriceX96AfterList</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">uint160</span><span class="p">[](</span><span class="n">path</span><span class="p">.</span><span class="n">numPools</span><span class="p">());</span>
+    <span class="n">tickAfterList</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int24</span><span class="p">[](</span><span class="n">path</span><span class="p">.</span><span class="n">numPools</span><span class="p">());</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>As parameters, we only need input amount and swap path. The function returns similar values as <code class="language-plaintext highlighter-rouge">quoteSingle</code>, but “price
+after” and “tick after” are collected after each swap, thus we need to returns arrays.</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">uint256</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">(</span><span class="kt">address</span> <span class="n">tokenIn</span><span class="p">,</span> <span class="kt">address</span> <span class="n">tokenOut</span><span class="p">,</span> <span class="kt">uint24</span> <span class="n">tickSpacing</span><span class="p">)</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="p">.</span><span class="n">decodeFirstPool</span><span class="p">();</span>
+
+    <span class="p">(</span>
+        <span class="kt">uint256</span> <span class="n">amountOut_</span><span class="p">,</span>
+        <span class="kt">uint160</span> <span class="n">sqrtPriceX96After</span><span class="p">,</span>
+        <span class="kt">int24</span> <span class="n">tickAfter</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">quoteSingle</span><span class="p">(</span>
+            <span class="n">QuoteSingleParams</span><span class="p">({</span>
+                <span class="n">tokenIn</span><span class="o">:</span> <span class="n">tokenIn</span><span class="p">,</span>
+                <span class="n">tokenOut</span><span class="o">:</span> <span class="n">tokenOut</span><span class="p">,</span>
+                <span class="n">tickSpacing</span><span class="o">:</span> <span class="n">tickSpacing</span><span class="p">,</span>
+                <span class="n">amountIn</span><span class="o">:</span> <span class="n">amountIn</span><span class="p">,</span>
+                <span class="n">sqrtPriceLimitX96</span><span class="o">:</span> <span class="mi">0</span>
+            <span class="p">})</span>
+        <span class="p">);</span>
+
+    <span class="n">sqrtPriceX96AfterList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sqrtPriceX96After</span><span class="p">;</span>
+    <span class="n">tickAfterList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tickAfter</span><span class="p">;</span>
+    <span class="n">amountIn</span> <span class="o">=</span> <span class="n">amountOut_</span><span class="p">;</span>
+    <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">path</span><span class="p">.</span><span class="n">hasMultiplePools</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">.</span><span class="n">skipToken</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">amountOut</span> <span class="o">=</span> <span class="n">amountIn</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The logic of the loop is identical to the one in the updated <code class="language-plaintext highlighter-rouge">swap</code> function:</p>
+<ol>
+  <li>get current pool’s parameters;</li>
+  <li>call <code class="language-plaintext highlighter-rouge">quoteSingle</code> on current pool;</li>
+  <li>save returned values;</li>
+  <li>repeat if there’s more pool or return otherwise.</li>
+</ol>

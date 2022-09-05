@@ -1,0 +1,65 @@
+
+<h1 id="output-amount-calculation">Output Amount Calculation</h1>
+
+<p>Our collection of Uniswap math formulas lacks a final piece: the formula of calculating the output amount when selling
+ETH (that is: selling token $X$). In the previous milestone, we had an analogous formula for the scenario when ETH is
+bought (buying token $X$):</p>
+
+\[\Delta \sqrt{P} = \frac{\Delta y}{L}\]
+
+<p>This formula finds the change in the price when selling token $Y$. We then added this change to the current price to
+find the target price:</p>
+
+\[\sqrt{P_{target}} = \sqrt{P_{current}} + \Delta \sqrt{P}\]
+
+<p>Now, we need a similar formula to find the target price when selling token $X$ (ETH in our case) and buying token $Y$
+(USDC in our case).</p>
+
+<p>Recall that the change in token $X$ can be calculated as:</p>
+
+\[\Delta x = \Delta \frac{1}{\sqrt{P}}L\]
+
+<p>From this formula, we can find the target price:</p>
+
+<p>\(\Delta x = (\frac{1}{\sqrt{P_{target}}} - \frac{1}{\sqrt{P_{current}}}) L\)
+\(= \frac{L}{\sqrt{P_{target}}} - \frac{L}{\sqrt{P_{current}}}\)</p>
+
+<p>From this, we can find $\sqrt{P_{target}}$ using basic algebraic transformations:</p>
+
+\[\sqrt{P_{target}} = \frac{\sqrt{P}L}{\Delta x \sqrt{P} + L}\]
+
+<p>Knowing the target price, we can find the output amount similarly to how we found it in the previous milestone.</p>
+
+<p>Let&#8217;s update our Python script with the new formula:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Swap ETH for USDC
+</span><span class="n">amount_in</span> <span class="o">=</span> <span class="mf">0.01337</span> <span class="o">*</span> <span class="n">eth</span>
+
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="se">\n</span><span class="s">Selling </span><span class="si">{</span><span class="n">amount_in</span><span class="o">/</span><span class="n">eth</span><span class="si">}</span><span class="s"> ETH"</span><span class="p">)</span>
+
+<span class="n">price_next</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">liq</span> <span class="o">*</span> <span class="n">q96</span> <span class="o">*</span> <span class="n">sqrtp_cur</span><span class="p">)</span> <span class="o">//</span> <span class="p">(</span><span class="n">liq</span> <span class="o">*</span> <span class="n">q96</span> <span class="o">+</span> <span class="n">amount_in</span> <span class="o">*</span> <span class="n">sqrtp_cur</span><span class="p">))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">"New price:"</span><span class="p">,</span> <span class="p">(</span><span class="n">price_next</span> <span class="o">/</span> <span class="n">q96</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"New sqrtP:"</span><span class="p">,</span> <span class="n">price_next</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"New tick:"</span><span class="p">,</span> <span class="n">price_to_tick</span><span class="p">((</span><span class="n">price_next</span> <span class="o">/</span> <span class="n">q96</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+<span class="n">amount_in</span> <span class="o">=</span> <span class="n">calc_amount0</span><span class="p">(</span><span class="n">liq</span><span class="p">,</span> <span class="n">price_next</span><span class="p">,</span> <span class="n">sqrtp_cur</span><span class="p">)</span>
+<span class="n">amount_out</span> <span class="o">=</span> <span class="n">calc_amount1</span><span class="p">(</span><span class="n">liq</span><span class="p">,</span> <span class="n">price_next</span><span class="p">,</span> <span class="n">sqrtp_cur</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">"ETH in:"</span><span class="p">,</span> <span class="n">amount_in</span> <span class="o">/</span> <span class="n">eth</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"USDC out:"</span><span class="p">,</span> <span class="n">amount_out</span> <span class="o">/</span> <span class="n">eth</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Its output:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Selling 0.01337 ETH
+New price: 4993.777388290041
+New sqrtP: 5598789932670289186088059666432
+New tick: 85163
+ETH <span class="k">in</span>: 0.013369999999998142
+USDC out: 66.80838889019013
+</code></pre></div></div>
+
+<p>Which means that we&#8217;ll get 66.8 USDC when selling 0.01337 ETH using the liquidity we provided in the previous step.</p>
+
+<hr />
+
+<p>Now, we&#8217;going to implement all the mathematical formulas in Solidity.</p>

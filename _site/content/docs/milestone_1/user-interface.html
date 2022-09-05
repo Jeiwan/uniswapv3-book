@@ -1,0 +1,273 @@
+
+<h1 id="user-interface">User Interface</h1>
+
+<p>Finally, we made it to the final stop of this milestone–building a user interface!</p>
+
+<p>[TODO: screenshot of the main page]</p>
+
+<p>Since building a front-end app is not the main goal of this book, I won’t show how to build such an app from scratch.
+Instead, I’ll show how to use MetaMask to interact with a decentralized exchange.</p>
+
+<blockquote>
+  <p>If you want to experiment with the app and run it locally, you can fund it in <a href="https://github.com/Jeiwan/uniswapv3-code/tree/milestone_1/ui">ui</a>
+folder in the code repo. This is a simple React app, to run it locally set contracts addresses in <code class="language-plaintext highlighter-rouge">App.js</code> and run <code class="language-plaintext highlighter-rouge">yarn start</code>.</p>
+</blockquote>
+
+<h2 id="overview-of-tools">Overview of Tools</h2>
+
+<h3 id="what-is-metamask">What is MetaMask?</h3>
+
+<p>MetaMask is an Ethereum wallet implemented as a browser extension. It creates and stores private keys, shows token
+balances, allows to connect to different networks, sends, and receives ether and tokens-everything a wallet needs to do.</p>
+
+<p>Besides that, MetaMask acts as a signer and a provider. As a provider, it connects to an Ethereum node and provides an
+interface to use its JSON-RPC API. As a signer, it provides an interface for secure transaction signing, thus it can
+be used to sign any transaction using a private key from the wallet.</p>
+
+<p>[TODO: draw a scheme]</p>
+
+<h3 id="convenience-libraries">Convenience Libraries</h3>
+
+<p>MetaMask, however, doesn’t provide much functionality: it can only manage accounts and send raw transactions. We need
+another library that will make interaction with contracts easy. And we also want a set of utilities that will make our
+life easier when handling EVM-specific data (ABI encoding/decoding, big numbers handling, etc.).</p>
+
+<p>There are multiple such libraries. The two most popular ones are: <a href="https://github.com/ChainSafe/web3.js">web3.js</a> and
+<a href="https://github.com/ethers-io/ethers.js/">ethers.js</a>. Picking either of them is a matter of personal preference. To me,
+Ethers.js seems to have a cleaner contract interaction interface, so I’ll pick it.</p>
+
+<h2 id="workflows">Workflows</h2>
+
+<p>Let’s now see how we can implement interaction scenarios using MetaMask + Ethers.js.</p>
+
+<h3 id="connecting-to-local-node">Connecting to Local Node</h3>
+
+<p>To send transactions and fetch blockchain data, MetaMask connects to an Ethereum node. To interact with our contracts,
+we need to connect to the local Anvil node. To do this, open MetaMask, click on the list of networks, click “Add Network”,
+and add a network with RPC URL <code class="language-plaintext highlighter-rouge">http://localhost:8545</code>. It’ll automatically detect the chain ID (31337 in the case of Anvil).</p>
+
+<p>After connecting to the local node, we need to import. In MetaMask, click on the list of addresses, click “Import Account”,
+and paste the private key of the address you picked before deploying the contracts. After that, go to the assets list and
+import the addresses of the two tokens. Now you should see the token balances in MetaMask.</p>
+
+<blockquote>
+  <p>MetaMask is still somewhat bugged. One problem I struggled with is that it caches blockchain state when connected to
+<code class="language-plaintext highlighter-rouge">localhost</code>. Because of this, when restarting the node, you might see old token balances and state. To fix this, go to
+the advanced settings and click “Reset Account”. You’ll need to do this each time after restarting the node.</p>
+</blockquote>
+
+<h3 id="connecting-to-metamask">Connecting to MetaMask</h3>
+
+<p>Not every website is allowed to get access to your address in MetaMask. A website first needs to connect to MetaMask.
+When a new website is connecting to MetaMask, you’ll see a window that asks for permissions.</p>
+
+<p>Here’s how to connect to MetaMask from a front-end app:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// ui/src/contexts/MetaMask.js</span>
+<span class="kd">const</span> <span class="nx">connect</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">ethereum</span><span class="p">)</span> <span class="o">===</span> <span class="dl">'</span><span class="s1">undefined</span><span class="dl">'</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">setStatus</span><span class="p">(</span><span class="dl">'</span><span class="s1">not_installed</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="nb">Promise</span><span class="p">.</span><span class="nx">all</span><span class="p">([</span>
+    <span class="nb">window</span><span class="p">.</span><span class="nx">ethereum</span><span class="p">.</span><span class="nx">request</span><span class="p">({</span> <span class="na">method</span><span class="p">:</span> <span class="dl">'</span><span class="s1">eth_requestAccounts</span><span class="dl">'</span> <span class="p">}),</span>
+    <span class="nb">window</span><span class="p">.</span><span class="nx">ethereum</span><span class="p">.</span><span class="nx">request</span><span class="p">({</span> <span class="na">method</span><span class="p">:</span> <span class="dl">'</span><span class="s1">eth_chainId</span><span class="dl">'</span> <span class="p">}),</span>
+  <span class="p">]).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">([</span><span class="nx">accounts</span><span class="p">,</span> <span class="nx">chainId</span><span class="p">])</span> <span class="p">{</span>
+    <span class="nx">setAccount</span><span class="p">(</span><span class="nx">accounts</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+    <span class="nx">setChain</span><span class="p">(</span><span class="nx">chainId</span><span class="p">);</span>
+    <span class="nx">setStatus</span><span class="p">(</span><span class="dl">'</span><span class="s1">connected</span><span class="dl">'</span><span class="p">);</span>
+  <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">window.ethereum</code> is an object provided by MetaMask, it’s the interface to communicate with MetaMask. If it’s undefined,
+MetaMask is not installed. If it’s defined, we can send two requests to MetaMask: <code class="language-plaintext highlighter-rouge">eth_requestAccounts</code> and <code class="language-plaintext highlighter-rouge">eth_chainId</code>.
+It’s the first one that “connects” to MetaMask. It basically asks for access to get user’s addresses. The user
+will be able to choose which addresses to give access to. <code class="language-plaintext highlighter-rouge">eth_chainId</code> will ask for the chain ID of the node MetaMask
+is connected to. After obtaining an address and chain ID, it’s a good practice to display them in the interface:</p>
+
+<p>[TODO: MetaMask connected]</p>
+
+<h3 id="providing-liquidity">Providing Liquidity</h3>
+
+<p>To provide liquidity into the pool, we need to build a form that asks the user to type the amounts they want to deposit.
+After clicking “Submit”, the app will build a transaction that calls <code class="language-plaintext highlighter-rouge">mint</code> in the pool contract and provides the 
+amounts chosen by users. Let’s see how to do this.</p>
+
+<p>Ether.js provides <code class="language-plaintext highlighter-rouge">Contract</code> interface to interact with contracts. It makes our life much easier, since it takes on the job
+of encoding function parameters, creating a valid transaction, and handing it over to MetaMask. For us, calling contracts
+looks like calling asynchronous methods on a JS object.</p>
+
+<p>Let’s see how to create an instance of <code class="language-plaintext highlighter-rouge">Contracts</code>:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">token0</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">Contract</span><span class="p">(</span>
+  <span class="nx">props</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">token0Address</span><span class="p">,</span>
+  <span class="nx">props</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">ABIs</span><span class="p">.</span><span class="nx">ERC20</span><span class="p">,</span>
+  <span class="k">new</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">providers</span><span class="p">.</span><span class="nx">Web3Provider</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">ethereum</span><span class="p">).</span><span class="nx">getSigner</span><span class="p">()</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>A <code class="language-plaintext highlighter-rouge">Contract</code> instance is an address and the ABI of the contract deployed at this address. The ABI is needed to interact
+with the contract. The third parameter is the signer interface provided by MetaMask–it’s used by the JS contract instance
+to sign transactions via MetaMask.</p>
+
+<p>Now, let’s add a function for adding liquidity to the pool:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">addLiquidity</span> <span class="o">=</span> <span class="p">(</span><span class="nx">account</span><span class="p">,</span> <span class="p">{</span> <span class="nx">token0</span><span class="p">,</span> <span class="nx">token1</span><span class="p">,</span> <span class="nx">manager</span> <span class="p">},</span> <span class="p">{</span> <span class="nx">managerAddress</span><span class="p">,</span> <span class="nx">poolAddress</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">amount0</span> <span class="o">=</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">parseEther</span><span class="p">(</span><span class="dl">"</span><span class="s2">0.998976618347425280</span><span class="dl">"</span><span class="p">);</span>
+  <span class="kd">const</span> <span class="nx">amount1</span> <span class="o">=</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">parseEther</span><span class="p">(</span><span class="dl">"</span><span class="s2">5000</span><span class="dl">"</span><span class="p">);</span> <span class="c1">// 5000 USDC</span>
+  <span class="kd">const</span> <span class="nx">lowerTick</span> <span class="o">=</span> <span class="mi">84222</span><span class="p">;</span>
+  <span class="kd">const</span> <span class="nx">upperTick</span> <span class="o">=</span> <span class="mi">86129</span><span class="p">;</span>
+  <span class="kd">const</span> <span class="nx">liquidity</span> <span class="o">=</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">BigNumber</span><span class="p">.</span><span class="k">from</span><span class="p">(</span><span class="dl">"</span><span class="s2">1517882343751509868544</span><span class="dl">"</span><span class="p">);</span>
+  <span class="kd">const</span> <span class="nx">extra</span> <span class="o">=</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">defaultAbiCoder</span><span class="p">.</span><span class="nx">encode</span><span class="p">(</span>
+    <span class="p">[</span><span class="dl">"</span><span class="s2">address</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">address</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">address</span><span class="dl">"</span><span class="p">],</span>
+    <span class="p">[</span><span class="nx">token0</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span> <span class="nx">token1</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span> <span class="nx">account</span><span class="p">]</span>
+  <span class="p">);</span>
+  <span class="p">...</span>
+</code></pre></div></div>
+
+<p>The first thing to do is to prepare the parameters. We use the same values we calculated earlier.</p>
+
+<p>Next, we allow the manager contract to take our tokens. First, we check the current allowances:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">Promise</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span>
+  <span class="p">[</span>
+    <span class="nx">token0</span><span class="p">.</span><span class="nx">allowance</span><span class="p">(</span><span class="nx">account</span><span class="p">,</span> <span class="nx">managerAddress</span><span class="p">),</span>
+    <span class="nx">token1</span><span class="p">.</span><span class="nx">allowance</span><span class="p">(</span><span class="nx">account</span><span class="p">,</span> <span class="nx">managerAddress</span><span class="p">)</span>
+  <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>Then, we check if either of them is enough to transfer a corresponding amount of tokens. If not, we’re sending an <code class="language-plaintext highlighter-rouge">approve</code>
+transaction, which asks the user to approve spending of a specific amount to the manager contract. After ensuring that
+the user has approved full amounts, we call <code class="language-plaintext highlighter-rouge">manager.mint</code> to add liquidity:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="nx">then</span><span class="p">(([</span><span class="nx">allowance0</span><span class="p">,</span> <span class="nx">allowance1</span><span class="p">])</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">()</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">allowance0</span><span class="p">.</span><span class="nx">lt</span><span class="p">(</span><span class="nx">amount0</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">token0</span><span class="p">.</span><span class="nx">approve</span><span class="p">(</span><span class="nx">managerAddress</span><span class="p">,</span> <span class="nx">amount0</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+      <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">allowance1</span><span class="p">.</span><span class="nx">lt</span><span class="p">(</span><span class="nx">amount1</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">token1</span><span class="p">.</span><span class="nx">approve</span><span class="p">(</span><span class="nx">managerAddress</span><span class="p">,</span> <span class="nx">amount1</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+      <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">manager</span><span class="p">.</span><span class="nx">mint</span><span class="p">(</span><span class="nx">poolAddress</span><span class="p">,</span> <span class="nx">lowerTick</span><span class="p">,</span> <span class="nx">upperTick</span><span class="p">,</span> <span class="nx">liquidity</span><span class="p">,</span> <span class="nx">extra</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">alert</span><span class="p">(</span><span class="dl">'</span><span class="s1">Liquidity added!</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><code class="language-plaintext highlighter-rouge">lt</code> is a method of <a href="https://docs.ethers.io/v5/api/utils/bignumber/">BigNumber</a>. Ethers.js uses BigNumber to represent
+<code class="language-plaintext highlighter-rouge">uint256</code> type, for which JavaScript <a href="https://docs.ethers.io/v5/api/utils/bignumber/#BigNumber--notes-safenumbers">doesn’t have enough precision</a>.
+This is another reason why we want a convenience library.</p>
+</blockquote>
+
+<p>This is pretty much similar to the test contract, besides checking current allowances.</p>
+
+<p><code class="language-plaintext highlighter-rouge">token0</code>, <code class="language-plaintext highlighter-rouge">token1</code>, and <code class="language-plaintext highlighter-rouge">manager</code> in the above code are instances of <code class="language-plaintext highlighter-rouge">Contract</code>. <code class="language-plaintext highlighter-rouge">approve</code> and <code class="language-plaintext highlighter-rouge">mint</code> are contract
+functions, which were generated dynamically from the ABIs we provided when instantiated the contracts. When calling these
+methods, Ethers.js:</p>
+<ol>
+  <li>encodes function parameters;</li>
+  <li>builds a transaction;</li>
+  <li>passes the transaction to MetaMask and asks to sign it; user sees a MetaMask window and presses “Confirm”;</li>
+  <li>sends the transaction to the node MetaMask is connected to;</li>
+  <li>returns a transaction object with full information about the sent transaction.</li>
+</ol>
+
+<p>The transaction object also contains <code class="language-plaintext highlighter-rouge">wait</code> function, which we call to fail for a transaction to be mined–this allows
+us to wait for a transaction to be mined before sending another.</p>
+
+<blockquote>
+  <p>Ethereum requires a strict order of transaction. Remember the nonce? It’s an account-wide index of transactions, sent
+by this account. Every new transaction increases this index, and Ethereum won’t mint a transaction until a previous
+transaction (one with a smaller nonce) was mined.</p>
+</blockquote>
+
+<h3 id="swapping-tokens">Swapping Tokens</h3>
+
+<p>To swap tokens, we use the same pattern: get parameters from the user, check allowance, call <code class="language-plaintext highlighter-rouge">swap</code> on the manager.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">swap</span> <span class="o">=</span> <span class="p">(</span><span class="nx">amountIn</span><span class="p">,</span> <span class="nx">account</span><span class="p">,</span> <span class="p">{</span> <span class="nx">tokenIn</span><span class="p">,</span> <span class="nx">manager</span><span class="p">,</span> <span class="nx">token0</span><span class="p">,</span> <span class="nx">token1</span> <span class="p">},</span> <span class="p">{</span> <span class="nx">managerAddress</span><span class="p">,</span> <span class="nx">poolAddress</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">amountInWei</span> <span class="o">=</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">parseEther</span><span class="p">(</span><span class="nx">amountIn</span><span class="p">);</span>
+  <span class="kd">const</span> <span class="nx">extra</span> <span class="o">=</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">defaultAbiCoder</span><span class="p">.</span><span class="nx">encode</span><span class="p">(</span>
+    <span class="p">[</span><span class="dl">"</span><span class="s2">address</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">address</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">address</span><span class="dl">"</span><span class="p">],</span>
+    <span class="p">[</span><span class="nx">token0</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span> <span class="nx">token1</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span> <span class="nx">account</span><span class="p">]</span>
+  <span class="p">);</span>
+
+  <span class="nx">tokenIn</span><span class="p">.</span><span class="nx">allowance</span><span class="p">(</span><span class="nx">account</span><span class="p">,</span> <span class="nx">managerAddress</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">((</span><span class="nx">allowance</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">allowance</span><span class="p">.</span><span class="nx">lt</span><span class="p">(</span><span class="nx">amountInWei</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">tokenIn</span><span class="p">.</span><span class="nx">approve</span><span class="p">(</span><span class="nx">managerAddress</span><span class="p">,</span> <span class="nx">amountInWei</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+      <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">manager</span><span class="p">.</span><span class="nx">swap</span><span class="p">(</span><span class="nx">poolAddress</span><span class="p">,</span> <span class="nx">extra</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">alert</span><span class="p">(</span><span class="dl">'</span><span class="s1">Swap succeeded!</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">}).</span><span class="k">catch</span><span class="p">((</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="nx">alert</span><span class="p">(</span><span class="dl">'</span><span class="s1">Failed!</span><span class="dl">'</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The only new thing here is <code class="language-plaintext highlighter-rouge">ethers.utils.parseEther()</code> function, which use to convert user-friendly amount (42 USDC) to
+wei, the smallest unit in Ethereum.</p>
+
+<h3 id="subscribing-to-changes">Subscribing to Changes</h3>
+
+<p>For a decentralized application, it’s important to reflect the current blockchain state. For example, in the case of a
+decentralized exchange, it’s critical to properly calculate swap prices based on current pool reserves; outdated data
+can cause slippage and make a swap transaction fail.</p>
+
+<p>While developing the pool contract, we learned about events, which act as blockchain data indexes: whenever smart contract
+state is modified, it’s a good practice to emit an event since events are indexed for quick search. What we’re going to
+do now, is to subscribe to contract events to keep our front-end app updated. Let’s build an event feed.</p>
+
+<p>If you checked the ABI file as I recommended to you earlier, you saw that it also contains description of events: event
+name and its fields. Well, <a href="https://docs.ethers.io/v5/api/contract/contract/#Contract--events">Ether.js parses them</a> and
+provides an interface to subscribe to new events. Let’s see how this works.</p>
+
+<p>To subscribe to events, we’ll use <code class="language-plaintext highlighter-rouge">on(EVENT_NAME, handler)</code> function. The callback receives all the fields of the event</p>
+<ul>
+  <li>the event itself as parameters:
+    <div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">subscribeToEvents</span> <span class="o">=</span> <span class="p">(</span><span class="nx">pool</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+<span class="nx">pool</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="dl">"</span><span class="s2">Mint</span><span class="dl">"</span><span class="p">,</span> <span class="p">(</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">owner</span><span class="p">,</span> <span class="nx">tickLower</span><span class="p">,</span> <span class="nx">tickUpper</span><span class="p">,</span> <span class="nx">amount</span><span class="p">,</span> <span class="nx">amount0</span><span class="p">,</span> <span class="nx">amount1</span><span class="p">,</span> <span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">event</span><span class="p">));</span>
+<span class="nx">pool</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="dl">"</span><span class="s2">Swap</span><span class="dl">"</span><span class="p">,</span> <span class="p">(</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">recipient</span><span class="p">,</span> <span class="nx">amount0</span><span class="p">,</span> <span class="nx">amount1</span><span class="p">,</span> <span class="nx">sqrtPriceX96</span><span class="p">,</span> <span class="nx">liquidity</span><span class="p">,</span> <span class="nx">tick</span><span class="p">,</span> <span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">event</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>To filter and fetch previous events, we can use <code class="language-plaintext highlighter-rouge">queryFilter</code>:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">Promise</span><span class="p">.</span><span class="nx">all</span><span class="p">([</span>
+  <span class="nx">pool</span><span class="p">.</span><span class="nx">queryFilter</span><span class="p">(</span><span class="dl">"</span><span class="s2">Mint</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">earliest</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">latest</span><span class="dl">"</span><span class="p">),</span>
+  <span class="nx">pool</span><span class="p">.</span><span class="nx">queryFilter</span><span class="p">(</span><span class="dl">"</span><span class="s2">Swap</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">earliest</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">latest</span><span class="dl">"</span><span class="p">),</span>
+<span class="p">]).</span><span class="nx">then</span><span class="p">(([</span><span class="nx">mints</span><span class="p">,</span> <span class="nx">swaps</span><span class="p">])</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="p">...</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>You probably noticed that some event fields are marked as <code class="language-plaintext highlighter-rouge">indexed</code>–such fields are indexed by Ethereum nodes, which lets
+search events by specific values in such fields. For example, the <code class="language-plaintext highlighter-rouge">Swap</code> event has <code class="language-plaintext highlighter-rouge">sender</code> and <code class="language-plaintext highlighter-rouge">recipient</code> fields
+indexed, so we can search by swap sender and recipient. And again, Ethere.js makes this easier:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">swapFilter</span> <span class="o">=</span> <span class="nx">pool</span><span class="p">.</span><span class="nx">filters</span><span class="p">.</span><span class="nx">Swap</span><span class="p">(</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">recipient</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">swaps</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">pool</span><span class="p">.</span><span class="nx">queryFilter</span><span class="p">(</span><span class="nx">swapFilter</span><span class="p">,</span> <span class="nx">fromBlock</span><span class="p">,</span> <span class="nx">toBlock</span><span class="p">);</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>And that’s it! We’re done with milestone 1!</p>
+
+<p style="font-size:3rem; text-align: center">
+🎉🍾🍾🍾🎉
+</p>

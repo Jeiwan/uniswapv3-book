@@ -1,0 +1,46 @@
+<h1 id="introduction-to-markets">Introduction to markets</h1>
+
+<h2 id="how-centralized-exchanges-work">How centralized exchanges work</h2>
+<p>In this book, we’ll build a decentralized exchange (DEX) that will run on Ethereum. There’re multiple approaches to how an
+exchange can be designed. All centralized exchanges have <em>an order book</em> at their core. An order book is just a journal that
+stores all sell or buy orders that traders what to make. Each order in this book contains a price the order must be
+executed at and the amount that must be bought or sold.</p>
+
+<p>[TODO: illustration]</p>
+
+<p>For trading to happen, there must exist <em>liquidity</em>, which is simply the availability of assets on a market. If you
+want to buy a wardrobe but no one is selling one, there’s no liquidity. If you want to sell a wardrobe but no one wants
+to buy it, there’s liquidity but no buyers. If there’s no liquidity, there’s nothing to buy or sell.</p>
+
+<p>On centralized exchanges, the order book is where liquidity is accumulated. If someone places a sell order, they provide
+liquidity to the market. If someone places a buy order, they expected the market to have liquidity, otherwise, no trade
+is possible.</p>
+
+<p>Since liquidity is not always available, but markets are still interested in trades, entities called <em>market makers</em> were
+established. A market maker is a firm or an individual who provides liquidity to markets, that is someone who has a lot
+of money and who buys different assets to sell them on exchanges. For this job, market makers are paid by exchanges.</p>
+
+<h2 id="how-decentralized-exchanges-work">How decentralized exchanges work</h2>
+
+<p>Not surprising, decentralized exchanges also need liquidity. And they also need someone who provides it to traders
+of a wide variety of assets. However, this process cannot be handled in a centralized way. A decentralized solution
+must exist. There are multiple decentralized solutions and the same solutions are implemented in different ways, but
+our focus will be on how Uniswap solves this problem.</p>
+
+<h2 id="automated-market-makers">Automated Market Makers</h2>
+
+<p>The evolution of on-chain markets brought us to the idea of Automated Market Makers (AMM). As the name implies, this algorithm
+works exactly like market makers but in an automated way. Moreover, it’s decentralized and permissionless (anyone can
+use them).</p>
+
+<h3 id="what-is-an-amm">What is an AMM?</h3>
+
+<p>The core idea is <strong>pooling</strong>-different and not connected groups of people are incentivized to put their assets (tokens)
+into <em>pools</em>, which are smart contracts. Anyone else can use these pool contracts to trade, thanks to liquidity
+provided by the first group.</p>
+
+<p>[TODO: illustration]</p>
+
+<p>What makes this approach different from centralized exchanges is that <strong>the smart contracts are fully automated and not
+managed by anyone</strong>. There are no managers, admins, privileged users, etc. There are only <strong>liquidity providers</strong> and 
+<strong>traders</strong>, and all the algorithms are programmed and immutable.</p>

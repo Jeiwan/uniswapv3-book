@@ -1,0 +1,182 @@
+<h1 id="manager-contract">Manager Contract</h1>
+
+<p>Before deploying our pool contract, we need to solve one problem. As you remember, Uniswap V3 contracts are split into two
+categories:</p>
+<ol>
+  <li>Core contracts that implement the core functions and don’t provide user-friendly interfaces.</li>
+  <li>Periphery contracts that implement user-friendly interfaces for the core contracts.</li>
+</ol>
+
+<p>The pool contract is a core contract, it’s not supposed to be user-friendly and flexible. It expects the caller to do
+all the calculations (prices, amounts) and to provide proper call parameters. It also doesn’t use ERC20’s <code class="language-plaintext highlighter-rouge">transferFrom</code>
+to transfer tokens from the caller. Instead, it uses two callbacks:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">uniswapV3MintCallback</code>, which is called when minting liquidity;</li>
+  <li><code class="language-plaintext highlighter-rouge">uniswapV3SwapCallback</code>, which is called when swapping tokens.</li>
+</ol>
+
+<p>In our tests, we implemented these callbacks in the test contract. Since it’s only a contract that can implement them,
+<strong>the pool contract cannot be called by regular users</strong> (non-contract addresses). This is fine. But not anymore 🙂.</p>
+
+<p>Our next steps in the book is deploying the pool contract to a local blockchain and interacting with it from a front-end
+app. Thus, we need to build a contract that will let non-contract addresses to interact with the pool. Let’s do this now!</p>
+
+<h2 id="workflow">Workflow</h2>
+
+<p>This is how the manager contract will work:</p>
+<ol>
+  <li>To mint liquidity, we’ll approve spending of tokens to the manager contract.</li>
+  <li>We’ll then call <code class="language-plaintext highlighter-rouge">mint</code> function of the manager contract and pass it minting parameters, as well as the address of
+the pool we want to provide liquidity into.</li>
+  <li>The manager contract will call the pool’s <code class="language-plaintext highlighter-rouge">mint</code> function and will implement <code class="language-plaintext highlighter-rouge">uniswapV3MintCallback</code>. It’ll have
+permissions permissions to send our tokens to the pool contract.</li>
+  <li>To swap tokens, we’ll also approve spending of tokens to the manager contract.</li>
+  <li>We’ll then call <code class="language-plaintext highlighter-rouge">swap</code> function of the manager contract and, similarly to minting, it’ll pass the call to the pool.
+The pool will take tokens from the manager contract, swap then, and will send the output amount to us.</li>
+</ol>
+
+<p>At this point, the manager contract will act as a simple intermediary, but in later chapter we’ll add more useful
+functions to it.</p>
+
+<h2 id="passing-data-to-callbacks">Passing Data to Callbacks</h2>
+
+<p>Before implementing the manager contract, we need to upgrade the pool contract.</p>
+
+<p>The manager contract will work with any pool and it’ll allow any address to call it. To achieve this, we need to upgrade
+the callbacks: we want to pass different pool addresses and user addresses to them. Let’s look at our current
+implementation of <code class="language-plaintext highlighter-rouge">uniswapV3MintCallback</code> (in the test contract):</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">uniswapV3MintCallback</span><span class="p">(</span><span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">transferInMintCallback</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">token0</span><span class="p">.</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount0</span><span class="p">);</span>
+        <span class="n">token1</span><span class="p">.</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount1</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Key points here:</p>
+<ol>
+  <li>The function transfers tokens belonging to the test contract–we want it to transfer tokens from the caller by using
+<code class="language-plaintext highlighter-rouge">transferFrom</code>.</li>
+  <li>The function knows <code class="language-plaintext highlighter-rouge">token0</code> and <code class="language-plaintext highlighter-rouge">token1</code>, which will be different for every pool.</li>
+</ol>
+
+<p>Conclusion: we want to change the arguments of the callback so we could pass:</p>
+<ol>
+  <li>User address.</li>
+  <li>Pool address.</li>
+</ol>
+
+<p>Now, let’s look at the swap callback:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">uniswapV3SwapCallback</span><span class="p">(</span><span class="kt">int256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">int256</span> <span class="n">amount1</span><span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">amount0</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">transferInSwapCallback</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">token0</span><span class="p">.</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="kt">uint256</span><span class="p">(</span><span class="n">amount0</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">amount1</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">transferInSwapCallback</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">token1</span><span class="p">.</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="kt">uint256</span><span class="p">(</span><span class="n">amount1</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Identically, it transfers tokens from the test contract and it knows <code class="language-plaintext highlighter-rouge">token0</code> and <code class="language-plaintext highlighter-rouge">token1</code>.</p>
+
+<p>To pass the extra data to the callbacks, we need to pass it to <code class="language-plaintext highlighter-rouge">mint</code> and <code class="language-plaintext highlighter-rouge">swap</code> first (since callbacks are called from
+these functions). However, since this extra data is not used in the function and to not make their arguments messy, we’ll
+encode the extra data using <a href="https://docs.soliditylang.org/en/latest/units-and-global-variables.html?highlight=abi.encode#abi-encoding-and-decoding-functions">abi.encode()</a>.</p>
+
+<p>Let’s define the extra data as a structure:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// src/UniswapV3Pool.sol
+</span><span class="p">...</span>
+<span class="k">struct</span> <span class="n">CallbackData</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">token0</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">token1</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">payer</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="p">...</span>
+</code></pre></div></div>
+
+<p>And then pass encoded data to callbacks:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">mint</span><span class="p">(</span>
+    <span class="kt">address</span> <span class="n">owner</span><span class="p">,</span>
+    <span class="kt">int24</span> <span class="n">lowerTick</span><span class="p">,</span>
+    <span class="kt">int24</span> <span class="n">upperTick</span><span class="p">,</span>
+    <span class="kt">uint128</span> <span class="n">amount</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span> <span class="c1">// &lt;--- New line
+</span><span class="p">)</span> <span class="k">external</span> <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">IUniswapV3MintCallback</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">).</span><span class="n">uniswapV3MintCallback</span><span class="p">(</span>
+        <span class="n">amount0</span><span class="p">,</span>
+        <span class="n">amount1</span><span class="p">,</span>
+        <span class="n">data</span> <span class="c1">// &lt;--- New line
+</span>    <span class="p">);</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="k">function</span> <span class="n">swap</span><span class="p">(</span><span class="kt">address</span> <span class="n">recipient</span><span class="p">,</span> <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span><span class="p">)</span> <span class="c1">// &lt;--- `data` added
+</span>    <span class="k">public</span>
+    <span class="k">returns</span> <span class="p">(</span><span class="kt">int256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">int256</span> <span class="n">amount1</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">IUniswapV3SwapCallback</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">).</span><span class="n">uniswapV3SwapCallback</span><span class="p">(</span>
+        <span class="n">amount0</span><span class="p">,</span>
+        <span class="n">amount1</span><span class="p">,</span>
+        <span class="n">data</span> <span class="c1">// &lt;--- New line
+</span>    <span class="p">);</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now, we can read the extra data in the callbacks in the test contract.</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">uniswapV3MintCallback</span><span class="p">(</span>
+    <span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span>
+    <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span>
+<span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">transferInMintCallback</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">UniswapV3Pool</span><span class="p">.</span><span class="n">CallbackData</span> <span class="k">memory</span> <span class="n">extra</span> <span class="o">=</span> <span class="n">abi</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">UniswapV3Pool</span><span class="p">.</span><span class="n">CallbackData</span><span class="p">)</span>
+        <span class="p">);</span>
+
+        <span class="n">IERC20</span><span class="p">(</span><span class="n">extra</span><span class="p">.</span><span class="n">token0</span><span class="p">).</span><span class="n">transferFrom</span><span class="p">(</span><span class="n">extra</span><span class="p">.</span><span class="n">payer</span><span class="p">,</span> <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount0</span><span class="p">);</span>
+        <span class="n">IERC20</span><span class="p">(</span><span class="n">extra</span><span class="p">.</span><span class="n">token1</span><span class="p">).</span><span class="n">transferFrom</span><span class="p">(</span><span class="n">extra</span><span class="p">.</span><span class="n">payer</span><span class="p">,</span> <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount1</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Try updating the rest of the code yourself, and if it gets too difficult, feel free peeking <a href="https://github.com/Jeiwan/uniswapv3-code/commit/cda23134fd12a190aaeebe718786545621e16c0e">at this commit</a>.</p>
+
+<h2 id="implementing-manager-contract">Implementing Manager Contract</h2>
+
+<p>Besides implementing the callbacks, the manager contract won’t much; it’ll simply redirect calls to a pool contract. This
+is a very minimalistic contract at this moment:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">contract</span> <span class="n">UniswapV3Manager</span> <span class="p">{</span>
+    <span class="k">function</span> <span class="n">mint</span><span class="p">(</span>
+        <span class="kt">address</span> <span class="n">poolAddress_</span><span class="p">,</span>
+        <span class="kt">int24</span> <span class="n">lowerTick</span><span class="p">,</span>
+        <span class="kt">int24</span> <span class="n">upperTick</span><span class="p">,</span>
+        <span class="kt">uint128</span> <span class="n">liquidity</span><span class="p">,</span>
+        <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span>
+    <span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+        <span class="n">UniswapV3Pool</span><span class="p">(</span><span class="n">poolAddress_</span><span class="p">).</span><span class="n">mint</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span>
+            <span class="n">lowerTick</span><span class="p">,</span>
+            <span class="n">upperTick</span><span class="p">,</span>
+            <span class="n">liquidity</span><span class="p">,</span>
+            <span class="n">data</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">function</span> <span class="n">swap</span><span class="p">(</span><span class="kt">address</span> <span class="n">poolAddress_</span><span class="p">,</span> <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span><span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+        <span class="n">UniswapV3Pool</span><span class="p">(</span><span class="n">poolAddress_</span><span class="p">).</span><span class="n">swap</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">function</span> <span class="n">uniswapV3MintCallback</span><span class="p">(...)</span> <span class="p">{...}</span>
+    <span class="k">function</span> <span class="n">uniswapV3SwapCallback</span><span class="p">(...)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The callbacks are identical to those in the test contract, with the exception that there are no <code class="language-plaintext highlighter-rouge">transferInMintCallback</code>
+and <code class="language-plaintext highlighter-rouge">transferInSwapCallback</code> flags since the manager contract always transfers contracts.</p>
+
+<p>Well, we’re now fully prepared for deploying and integrating with front end!</p>

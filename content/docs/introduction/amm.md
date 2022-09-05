@@ -34,7 +34,7 @@ of money and who buys different assets to sell them on exchanges. For this job, 
 
 ## How decentralized exchanges work
 
-Don't be surprised, decentralized exchanges also need liquidity. And they also need someone who provides it to traders
+Not surprising, decentralized exchanges also need liquidity. And they also need someone who provides it to traders
 of a wide variety of assets. However, this process cannot be handled in a centralized way. A decentralized solution
 must exist. There are multiple decentralized solutions and the same solutions are implemented in different ways, but
 our focus will be on how Uniswap solves this problem.

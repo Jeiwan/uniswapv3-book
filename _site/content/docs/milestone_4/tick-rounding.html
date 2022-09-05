@@ -1,0 +1,105 @@
+
+<h1 id="tick-rounding">Tick Rounding</h1>
+
+<p>Let&#8217;s review some other changes we need to make to support different tick spacings.</p>
+
+<p>Tick spacing greater than 1 won&#8217;t allow users to select arbitrary price ranges: tick indexes must be multiples of a tick
+spacing. For example, for tick spacing 60 we can have ticks: 0, 60, 120, 180, etc. Thus, when user picks a range, we need
+to &#8220;round&#8221; it so its boundaries are multiples of pool&#8217;s tick spacing.</p>
+
+<h2 id="nearestusabletick-in-javascript"><code class="language-plaintext highlighter-rouge">nearestUsableTick</code> in JavaScript</h2>
+<p>In <a href="https://github.com/Uniswap/v3-sdk">the Uniswap V3 SDK</a>, the function that does that is called <a href="https://github.com/Uniswap/v3-sdk/blob/b6cd73a71f8f8ec6c40c130564d3aff12c38e693/src/utils/nearestUsableTick.ts">nearestUsableTick</a>:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * Returns the closest tick that is nearest a given tick and usable for the given tick spacing
+ * @param tick the target tick
+ * @param tickSpacing the spacing of the pool
+ */</span>
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">tick</span><span class="p">:</span> <span class="nx">number</span><span class="p">,</span> <span class="nx">tickSpacing</span><span class="p">:</span> <span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">invariant</span><span class="p">(</span><span class="nb">Number</span><span class="p">.</span><span class="nx">isInteger</span><span class="p">(</span><span class="nx">tick</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">Number</span><span class="p">.</span><span class="nx">isInteger</span><span class="p">(</span><span class="nx">tickSpacing</span><span class="p">),</span> <span class="dl">'</span><span class="s1">INTEGERS</span><span class="dl">'</span><span class="p">)</span>
+  <span class="nx">invariant</span><span class="p">(</span><span class="nx">tickSpacing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="dl">'</span><span class="s1">TICK_SPACING</span><span class="dl">'</span><span class="p">)</span>
+  <span class="nx">invariant</span><span class="p">(</span><span class="nx">tick</span> <span class="o">&gt;=</span> <span class="nx">TickMath</span><span class="p">.</span><span class="nx">MIN_TICK</span> <span class="o">&amp;&amp;</span> <span class="nx">tick</span> <span class="o">&lt;=</span> <span class="nx">TickMath</span><span class="p">.</span><span class="nx">MAX_TICK</span><span class="p">,</span> <span class="dl">'</span><span class="s1">TICK_BOUND</span><span class="dl">'</span><span class="p">)</span>
+  <span class="kd">const</span> <span class="nx">rounded</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">round</span><span class="p">(</span><span class="nx">tick</span> <span class="o">/</span> <span class="nx">tickSpacing</span><span class="p">)</span> <span class="o">*</span> <span class="nx">tickSpacing</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">rounded</span> <span class="o">&lt;</span> <span class="nx">TickMath</span><span class="p">.</span><span class="nx">MIN_TICK</span><span class="p">)</span> <span class="k">return</span> <span class="nx">rounded</span> <span class="o">+</span> <span class="nx">tickSpacing</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">rounded</span> <span class="o">&gt;</span> <span class="nx">TickMath</span><span class="p">.</span><span class="nx">MAX_TICK</span><span class="p">)</span> <span class="k">return</span> <span class="nx">rounded</span> <span class="o">-</span> <span class="nx">tickSpacing</span>
+  <span class="k">else</span> <span class="k">return</span> <span class="nx">rounded</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>At its core, it&#8217;s just:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">Math</span><span class="p">.</span><span class="nx">round</span><span class="p">(</span><span class="nx">tick</span> <span class="o">/</span> <span class="nx">tickSpacing</span><span class="p">)</span> <span class="o">*</span> <span class="nx">tickSpacing</span>
+</code></pre></div></div>
+
+<p>Where <code class="language-plaintext highlighter-rouge">Math.round</code> is rounding to the nearest integer: when the fractional part is less than 0.5, it rounds to the lower
+integer; when it&#8217;s greater than 0.5 it rounds to the greater integer; and when it&#8217;s 0.5, it rounds to the greater integer
+as well.</p>
+
+<p>So, in the web app, we&#8217;ll use <code class="language-plaintext highlighter-rouge">nearestUsableTick</code> when building <code class="language-plaintext highlighter-rouge">mint</code> parameters:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">mintParams</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="na">tokenA</span><span class="p">:</span> <span class="nx">pair</span><span class="p">.</span><span class="nx">token0</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span>
+  <span class="na">tokenB</span><span class="p">:</span> <span class="nx">pair</span><span class="p">.</span><span class="nx">token1</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span>
+  <span class="na">tickSpacing</span><span class="p">:</span> <span class="nx">pair</span><span class="p">.</span><span class="nx">tickSpacing</span><span class="p">,</span>
+  <span class="na">lowerTick</span><span class="p">:</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">lowerTick</span><span class="p">,</span> <span class="nx">pair</span><span class="p">.</span><span class="nx">tickSpacing</span><span class="p">),</span>
+  <span class="na">upperTick</span><span class="p">:</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">upperTick</span><span class="p">,</span> <span class="nx">pair</span><span class="p">.</span><span class="nx">tickSpacing</span><span class="p">),</span>
+  <span class="nx">amount0Desired</span><span class="p">,</span> <span class="nx">amount1Desired</span><span class="p">,</span> <span class="nx">amount0Min</span><span class="p">,</span> <span class="nx">amount1Min</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>In reality, it should be called whenever user adjusts a price range because we want the user to see the actual price
+that will be created. In our simplified app, we do it less user-friendly.</p>
+</blockquote>
+
+<p>However, we also want to have a similar function in Solidity tests, but neither of the math libraries we&#8217;re using
+implements it.</p>
+
+<h2 id="nearestusabletick-in-solidity"><code class="language-plaintext highlighter-rouge">nearestUsableTick</code> in Solidity</h2>
+
+<p>In our smart contract tests, we need a way to round ticks and convert rounded prices to sqrtP. In a previous chapter, we
+chose to use <a href="https://github.com/abdk-consulting/abdk-libraries-solidity">ABDKMath64x64</a> to handle fixed-point number
+math in tests. The library, however, doesn&#8217;t implement the rounding function we need to port <code class="language-plaintext highlighter-rouge">nearestUsableTick</code>, so
+we&#8217;ll need to implement it ourselves:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">divRound</span><span class="p">(</span><span class="kt">int128</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int128</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">internal</span>
+    <span class="k">pure</span>
+    <span class="k">returns</span> <span class="p">(</span><span class="kt">int128</span> <span class="n">result</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int128</span> <span class="n">quot</span> <span class="o">=</span> <span class="n">ABDKMath64x64</span><span class="p">.</span><span class="n">div</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">quot</span> <span class="o">&gt;&gt;</span> <span class="mi">64</span><span class="p">;</span>
+
+    <span class="c1">// Check if remainder is greater than 0.5
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">quot</span> <span class="o">%</span> <span class="mi">2</span><span class="o">**</span><span class="mi">64</span> <span class="o">&gt;=</span> <span class="mh">0x8000000000000000</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The function does multiple things:</p>
+<ol>
+  <li>it divides two Q64.64 numbers;</li>
+  <li>it then rounds the result to the decimal one (<code class="language-plaintext highlighter-rouge">result = quot &gt;&gt; 64</code>), the fractional part is lost at this point (i.e. the result is rounded down);</li>
+  <li>it then divides the quotient by $2^{64}$, takes the remainder, and compares it with <code class="language-plaintext highlighter-rouge">0x8000000000000000</code> (which is 0.5 in Q64.64);</li>
+  <li>if the remainder is greater or equal to 0.5, it rounds the result to the greater integer.</li>
+</ol>
+
+<p>What we get is an integer rounded according to the rules of <code class="language-plaintext highlighter-rouge">Math.round</code> from JavaScript. We can then re-implement
+<code class="language-plaintext highlighter-rouge">nearestUsableTick</code>:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">nearestUsableTick</span><span class="p">(</span><span class="kt">int24</span> <span class="n">tick_</span><span class="p">,</span> <span class="kt">uint24</span> <span class="n">tickSpacing</span><span class="p">)</span>
+    <span class="k">internal</span>
+    <span class="k">pure</span>
+    <span class="k">returns</span> <span class="p">(</span><span class="kt">int24</span> <span class="n">result</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span>
+        <span class="kt">int24</span><span class="p">(</span><span class="n">divRound</span><span class="p">(</span><span class="kt">int128</span><span class="p">(</span><span class="n">tick_</span><span class="p">),</span> <span class="kt">int128</span><span class="p">(</span><span class="kt">int24</span><span class="p">(</span><span class="n">tickSpacing</span><span class="p">))))</span> <span class="o">*</span>
+        <span class="kt">int24</span><span class="p">(</span><span class="n">tickSpacing</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">&lt;</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">MIN_TICK</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="kt">int24</span><span class="p">(</span><span class="n">tickSpacing</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">&gt;</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">MAX_TICK</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">result</span> <span class="o">-=</span> <span class="kt">int24</span><span class="p">(</span><span class="n">tickSpacing</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>That&#8217;s it!</p>

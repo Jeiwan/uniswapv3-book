@@ -1,0 +1,276 @@
+<h1 id="nft-manager-contract">NFT Manager Contract</h1>
+
+<p>Obviously, we’re not going to add NFT-related functionality to the pool contract–we need a separate contract that will
+merge NFT and concentrated liquidity. Recall that, while working on our implementation, we built the <code class="language-plaintext highlighter-rouge">UniswapV3Manager</code>
+contract to facilitate interaction with pool contracts (to make some calculations simpler and to enable multi-pool
+swaps). This contract was a good demonstration of how core Uniswap contracts can be extended. And we’re going to push
+this idea a little bit further.</p>
+
+<p>We’ll need a manager contract that will implement the ERC721 standard and will manage liquidity positions. The contract
+will have the standard NFT-tokens logic (minting, burning, transferring, balances and ownership tracking, etc.) and will
+allow to provide and remove liquidity to pools. The contract will need to be the actual owner of liquidity in pools
+because we don’t want to let users to add liquidity without minting a token and remove liquidity without burning one.
+We want every liquidity position to be linked to an NFT token, and we want to them to be synchronized.</p>
+
+<p>Let’s see what functions we’ll have in the new contract:</p>
+<ol>
+  <li>since it’ll be an NFT contract, it’ll have all the ERC721 functions, including <code class="language-plaintext highlighter-rouge">tokenURI</code>, which returns the URI of
+the image of an NFT token;</li>
+  <li><code class="language-plaintext highlighter-rouge">mint</code> and <code class="language-plaintext highlighter-rouge">burn</code> to mint and burn liquidity and NFT tokens at the same time;</li>
+  <li><code class="language-plaintext highlighter-rouge">addLiquidity</code> and <code class="language-plaintext highlighter-rouge">removeLiquidity</code> to add and remove liquidity in existing positions;</li>
+  <li><code class="language-plaintext highlighter-rouge">collect</code>, to collect tokens after removing liquidity.</li>
+</ol>
+
+<p>Alright, let’s get to code.</p>
+
+<h2 id="the-minimal-contract">The Minimal Contract</h2>
+
+<p>Since we don’t want to implement the ERC721 standard from scratch, we’re going to use a library. We already have <a href="https://github.com/transmissions11/solmate">Solmate</a>
+in the dependencies, so we’re going to use <a href="https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC721.sol">its ERC721 implementation</a>.</p>
+
+<blockquote>
+  <p>Using <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721">the ERC721 implementation from OpenZeppelin</a>
+is also an option, but I personally prefer the gas optimized contracts from Solmate.</p>
+</blockquote>
+
+<p>This will be the bare minimum of the NFT manager contract:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">contract</span> <span class="n">UniswapV3NFTManager</span> <span class="k">is</span> <span class="n">ERC721</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="k">public</span> <span class="kr">immutable</span> <span class="n">factory</span><span class="p">;</span>
+
+    <span class="k">constructor</span><span class="p">(</span><span class="kt">address</span> <span class="n">factoryAddress</span><span class="p">)</span>
+        <span class="n">ERC721</span><span class="p">(</span><span class="s">"UniswapV3 NFT Positions"</span><span class="p">,</span> <span class="s">"UNIV3"</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">factory</span> <span class="o">=</span> <span class="n">factoryAddress</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">function</span> <span class="n">tokenURI</span><span class="p">(</span><span class="kt">uint256</span> <span class="n">tokenId</span><span class="p">)</span>
+        <span class="k">public</span>
+        <span class="k">view</span>
+        <span class="k">override</span>
+        <span class="k">returns</span> <span class="p">(</span><span class="kt">string</span> <span class="k">memory</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="s">""</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">tokenURI</code> will return an empty string until we implement a metadata and SVG renderer. We implement the stub so that
+the Solidity compiler doesn’t fail while we’re working on the rest of the contract.</p>
+
+<h2 id="minting">Minting</h2>
+
+<p>Minting, as we discussed earlier, will involve two operations: adding liquidity to a pool and minting an NFT.</p>
+
+<p>To keep the links between pool liquidity positions and NFTs, we’ll need a state variable and a structure:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">TokenPosition</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">pool</span><span class="p">;</span>
+    <span class="kt">int24</span> <span class="n">lowerTick</span><span class="p">;</span>
+    <span class="kt">int24</span> <span class="n">upperTick</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">mapping</span><span class="p">(</span><span class="kt">uint256</span> <span class="o">=&gt;</span> <span class="n">TokenPosition</span><span class="p">)</span> <span class="k">public</span> <span class="n">positions</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>To find a position we need:</p>
+<ol>
+  <li>pool address;</li>
+  <li>owner address;</li>
+  <li>the boundaries of a position (lower and upper ticks).</li>
+</ol>
+
+<p>Since the NFT manager contract will be the owner of all positions created via it, we don’t need to store position owner
+address and we can only store the rest data. The keys in the <code class="language-plaintext highlighter-rouge">positions</code> mapping are token IDs; the mapping links NFT
+IDs to position data that’s required to find a liquidity position.</p>
+
+<p>Let’s implement minting:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">MintParams</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">recipient</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">tokenA</span><span class="p">;</span>
+    <span class="kt">address</span> <span class="n">tokenB</span><span class="p">;</span>
+    <span class="kt">uint24</span> <span class="n">fee</span><span class="p">;</span>
+    <span class="kt">int24</span> <span class="n">lowerTick</span><span class="p">;</span>
+    <span class="kt">int24</span> <span class="n">upperTick</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amount0Desired</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amount1Desired</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amount0Min</span><span class="p">;</span>
+    <span class="kt">uint256</span> <span class="n">amount1Min</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">function</span> <span class="n">mint</span><span class="p">(</span><span class="n">MintParams</span> <span class="k">calldata</span> <span class="n">params</span><span class="p">)</span> <span class="k">public</span> <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">tokenId</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The minting parameters are identical to that of <code class="language-plaintext highlighter-rouge">UniswapV3Manager</code>, with an addition of <code class="language-plaintext highlighter-rouge">recipient</code>, which will allow
+to mint NFT to another address.</p>
+
+<p>In the <code class="language-plaintext highlighter-rouge">mint</code> function, we first add liquidity to a pool:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">getPool</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">tokenA</span><span class="p">,</span> <span class="n">params</span><span class="p">.</span><span class="n">tokenB</span><span class="p">,</span> <span class="n">params</span><span class="p">.</span><span class="n">fee</span><span class="p">);</span>
+
+<span class="p">(</span><span class="kt">uint128</span> <span class="n">liquidity</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">)</span> <span class="o">=</span> <span class="n">_addLiquidity</span><span class="p">(</span>
+    <span class="n">AddLiquidityInternalParams</span><span class="p">({</span>
+        <span class="n">pool</span><span class="o">:</span> <span class="n">pool</span><span class="p">,</span>
+        <span class="n">lowerTick</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+        <span class="n">upperTick</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">upperTick</span><span class="p">,</span>
+        <span class="n">amount0Desired</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount0Desired</span><span class="p">,</span>
+        <span class="n">amount1Desired</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount1Desired</span><span class="p">,</span>
+        <span class="n">amount0Min</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount0Min</span><span class="p">,</span>
+        <span class="n">amount1Min</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount1Min</span>
+    <span class="p">})</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">_addLiquidity</code> is identical to the body of <code class="language-plaintext highlighter-rouge">mint</code> function in the <code class="language-plaintext highlighter-rouge">UniswapV3Manager</code> contract: it converts ticks to
+$sqrt(P)$, computes liquidity amount, and calls <code class="language-plaintext highlighter-rouge">pool.mint()</code>.</p>
+
+<p>Next, we mint an NFT:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tokenId</span> <span class="o">=</span> <span class="n">nextTokenId</span><span class="o">++</span><span class="p">;</span>
+<span class="n">_mint</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">recipient</span><span class="p">,</span> <span class="n">tokenId</span><span class="p">);</span>
+<span class="n">totalSupply</span><span class="o">++</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">tokenId</code> is set to the current <code class="language-plaintext highlighter-rouge">nextTokenId</code> and the latter is then incremented. The <code class="language-plaintext highlighter-rouge">_mint</code> function is provided by
+the ERC721 contract from Solmate. After minting a new token, we update <code class="language-plaintext highlighter-rouge">totalSupply</code>.</p>
+
+<p>Finally, we need to store the information about the new token:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">TokenPosition</span> <span class="k">memory</span> <span class="n">tokenPosition</span> <span class="o">=</span> <span class="n">TokenPosition</span><span class="p">({</span>
+    <span class="n">pool</span><span class="o">:</span> <span class="kt">address</span><span class="p">(</span><span class="n">pool</span><span class="p">),</span>
+    <span class="n">lowerTick</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+    <span class="n">upperTick</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">upperTick</span>
+<span class="p">});</span>
+
+<span class="n">positions</span><span class="p">[</span><span class="n">tokenId</span><span class="p">]</span> <span class="o">=</span> <span class="n">tokenPosition</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>This will later help us find liquidity position by token ID.</p>
+
+<h2 id="adding-liquidity">Adding Liquidity</h2>
+
+<p>Next, we’ll implement a function to add liquidity to an existing position. For that, we’ll only need to provide a token
+ID and token amounts:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">addLiquidity</span><span class="p">(</span><span class="n">AddLiquidityParams</span> <span class="k">calldata</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="k">returns</span> <span class="p">(</span>
+        <span class="kt">uint128</span> <span class="n">liquidity</span><span class="p">,</span>
+        <span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span>
+        <span class="kt">uint256</span> <span class="n">amount1</span>
+    <span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">TokenPosition</span> <span class="k">memory</span> <span class="n">tokenPosition</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">params</span><span class="p">.</span><span class="n">tokenId</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span> <span class="o">==</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x00</span><span class="p">))</span> <span class="nb">revert</span> <span class="n">WrongToken</span><span class="p">();</span>
+
+    <span class="p">(</span><span class="n">liquidity</span><span class="p">,</span> <span class="n">amount0</span><span class="p">,</span> <span class="n">amount1</span><span class="p">)</span> <span class="o">=</span> <span class="n">_addLiquidity</span><span class="p">(</span>
+        <span class="n">AddLiquidityInternalParams</span><span class="p">({</span>
+            <span class="n">pool</span><span class="o">:</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span><span class="p">),</span>
+            <span class="n">lowerTick</span><span class="o">:</span> <span class="n">tokenPosition</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+            <span class="n">upperTick</span><span class="o">:</span> <span class="n">tokenPosition</span><span class="p">.</span><span class="n">upperTick</span><span class="p">,</span>
+            <span class="n">amount0Desired</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount0Desired</span><span class="p">,</span>
+            <span class="n">amount1Desired</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount1Desired</span><span class="p">,</span>
+            <span class="n">amount0Min</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount0Min</span><span class="p">,</span>
+            <span class="n">amount1Min</span><span class="o">:</span> <span class="n">params</span><span class="p">.</span><span class="n">amount1Min</span>
+        <span class="p">})</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This function ensures there’s an existing token and calls <code class="language-plaintext highlighter-rouge">pool.mint()</code> with position parameters of a token.</p>
+
+<h2 id="remove-liquidity">Remove Liquidity</h2>
+
+<p>Recall that in the <code class="language-plaintext highlighter-rouge">UniswapV3Manager</code> contract we didn’t implement a <code class="language-plaintext highlighter-rouge">burn</code> function because we wanted users to be owners
+of liquidity positions. Now, we want the NFT manager to be the owner. And we can have liquidity burning implemented in
+it:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">RemoveLiquidityParams</span> <span class="p">{</span>
+    <span class="kt">uint256</span> <span class="n">tokenId</span><span class="p">;</span>
+    <span class="kt">uint128</span> <span class="n">liquidity</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">function</span> <span class="n">removeLiquidity</span><span class="p">(</span><span class="n">RemoveLiquidityParams</span> <span class="k">memory</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="n">isApprovedOrOwner</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">tokenId</span><span class="p">)</span>
+    <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">TokenPosition</span> <span class="k">memory</span> <span class="n">tokenPosition</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">params</span><span class="p">.</span><span class="n">tokenId</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span> <span class="o">==</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x00</span><span class="p">))</span> <span class="nb">revert</span> <span class="n">WrongToken</span><span class="p">();</span>
+
+    <span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span><span class="p">);</span>
+
+    <span class="p">(</span><span class="kt">uint128</span> <span class="n">availableLiquidity</span><span class="p">,</span> <span class="p">,</span> <span class="p">,</span> <span class="p">,</span> <span class="p">)</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="n">positions</span><span class="p">(</span>
+        <span class="n">poolPositionKey</span><span class="p">(</span><span class="n">tokenPosition</span><span class="p">)</span>
+    <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">liquidity</span> <span class="o">&gt;</span> <span class="n">availableLiquidity</span><span class="p">)</span> <span class="nb">revert</span> <span class="n">NotEnoughLiquidity</span><span class="p">();</span>
+
+    <span class="p">(</span><span class="n">amount0</span><span class="p">,</span> <span class="n">amount1</span><span class="p">)</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="n">burn</span><span class="p">(</span>
+        <span class="n">tokenPosition</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+        <span class="n">tokenPosition</span><span class="p">.</span><span class="n">upperTick</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">liquidity</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We’re again checking that provided token ID is valid. And we also need to ensure that a position has enough liquidity
+to burn.</p>
+
+<h2 id="collecting-tokens">Collecting Tokens</h2>
+
+<p>The NFT manager contract can also collect tokens after burning liquidity. Notice that collected tokens are send to users
+since the contract manages liquidity on behalf of users:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">CollectParams</span> <span class="p">{</span>
+    <span class="kt">uint256</span> <span class="n">tokenId</span><span class="p">;</span>
+    <span class="kt">uint128</span> <span class="n">amount0</span><span class="p">;</span>
+    <span class="kt">uint128</span> <span class="n">amount1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">function</span> <span class="n">collect</span><span class="p">(</span><span class="n">CollectParams</span> <span class="k">memory</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="n">isApprovedOrOwner</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">tokenId</span><span class="p">)</span>
+    <span class="k">returns</span> <span class="p">(</span><span class="kt">uint128</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">uint128</span> <span class="n">amount1</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">TokenPosition</span> <span class="k">memory</span> <span class="n">tokenPosition</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">params</span><span class="p">.</span><span class="n">tokenId</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span> <span class="o">==</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x00</span><span class="p">))</span> <span class="nb">revert</span> <span class="n">WrongToken</span><span class="p">();</span>
+
+    <span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span><span class="p">);</span>
+
+    <span class="p">(</span><span class="n">amount0</span><span class="p">,</span> <span class="n">amount1</span><span class="p">)</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="n">collect</span><span class="p">(</span>
+        <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span>
+        <span class="n">tokenPosition</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+        <span class="n">tokenPosition</span><span class="p">.</span><span class="n">upperTick</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">amount0</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">amount1</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="burning">Burning</h2>
+
+<p>Finally, burning. Unlike the other functions of the contract, this function doesn’t do anything with a pool: it only
+burns an NFT. And to burn an NFT, the underlying position must be emptied and tokens must be collected. So, if we want
+to burn an NFT, we need: to call <code class="language-plaintext highlighter-rouge">removeLiquidity</code> an remove the entire position liquidity; call <code class="language-plaintext highlighter-rouge">collect</code> to collect
+the tokens after burning; call <code class="language-plaintext highlighter-rouge">burn</code> to burn the token.</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">burn</span><span class="p">(</span><span class="kt">uint256</span> <span class="n">tokenId</span><span class="p">)</span> <span class="k">public</span> <span class="n">isApprovedOrOwner</span><span class="p">(</span><span class="n">tokenId</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">TokenPosition</span> <span class="k">memory</span> <span class="n">tokenPosition</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">tokenId</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span> <span class="o">==</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x00</span><span class="p">))</span> <span class="nb">revert</span> <span class="n">WrongToken</span><span class="p">();</span>
+
+    <span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">tokenPosition</span><span class="p">.</span><span class="n">pool</span><span class="p">);</span>
+    <span class="p">(</span><span class="kt">uint128</span> <span class="n">liquidity</span><span class="p">,</span> <span class="p">,</span> <span class="p">,</span> <span class="kt">uint128</span> <span class="n">tokensOwed0</span><span class="p">,</span> <span class="kt">uint128</span> <span class="n">tokensOwed1</span><span class="p">)</span> <span class="o">=</span> <span class="n">pool</span>
+        <span class="p">.</span><span class="n">positions</span><span class="p">(</span><span class="n">poolPositionKey</span><span class="p">(</span><span class="n">tokenPosition</span><span class="p">));</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">liquidity</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">tokensOwed0</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">tokensOwed1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nb">revert</span> <span class="n">PositionNotCleared</span><span class="p">();</span>
+
+    <span class="k">delete</span> <span class="n">positions</span><span class="p">[</span><span class="n">tokenId</span><span class="p">];</span>
+    <span class="n">_burn</span><span class="p">(</span><span class="n">tokenId</span><span class="p">);</span>
+    <span class="n">totalSupply</span><span class="o">--</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>That’s it!</p>

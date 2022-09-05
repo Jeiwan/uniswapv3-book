@@ -1,0 +1,24 @@
+<blockquote>
+  <p>You’ll find the complete code of this chapter in <a href="https://github.com/Jeiwan/uniswapv3-code/tree/milestone_3">this Github branch</a>.</p>
+
+  <p>This milestone introduces a lot of code changes in existing contracts. <a href="https://github.com/Jeiwan/uniswapv3-code/compare/milestone_2...milestone_3">Here you can see all changes since the last milestone</a></p>
+</blockquote>
+
+<h1 id="cross-tick-swaps">Cross-tick Swaps</h1>
+
+<p>We have made a great progress so far and our Uniswap V3 implementation is quote close to the original one! However, our
+implementation only supports swaps within a price range–and this is what we’re going to improve in this milestone.</p>
+
+<p>In this milestone, we’ll:</p>
+<ol>
+  <li>update <code class="language-plaintext highlighter-rouge">mint</code> function to provide liquidity in different price ranges;</li>
+  <li>update <code class="language-plaintext highlighter-rouge">swap</code> function to cross price ranges when there’s not enough liquidity in the current price range;</li>
+  <li>learn how to calculate liquidity in smart contracts;</li>
+  <li>implement slippage protection in <code class="language-plaintext highlighter-rouge">mint</code> and <code class="language-plaintext highlighter-rouge">swap</code> functions;</li>
+  <li>update the UI application to allow to add liquidity at different price ranges;</li>
+  <li>learn a little bit more about fixed-point numbers.</li>
+</ol>
+
+<p>In this milestone, we’ll complete swapping, the core functionality of Uniswap!</p>
+
+<p>Let’s begin!</p>

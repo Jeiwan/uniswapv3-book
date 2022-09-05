@@ -1,0 +1,24 @@
+<h1 id="multi-pool-swaps">Multi-pool Swaps</h1>
+
+<p>After implementing cross-tick swaps, we’ve got really close to real Uniswap V3 swaps. One significant limitation of our
+implementation is that it allows only swaps within a pool–if there’s no pool for a swap of tokens, then swapping between
+these tokens is not possible. This is not so in Uniswap since it allows multi-pool swaps. In this chapter, we’re going
+to add multi-pool swaps to our implementation. Here’s the plan:</p>
+
+<ol>
+  <li>First, we’ll learn about and implement Factory contract.</li>
+  <li>Then, we’ll see how chained or multi-pool swaps work and implement Path library.</li>
+  <li>Then, we’ll update the front-end app to support multi-pool swaps. At this step we’ll implement a basic router that
+finds a path between two tokens.</li>
+  <li>Along the way, we’ll also learn about tick spacing which is a way of optimizing swaps.</li>
+  <li>After finishing this chapter, our implementation will be able to handle multi-pool swaps, for example, swapping WBTC
+for WETH via different stablecoins: WETH → USDC → USDT → WBTC.</li>
+</ol>
+
+<p>Let’s begin!</p>
+
+<blockquote>
+  <p>You’ll find the complete code of this chapter in <a href="https://github.com/Jeiwan/uniswapv3-code/tree/milestone_4">this Github branch</a>.</p>
+
+  <p>This milestone introduces a lot of code changes in existing contracts. <a href="https://github.com/Jeiwan/uniswapv3-code/compare/milestone_3...milestone_4">Here you can see all changes since the last milestone</a></p>
+</blockquote>

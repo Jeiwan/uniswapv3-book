@@ -1,0 +1,121 @@
+<h1 id="quoter-contract">Quoter Contract</h1>
+
+<p>To integrate our updated Pool contract into the front end app, we need a way to calculate swap amounts without making
+a swap. Users will type in the amount they want to sell, and we want to calculate and show them the amount they’ll get
+in exchange. We’ll do this through Quoter contract.</p>
+
+<p>Since liquidity in Uniswap V3 is scattered over multiple price ranges, we cannot calculate swap amounts with a formula
+(which was possible in Uniswap V2). The design of Uniswap V3 forces us to use a different approach: to calculate swap
+amounts, we’ll initiate a real swap and will interrupt it in the callback function, grabbing the amounts calculated
+by Pool contract. That is, we have to simulate a real swap to calculate output amount.</p>
+
+<p>Let’s do this in a separate contract!</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">contract</span> <span class="n">UniswapV3Quoter</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">QuoteParams</span> <span class="p">{</span>
+        <span class="kt">address</span> <span class="n">pool</span><span class="p">;</span>
+        <span class="kt">uint256</span> <span class="n">amountIn</span><span class="p">;</span>
+        <span class="kt">bool</span> <span class="n">zeroForOne</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">function</span> <span class="n">quote</span><span class="p">(</span><span class="n">QuoteParams</span> <span class="k">memory</span> <span class="n">params</span><span class="p">)</span>
+        <span class="k">public</span>
+        <span class="k">returns</span> <span class="p">(</span>
+            <span class="kt">uint256</span> <span class="n">amountOut</span><span class="p">,</span>
+            <span class="kt">uint160</span> <span class="n">sqrtPriceX96After</span><span class="p">,</span>
+            <span class="kt">int24</span> <span class="n">tickAfter</span>
+        <span class="p">)</span>
+    <span class="p">{</span>
+        <span class="p">...</span>
+</code></pre></div></div>
+
+<p>Quoter is a contract that implements only one public function–<code class="language-plaintext highlighter-rouge">quote</code>. Quoter is a universal contract that works with
+any pool so it takes pool address as a parameter. The other parameters (<code class="language-plaintext highlighter-rouge">amountIn</code> and <code class="language-plaintext highlighter-rouge">zeroForOne</code>) are required to
+simulate a swap.</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span>
+    <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">pool</span><span class="p">).</span><span class="n">swap</span><span class="p">(</span>
+        <span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">),</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">zeroForOne</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">.</span><span class="n">amountIn</span><span class="p">,</span>
+        <span class="n">abi</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">pool</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">{}</span> <span class="k">catch</span> <span class="p">(</span><span class="kt">bytes</span> <span class="k">memory</span> <span class="n">reason</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">abi</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="n">reason</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint256</span><span class="p">,</span> <span class="kt">uint160</span><span class="p">,</span> <span class="kt">int24</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>The only thing that the contract does is calling <code class="language-plaintext highlighter-rouge">swap</code> function of a pool. The call is expected to revert (i.e. throw
+an error)–we’ll do this in the swap callback. In case of a revert, revert reason is decoded and returned (<code class="language-plaintext highlighter-rouge">quote</code> will
+not revert). Notice that we’re passing only pool address as the extra data–we’re free to pass whatever data we want, but
+we’ll need to know pool address to read updated price and tick. Yes, the function also returns updated price and tick.</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">uniswapV3SwapCallback</span><span class="p">(</span>
+    <span class="kt">int256</span> <span class="n">amount0Delta</span><span class="p">,</span>
+    <span class="kt">int256</span> <span class="n">amount1Delta</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">memory</span> <span class="n">data</span>
+<span class="p">)</span> <span class="k">external</span> <span class="k">view</span> <span class="p">{</span>
+    <span class="kt">address</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">abi</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="kt">address</span><span class="p">));</span>
+
+    <span class="kt">uint256</span> <span class="n">amountOut</span> <span class="o">=</span> <span class="n">amount0Delta</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="o">?</span> <span class="kt">uint256</span><span class="p">(</span><span class="o">-</span><span class="n">amount1Delta</span><span class="p">)</span>
+        <span class="o">:</span> <span class="kt">uint256</span><span class="p">(</span><span class="o">-</span><span class="n">amount0Delta</span><span class="p">);</span>
+
+    <span class="p">(</span><span class="kt">uint160</span> <span class="n">sqrtPriceX96After</span><span class="p">,</span> <span class="kt">int24</span> <span class="n">tickAfter</span><span class="p">)</span> <span class="o">=</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">pool</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">slot0</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>In the swap callback, we’re collecting values that we need: output amount, new price, and corresponding tick. Next, we
+need to save these values and revert:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">assembly</span> <span class="p">{</span>
+    <span class="kr">let</span> <span class="n">ptr</span> <span class="o">:=</span> <span class="n">mload</span><span class="p">(</span><span class="mh">0x40</span><span class="p">)</span>
+    <span class="n">mstore</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="n">amountOut</span><span class="p">)</span>
+    <span class="n">mstore</span><span class="p">(</span><span class="n">add</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="mh">0x20</span><span class="p">),</span> <span class="n">sqrtPriceX96After</span><span class="p">)</span>
+    <span class="n">mstore</span><span class="p">(</span><span class="n">add</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="mh">0x40</span><span class="p">),</span> <span class="n">tickAfter</span><span class="p">)</span>
+    <span class="nb">revert</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="mi">96</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Since <code class="language-plaintext highlighter-rouge">revert</code> function in Solidity can only return a string as the reason (not bytes), we need to turn to <a href="https://docs.soliditylang.org/en/latest/assembly.html">Yul</a>,
+the language used for inline assembly in Solidity. Let’s break this piece down:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">mload(0x40)</code> reads the pointer of the next available memory slot (memory in EVM is organized in 32 byte slots);</li>
+  <li>at that memory slot, <code class="language-plaintext highlighter-rouge">mstore(ptr, amountOut)</code> writes <code class="language-plaintext highlighter-rouge">amountOut</code>;</li>
+  <li><code class="language-plaintext highlighter-rouge">mstore(add(ptr, 0x20), sqrtPriceX96After)</code> writes <code class="language-plaintext highlighter-rouge">sqrtPriceX96After</code> right after <code class="language-plaintext highlighter-rouge">amountOut</code>;</li>
+  <li><code class="language-plaintext highlighter-rouge">mstore(add(ptr, 0x40), tickAfter)</code> writes <code class="language-plaintext highlighter-rouge">tickAfter</code> after <code class="language-plaintext highlighter-rouge">sqrtPriceX96After</code>;</li>
+  <li><code class="language-plaintext highlighter-rouge">revert(ptr, 96)</code> reverts the call and returns 96 bytes (total length of the values we wrote to memory) of data at
+address <code class="language-plaintext highlighter-rouge">ptr</code> (start of the data we wrote above).</li>
+</ol>
+
+<p>Notice that the offsets are always 32 bytes, even though <code class="language-plaintext highlighter-rouge">sqrtPriceX96After</code> takes 14 bytes (<code class="language-plaintext highlighter-rouge">uint160</code>) and <code class="language-plaintext highlighter-rouge">tickAfter</code>
+takes 3 bytes (<code class="language-plaintext highlighter-rouge">int24</code>). This is so we could use <code class="language-plaintext highlighter-rouge">abi.decode()</code> to decode the data: its counterpart, <code class="language-plaintext highlighter-rouge">abi.encode()</code>,
+encodes all integers as 32-byte words.</p>
+
+<p>Aaaand, done.</p>
+
+<h2 id="recap">Recap</h2>
+
+<p>Let’s recap to better understand the algorithm:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">quote</code> calls <code class="language-plaintext highlighter-rouge">swap</code> of a pool with input amount and swap direction;</li>
+  <li><code class="language-plaintext highlighter-rouge">swap</code> performs a real swap, it runs the loop to fill the input amount specified by user;</li>
+  <li>to get tokens from user, <code class="language-plaintext highlighter-rouge">swap</code> calls the swap callback on the caller;</li>
+  <li>the caller (Quote contract) implements the callback, in which it reverts with output amount, new price, and new tick;</li>
+  <li>the revert bubbles up to the initial <code class="language-plaintext highlighter-rouge">quote</code> call;</li>
+  <li>in <code class="language-plaintext highlighter-rouge">quote</code>, the revert is caught, revert reason is decoded and returned as the result of calling <code class="language-plaintext highlighter-rouge">quote</code>.</li>
+</ol>
+
+<p>I hope this is clear!</p>
+
+<h2 id="quoter-limitation">Quoter Limitation</h2>
+
+<p>This design has one significant limitation: since <code class="language-plaintext highlighter-rouge">quote</code> calls <code class="language-plaintext highlighter-rouge">swap</code> function of Pool contract, and <code class="language-plaintext highlighter-rouge">swap</code> function is
+not a pure or view function (because it modifies contract state), <code class="language-plaintext highlighter-rouge">quote</code> cannot also be pure or view. <code class="language-plaintext highlighter-rouge">swap</code> modifies
+state and so does <code class="language-plaintext highlighter-rouge">quote</code>, even if not in Quoter contract. But we treat <code class="language-plaintext highlighter-rouge">quote</code> as a getter, a function that only reads
+contract data. This inconsistency means that EVM will use <a href="https://www.evm.codes/#f1">CALL</a> opcode instead of <a href="https://www.evm.codes/#fa">CALLSTATIC</a>
+when <code class="language-plaintext highlighter-rouge">quote</code> is called. This is not a big problem since Quoter reverts in the swap callback, and reverting reset state
+modified during a call–this guarantees that <code class="language-plaintext highlighter-rouge">quote</code> won’t modify state of Pool contract.</p>
+
+<p>Another inconvenience that comes from this issue is that calling <code class="language-plaintext highlighter-rouge">quote</code> from a client library (ethers.js, web3.js, etc.)
+will trigger a transaction. To fix this, we’ll need to force the library to make a static call. We’ll see how to do this
+in ethers.js later in this milestone.</p>

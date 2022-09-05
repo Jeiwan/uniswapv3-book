@@ -1,0 +1,133 @@
+<h1 id="user-interface">User Interface</h1>
+
+<p>In this milestone, we’ve added the ability to remove liquidity from a pool and collect accumulated fees. Thus, we need
+to reflect these changes in the user interface to allow users to remove liquidity.</p>
+
+<h2 id="fetching-positions">Fetching Positions</h2>
+
+<p>To let user choose how much liquidity to remove, we first need to fetch user’s positions from a pool. To makes this
+easier, we can add a helper function to the Manager contract, which will return user position in a specific pool:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">getPosition</span><span class="p">(</span><span class="n">GetPositionParams</span> <span class="k">calldata</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">public</span>
+    <span class="k">view</span>
+    <span class="k">returns</span> <span class="p">(</span>
+        <span class="kt">uint128</span> <span class="n">liquidity</span><span class="p">,</span>
+        <span class="kt">uint256</span> <span class="n">feeGrowthInside0LastX128</span><span class="p">,</span>
+        <span class="kt">uint256</span> <span class="n">feeGrowthInside1LastX128</span><span class="p">,</span>
+        <span class="kt">uint128</span> <span class="n">tokensOwed0</span><span class="p">,</span>
+        <span class="kt">uint128</span> <span class="n">tokensOwed1</span>
+    <span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">getPool</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">tokenA</span><span class="p">,</span> <span class="n">params</span><span class="p">.</span><span class="n">tokenB</span><span class="p">,</span> <span class="n">params</span><span class="p">.</span><span class="n">fee</span><span class="p">);</span>
+
+    <span class="p">(</span>
+        <span class="n">liquidity</span><span class="p">,</span>
+        <span class="n">feeGrowthInside0LastX128</span><span class="p">,</span>
+        <span class="n">feeGrowthInside1LastX128</span><span class="p">,</span>
+        <span class="n">tokensOwed0</span><span class="p">,</span>
+        <span class="n">tokensOwed1</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="n">positions</span><span class="p">(</span>
+        <span class="nb">keccak256</span><span class="p">(</span>
+            <span class="n">abi</span><span class="p">.</span><span class="n">encodePacked</span><span class="p">(</span>
+                <span class="n">params</span><span class="p">.</span><span class="n">owner</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">.</span><span class="n">upperTick</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This will free us from calculating a pool address and a position key on the front end.</p>
+
+<p>Then, after user typed in a position range, we can try fetching a position:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">getAvailableLiquidity</span> <span class="o">=</span> <span class="nx">debounce</span><span class="p">((</span><span class="nx">amount</span><span class="p">,</span> <span class="nx">isLower</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">lowerTick</span> <span class="o">=</span> <span class="nx">priceToTick</span><span class="p">(</span><span class="nx">isLower</span> <span class="p">?</span> <span class="nx">amount</span> <span class="p">:</span> <span class="nx">lowerPrice</span><span class="p">);</span>
+  <span class="kd">const</span> <span class="nx">upperTick</span> <span class="o">=</span> <span class="nx">priceToTick</span><span class="p">(</span><span class="nx">isLower</span> <span class="p">?</span> <span class="nx">upperPrice</span> <span class="p">:</span> <span class="nx">amount</span><span class="p">);</span>
+
+  <span class="kd">const</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">tokenA</span><span class="p">:</span> <span class="nx">token0</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span>
+    <span class="na">tokenB</span><span class="p">:</span> <span class="nx">token1</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span>
+    <span class="na">fee</span><span class="p">:</span> <span class="nx">fee</span><span class="p">,</span>
+    <span class="na">owner</span><span class="p">:</span> <span class="nx">account</span><span class="p">,</span>
+    <span class="na">lowerTick</span><span class="p">:</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">lowerTick</span><span class="p">,</span> <span class="nx">feeToSpacing</span><span class="p">[</span><span class="nx">fee</span><span class="p">]),</span>
+    <span class="na">upperTick</span><span class="p">:</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">upperTick</span><span class="p">,</span> <span class="nx">feeToSpacing</span><span class="p">[</span><span class="nx">fee</span><span class="p">]),</span>
+  <span class="p">}</span>
+
+  <span class="nx">manager</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">(</span><span class="nx">params</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">position</span> <span class="o">=&gt;</span> <span class="nx">setAvailableAmount</span><span class="p">(</span><span class="nx">position</span><span class="p">.</span><span class="nx">liquidity</span><span class="p">.</span><span class="nx">toString</span><span class="p">()))</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">));</span>
+<span class="p">},</span> <span class="mi">500</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h2 id="getting-pool-address">Getting Pool Address</h2>
+
+<p>Since we need to call <code class="language-plaintext highlighter-rouge">burn</code> and <code class="language-plaintext highlighter-rouge">collect</code> on a pool, we still need to compute pool’s address on the front end. Recall
+that pool addresses are compute using the <code class="language-plaintext highlighter-rouge">CREATE2</code> opcode, which requires a salt and the hash of contract’s code.
+Luckily, Ether.js has <code class="language-plaintext highlighter-rouge">getCreate2Address</code> function that allows to compute <code class="language-plaintext highlighter-rouge">CREATE2</code> in JavaScript:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">sortTokens</span> <span class="o">=</span> <span class="p">(</span><span class="nx">tokenA</span><span class="p">,</span> <span class="nx">tokenB</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">tokenA</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">&lt;</span> <span class="nx">tokenB</span><span class="p">.</span><span class="nx">toLowerCase</span> <span class="p">?</span> <span class="p">[</span><span class="nx">tokenA</span><span class="p">,</span> <span class="nx">tokenB</span><span class="p">]</span> <span class="p">:</span> <span class="p">[</span><span class="nx">tokenB</span><span class="p">,</span> <span class="nx">tokenA</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">computePoolAddress</span> <span class="o">=</span> <span class="p">(</span><span class="nx">factory</span><span class="p">,</span> <span class="nx">tokenA</span><span class="p">,</span> <span class="nx">tokenB</span><span class="p">,</span> <span class="nx">fee</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="p">[</span><span class="nx">tokenA</span><span class="p">,</span> <span class="nx">tokenB</span><span class="p">]</span> <span class="o">=</span> <span class="nx">sortTokens</span><span class="p">(</span><span class="nx">tokenA</span><span class="p">,</span> <span class="nx">tokenB</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">getCreate2Address</span><span class="p">(</span>
+    <span class="nx">factory</span><span class="p">,</span>
+    <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">keccak256</span><span class="p">(</span>
+      <span class="nx">ethers</span><span class="p">.</span><span class="nx">utils</span><span class="p">.</span><span class="nx">solidityPack</span><span class="p">(</span>
+        <span class="p">[</span><span class="dl">'</span><span class="s1">address</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">address</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">uint24</span><span class="dl">'</span><span class="p">],</span>
+        <span class="p">[</span><span class="nx">tokenA</span><span class="p">,</span> <span class="nx">tokenB</span><span class="p">,</span> <span class="nx">fee</span><span class="p">]</span>
+      <span class="p">)),</span>
+    <span class="nx">poolCodeHash</span>
+  <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>However, pool’s codehash has to be hard coded because we don’t want to store its code on the front end to calculate
+the hash. So, we’ll use Forge to get the hash:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>forge inspect UniswapV3Pool bytecode| xargs cast keccak 
+0x...
+</code></pre></div></div>
+
+<p>And then use the output value in a JS constant:</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">poolCodeHash</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">0x9dc805423bd1664a6a73b31955de538c338bac1f5c61beb8f4635be5032076a2</span><span class="dl">"</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="removing-liquidity">Removing Liquidity</h2>
+
+<p>After obtaining liquidity amount and pool address, we’re ready to call <code class="language-plaintext highlighter-rouge">burn</code>:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">removeLiquidity</span> <span class="o">=</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">token0</span> <span class="o">||</span> <span class="o">!</span><span class="nx">token1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">setLoading</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+
+  <span class="kd">const</span> <span class="nx">lowerTick</span> <span class="o">=</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">priceToTick</span><span class="p">(</span><span class="nx">lowerPrice</span><span class="p">),</span> <span class="nx">feeToSpacing</span><span class="p">[</span><span class="nx">fee</span><span class="p">]);</span>
+  <span class="kd">const</span> <span class="nx">upperTick</span> <span class="o">=</span> <span class="nx">nearestUsableTick</span><span class="p">(</span><span class="nx">priceToTick</span><span class="p">(</span><span class="nx">upperPrice</span><span class="p">),</span> <span class="nx">feeToSpacing</span><span class="p">[</span><span class="nx">fee</span><span class="p">]);</span>
+
+  <span class="nx">pool</span><span class="p">.</span><span class="nx">burn</span><span class="p">(</span><span class="nx">lowerTick</span><span class="p">,</span> <span class="nx">upperTick</span><span class="p">,</span> <span class="nx">amount</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">receipt</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">receipt</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">||</span> <span class="nx">receipt</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">event</span> <span class="o">!==</span> <span class="dl">"</span><span class="s2">Burn</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">throw</span> <span class="nb">Error</span><span class="p">(</span><span class="dl">"</span><span class="s2">Missing Burn event after burning!</span><span class="dl">"</span><span class="p">);</span>
+      <span class="p">}</span>
+
+      <span class="kd">const</span> <span class="nx">amount0Burned</span> <span class="o">=</span> <span class="nx">receipt</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">args</span><span class="p">.</span><span class="nx">amount0</span><span class="p">;</span>
+      <span class="kd">const</span> <span class="nx">amount1Burned</span> <span class="o">=</span> <span class="nx">receipt</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">args</span><span class="p">.</span><span class="nx">amount1</span><span class="p">;</span>
+
+      <span class="k">return</span> <span class="nx">pool</span><span class="p">.</span><span class="nx">collect</span><span class="p">(</span><span class="nx">account</span><span class="p">,</span> <span class="nx">lowerTick</span><span class="p">,</span> <span class="nx">upperTick</span><span class="p">,</span> <span class="nx">amount0Burned</span><span class="p">,</span> <span class="nx">amount1Burned</span><span class="p">)</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">tx</span> <span class="o">=&gt;</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">wait</span><span class="p">())</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="nx">toggle</span><span class="p">())</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If burning was successful, we immediately call <code class="language-plaintext highlighter-rouge">collect</code> to collect the token amounts that were freed during burning.</p>

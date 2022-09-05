@@ -1,0 +1,37 @@
+<h1 id="flash-loan-fees">Flash Loan Fees</h1>
+
+<p>In a previous chapter we implemented flash loans and made them free. However, Uniswap collect swap fees on flash loans,
+and we’re going to add this to our implementation–the amounts repaid by flash loan borrowers must including the fee.</p>
+
+<p>Here’s what the updated <code class="language-plaintext highlighter-rouge">flash</code> function looks like:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">flash</span><span class="p">(</span>
+    <span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span>
+    <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span>
+<span class="p">)</span> <span class="k">public</span> <span class="p">{</span>
+    <span class="kt">uint256</span> <span class="n">fee0</span> <span class="o">=</span> <span class="n">Math</span><span class="p">.</span><span class="n">mulDivRoundingUp</span><span class="p">(</span><span class="n">amount0</span><span class="p">,</span> <span class="n">fee</span><span class="p">,</span> <span class="mi">1e6</span><span class="p">);</span>
+    <span class="kt">uint256</span> <span class="n">fee1</span> <span class="o">=</span> <span class="n">Math</span><span class="p">.</span><span class="n">mulDivRoundingUp</span><span class="p">(</span><span class="n">amount1</span><span class="p">,</span> <span class="n">fee</span><span class="p">,</span> <span class="mi">1e6</span><span class="p">);</span>
+
+    <span class="kt">uint256</span> <span class="n">balance0Before</span> <span class="o">=</span> <span class="n">IERC20</span><span class="p">(</span><span class="n">token0</span><span class="p">).</span><span class="n">balanceOf</span><span class="p">(</span><span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">));</span>
+    <span class="kt">uint256</span> <span class="n">balance1Before</span> <span class="o">=</span> <span class="n">IERC20</span><span class="p">(</span><span class="n">token1</span><span class="p">).</span><span class="n">balanceOf</span><span class="p">(</span><span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">));</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">amount0</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">IERC20</span><span class="p">(</span><span class="n">token0</span><span class="p">).</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount0</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">amount1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">IERC20</span><span class="p">(</span><span class="n">token1</span><span class="p">).</span><span class="nb">transfer</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount1</span><span class="p">);</span>
+
+    <span class="n">IUniswapV3FlashCallback</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">).</span><span class="n">uniswapV3FlashCallback</span><span class="p">(</span>
+        <span class="n">fee0</span><span class="p">,</span>
+        <span class="n">fee1</span><span class="p">,</span>
+        <span class="n">data</span>
+    <span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">IERC20</span><span class="p">(</span><span class="n">token0</span><span class="p">).</span><span class="n">balanceOf</span><span class="p">(</span><span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">balance0Before</span> <span class="o">+</span> <span class="n">fee0</span><span class="p">)</span>
+        <span class="nb">revert</span> <span class="n">FlashLoanNotPaid</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">IERC20</span><span class="p">(</span><span class="n">token1</span><span class="p">).</span><span class="n">balanceOf</span><span class="p">(</span><span class="kt">address</span><span class="p">(</span><span class="nb">this</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">balance1Before</span> <span class="o">+</span> <span class="n">fee1</span><span class="p">)</span>
+        <span class="nb">revert</span> <span class="n">FlashLoanNotPaid</span><span class="p">();</span>
+
+    <span class="k">emit</span> <span class="n">Flash</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">amount0</span><span class="p">,</span> <span class="n">amount1</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>What’s changed is that we’re now calculating fees on the amounts requested by caller and then expect pool balances to
+have grown by the fee amounts.</p>

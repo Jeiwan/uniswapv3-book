@@ -1,0 +1,163 @@
+
+<h1 id="slippage-protection">Slippage Protection</h1>
+
+<p>Slippage is a very important issued in decentralized exchanges. Slippage simply means the difference between the price
+that you see on the screen when initialing a transaction and the actual price the swap is executed at. This difference
+appears because there’s a short (and sometimes long, depending on network congestion and gas costs) delay between when
+you send a transaction and when it gets mined. In more technical terms, blockchain state changes every block and there’s
+no guarantee that your transaction will be applied at a specific block.</p>
+
+<p>Another important problem that slippage protection fixes is <em>sandwich attacks</em>–this is a common type of attacks on
+decentralized exchange users. During sandwiching, attackers “wrap” your swap transactions in their two transactions:
+one goes before your transaction and the other goes after it. In the first transaction, an attacker modifier the state of
+a pool so that your swap becomes very unprofitable for you and somewhat profitable for the attacker. This is achieved by
+adjusting pool liquidity so that your trade happens at a lower price. In the second transaction, the attacker reestablishes
+pool liquidity and the price. As a result, you get much less tokens than expected due to manipulated prices and the
+attacker get some profit.</p>
+
+<p>The way slippage protection is implemented in decentralized exchanges is by letting user choose how far the actual price
+is allowed to drop. By default, Uniswap V3 sets slippage tolerance to 0.1%, which means a swap is executed only if the
+price at the moment of execution is as small as 99.9% of the price the user saw in the browser. This is a very tight
+range and users are allowed to adjust this number, which is useful when volatility is high.</p>
+
+<p>Let’s add slippage protection to our implementation!</p>
+
+<h2 id="slippage-protection-in-swaps">Slippage Protection in Swaps</h2>
+
+<p>To protect swaps, we need to add one more parameter to <code class="language-plaintext highlighter-rouge">swap</code> function–we want to let user choose a stop price, a price
+at which swapping will stop. We’ll call the parameter <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code>:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">swap</span><span class="p">(</span>
+    <span class="kt">address</span> <span class="n">recipient</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">zeroForOne</span><span class="p">,</span>
+    <span class="kt">uint256</span> <span class="n">amountSpecified</span><span class="p">,</span>
+    <span class="kt">uint160</span> <span class="n">sqrtPriceLimitX96</span><span class="p">,</span>
+    <span class="kt">bytes</span> <span class="k">calldata</span> <span class="n">data</span>
+<span class="p">)</span> <span class="k">public</span> <span class="k">returns</span> <span class="p">(</span><span class="kt">int256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">int256</span> <span class="n">amount1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">zeroForOne</span>
+            <span class="o">?</span> <span class="n">sqrtPriceLimitX96</span> <span class="o">&gt;</span> <span class="n">slot0_</span><span class="p">.</span><span class="n">sqrtPriceX96</span> <span class="o">||</span>
+                <span class="n">sqrtPriceLimitX96</span> <span class="o">&lt;</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">MIN_SQRT_RATIO</span>
+            <span class="o">:</span> <span class="n">sqrtPriceLimitX96</span> <span class="o">&lt;</span> <span class="n">slot0_</span><span class="p">.</span><span class="n">sqrtPriceX96</span> <span class="o">&amp;&amp;</span>
+                <span class="n">sqrtPriceLimitX96</span> <span class="o">&gt;</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">MAX_SQRT_RATIO</span>
+    <span class="p">)</span> <span class="nb">revert</span> <span class="n">InvalidPriceLimit</span><span class="p">();</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>When selling token $X$ (<code class="language-plaintext highlighter-rouge">zeroForOne</code> is true), <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code> must be between the current price and the minimal
+$sqrt{P}$ since selling token $X$ moves the price down. Likewise, when selling token $Y$, <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code> must be
+between the current price and the maximal $\sqrt{P}$ because price moves up.</p>
+
+<p>In the while loop, we want to satisfy two conditions: full swap amount is filled and current price isn’t equal to <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code>:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">..</span>
+<span class="k">while</span> <span class="p">(</span>
+    <span class="n">state</span><span class="p">.</span><span class="n">amountSpecifiedRemaining</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span>
+    <span class="n">state</span><span class="p">.</span><span class="n">sqrtPriceX96</span> <span class="o">!=</span> <span class="n">sqrtPriceLimitX96</span>
+<span class="p">)</span> <span class="p">{</span>
+<span class="p">...</span>
+</code></pre></div></div>
+
+<p>Which means that Uniswap V3 pools don’t fail when slippage tolerance gets hit and simply executes swap partially.</p>
+
+<p>Final place where we need to use <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code> is when calling <code class="language-plaintext highlighter-rouge">SwapMath.computeSwapStep</code>:</p>
+
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">sqrtPriceX96</span><span class="p">,</span> <span class="n">step</span><span class="p">.</span><span class="n">amountIn</span><span class="p">,</span> <span class="n">step</span><span class="p">.</span><span class="n">amountOut</span><span class="p">)</span> <span class="o">=</span> <span class="n">SwapMath</span>
+    <span class="p">.</span><span class="n">computeSwapStep</span><span class="p">(</span>
+        <span class="n">state</span><span class="p">.</span><span class="n">sqrtPriceX96</span><span class="p">,</span>
+        <span class="p">(</span>
+            <span class="n">zeroForOne</span>
+                <span class="o">?</span> <span class="n">step</span><span class="p">.</span><span class="n">sqrtPriceNextX96</span> <span class="o">&lt;</span> <span class="n">sqrtPriceLimitX96</span>
+                <span class="o">:</span> <span class="n">step</span><span class="p">.</span><span class="n">sqrtPriceNextX96</span> <span class="o">&gt;</span> <span class="n">sqrtPriceLimitX96</span>
+        <span class="p">)</span>
+            <span class="o">?</span> <span class="n">sqrtPriceLimitX96</span>
+            <span class="o">:</span> <span class="n">step</span><span class="p">.</span><span class="n">sqrtPriceNextX96</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">.</span><span class="n">liquidity</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">.</span><span class="n">amountSpecifiedRemaining</span>
+    <span class="p">);</span>
+</code></pre></div></div>
+
+<p>Here, we want to ensure that <code class="language-plaintext highlighter-rouge">computeSwapStep</code> never calculates swap amounts outside of <code class="language-plaintext highlighter-rouge">sqrtPriceLimitX96</code>–this guarantees
+that the current price will never cross the limiting price.</p>
+
+<h2 id="slippage-protection-in-minting">Slippage Protection in Minting</h2>
+
+<p>Adding liquidity also requires slippage protection. This comes from the fact that price cannot be changed when adding
+liquidity (liquidity must be proportional to current price), thus liquidity providers also suffer from slippage. Unlike
+<code class="language-plaintext highlighter-rouge">swap</code> function however, we’re not forced to implement slippage protection in Pool contract–recall that Pool contract is
+a core contract and we don’t want to put unnecessary logic into it. This is why we made Manager contract, and it’s in
+the Manager contract where we’ll implement slippage protection.</p>
+
+<p>Manager contract is a wrapper contract that makes calls to Pool contract more convenient. To implement slippage protection
+in <code class="language-plaintext highlighter-rouge">mint</code> function, we can simply check the amounts of tokens taken by Pool and compare them to some minimal amounts
+chosen by user. Additionally, we can free users from calculating $\sqrt{P_{lower}}$ and $\sqrt{P_{upper}}$, as well as
+liquidity, and calculate these in <code class="language-plaintext highlighter-rouge">Manager.mint</code> function.</p>
+
+<p>Our update <code class="language-plaintext highlighter-rouge">mint</code> function will now take more parameters, so let’s group them in a struct:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// src/UniswapV3Manager.sol
+</span><span class="k">contract</span> <span class="n">UniswapV3Manager</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">MintParams</span> <span class="p">{</span>
+        <span class="kt">address</span> <span class="n">poolAddress</span><span class="p">;</span>
+        <span class="kt">int24</span> <span class="n">lowerTick</span><span class="p">;</span>
+        <span class="kt">int24</span> <span class="n">upperTick</span><span class="p">;</span>
+        <span class="kt">uint256</span> <span class="n">amount0Desired</span><span class="p">;</span>
+        <span class="kt">uint256</span> <span class="n">amount1Desired</span><span class="p">;</span>
+        <span class="kt">uint256</span> <span class="n">amount0Min</span><span class="p">;</span>
+        <span class="kt">uint256</span> <span class="n">amount1Min</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">function</span> <span class="n">mint</span><span class="p">(</span><span class="n">MintParams</span> <span class="k">calldata</span> <span class="n">params</span><span class="p">)</span>
+        <span class="k">public</span>
+        <span class="k">returns</span> <span class="p">(</span><span class="kt">uint256</span> <span class="n">amount0</span><span class="p">,</span> <span class="kt">uint256</span> <span class="n">amount1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="p">...</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">amount0Min</code> and <code class="language-plaintext highlighter-rouge">amount1Min</code> are the amounts that are calculated based on slippage tolerance. They must be smaller than
+the desired amounts, with the gap set by the slippage tolerance setting. Liquidity provider expect to provide amounts
+not smaller than <code class="language-plaintext highlighter-rouge">amount0Min</code> and <code class="language-plaintext highlighter-rouge">amount1Min</code>.</p>
+
+<p>Next, we calculate $\sqrt{P_{lower}}$, $\sqrt{P_{upper}}$, and liquidity:</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">...</span>
+<span class="n">IUniswapV3Pool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">IUniswapV3Pool</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">poolAddress</span><span class="p">);</span>
+
+<span class="p">(</span><span class="kt">uint160</span> <span class="n">sqrtPriceX96</span><span class="p">,</span> <span class="p">)</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="n">slot0</span><span class="p">();</span>
+<span class="kt">uint160</span> <span class="n">sqrtPriceLowerX96</span> <span class="o">=</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">getSqrtRatioAtTick</span><span class="p">(</span>
+    <span class="n">params</span><span class="p">.</span><span class="n">lowerTick</span>
+<span class="p">);</span>
+<span class="kt">uint160</span> <span class="n">sqrtPriceUpperX96</span> <span class="o">=</span> <span class="n">TickMath</span><span class="p">.</span><span class="n">getSqrtRatioAtTick</span><span class="p">(</span>
+    <span class="n">params</span><span class="p">.</span><span class="n">upperTick</span>
+<span class="p">);</span>
+
+<span class="kt">uint128</span> <span class="n">liquidity</span> <span class="o">=</span> <span class="n">LiquidityMath</span><span class="p">.</span><span class="n">getLiquidityForAmounts</span><span class="p">(</span>
+    <span class="n">sqrtPriceX96</span><span class="p">,</span>
+    <span class="n">sqrtPriceLowerX96</span><span class="p">,</span>
+    <span class="n">sqrtPriceUpperX96</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">.</span><span class="n">amount0Desired</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">.</span><span class="n">amount1Desired</span>
+<span class="p">);</span>
+<span class="p">...</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">LiquidityMath.getLiquidityForAmounts</code> is a new function, we’ll discuss it in the next chapter.</p>
+
+<p>Next step is to provide liquidity to the pool and the amounts returned by the pool: if they’re too low, we revert.</p>
+<div class="language-solidity highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="n">amount0</span><span class="p">,</span> <span class="n">amount1</span><span class="p">)</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="n">mint</span><span class="p">(</span>
+    <span class="n">msg</span><span class="p">.</span><span class="n">sender</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">.</span><span class="n">lowerTick</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">.</span><span class="n">upperTick</span><span class="p">,</span>
+    <span class="n">liquidity</span><span class="p">,</span>
+    <span class="n">abi</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">IUniswapV3Pool</span><span class="p">.</span><span class="n">CallbackData</span><span class="p">({</span>
+            <span class="n">token0</span><span class="o">:</span> <span class="n">pool</span><span class="p">.</span><span class="n">token0</span><span class="p">(),</span>
+            <span class="n">token1</span><span class="o">:</span> <span class="n">pool</span><span class="p">.</span><span class="n">token1</span><span class="p">(),</span>
+            <span class="n">payer</span><span class="o">:</span> <span class="n">msg</span><span class="p">.</span><span class="n">sender</span>
+        <span class="p">})</span>
+    <span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">amount0</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">.</span><span class="n">amount0Min</span> <span class="o">||</span> <span class="n">amount1</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">.</span><span class="n">amount1Min</span><span class="p">)</span>
+    <span class="nb">revert</span> <span class="n">SlippageCheckFailed</span><span class="p">(</span><span class="n">amount0</span><span class="p">,</span> <span class="n">amount1</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>That’s it!</p>
