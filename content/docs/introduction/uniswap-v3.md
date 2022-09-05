@@ -54,11 +54,11 @@ In a nutshell, Uniswap V3 is many small Uniswap V2s. The main difference between
 **finite reserves**–we'll call them *real reserves*. The entire price range (from 0 to infinity) is can be filled with
 these discrete pools, which provide liquidity within certain price ranges–this is the main feature of Uniswap V3.
 
-[TODO: add illustration, compare liquidity distributions]
+![Liquidity Distribution Comparison](../../../static/images/Introdunction_liquidity_distribution.png)
 
 To set a price range, we need to pick two price points on the curve, $a$ and $b$:
 
-[TODO: add curve with price a, b, and x_real, y_real]
+![Virtual Liquidity Curve](../../../static/images/Introduction_virtual_liquidity.png)
 
 As we saw in the previous chapter, buying or selling tokens moves the prices along the curve. A price range limits the
 movement of the price. When the price moves to either of the points, the pool becomes depleted: one of the token reserves
@@ -72,7 +72,7 @@ to one of the edge prices.
 
 Since reserves can be depleted, this curve better illustrates the price ranges:
 
-[TODO: add virtual reserves -> real reserves transition graph]
+![Virtual and Real Curve Comparison](../../../static/images/Introdunction_virtual_and_reality.png)
 
 This is the original curve shifted in a way that makes it limited by the axes: the curve crosses the axes at the points
 corresponding to the price range. This chart also better illustrated pool reserves: amounts required to move the price
