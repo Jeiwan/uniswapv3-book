@@ -108,7 +108,12 @@ the change in $\sqrt{P}$.
 
     $$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
 
-[TODO: prove this]
+Proof: 
+    $$
+    y_0 = L * \sqrt{P_0}\\
+    y = L * \sqrt{P}\\
+    \Delta y = L * \Delta \sqrt{P}
+    $$
 
 ## Pricing
 
