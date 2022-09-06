@@ -33,7 +33,7 @@ We want to provide liquidity at a range that includes this price. And we want to
 
 We'll need to find three ticks:
 1. The current tick will correspond to the current price (5000 USDC for 1 ETH).
-1. The lower and upper bounds of the price range we're providing liquidity into. Let the lower price be <span>$4500</span>
+1. The lower and upper bounds of the price range we're providing liquidity into. Let the lower price be <span>$4545</span>
 and the upper price be <span>$5500</span>.
 
 From the theoretical introduction we know that:
@@ -127,7 +127,7 @@ We need to calculate $L$ specifically for the price range we're going to deposit
 based on the amounts we're going to deposit. To find $L$, we need to look at one interesting fact: when the current price
 equals the lower or the upper price, **one of the pool reserves is 0 and all pool's liquidity is in the other reserve**.
 For example, if the current price is <span>$5500</span> then all ETH was bought from the pool and there's only USDC left.
-And vice versa: when the current price is <span>$4500</span> then all USDC was bought from the pool and there's only ETH.
+And vice versa: when the current price is <span>$4545</span> then all USDC was bought from the pool and there's only ETH.
 
 [TODO: illustrate]
 

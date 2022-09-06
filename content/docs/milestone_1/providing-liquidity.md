@@ -259,7 +259,7 @@ on the caller–this is the callback. It's expected that the caller (whoever exe
 non-contract addresses cannot implement functions in Ethereum. There are two reason doing this like that:
 
 1. Pool contract is a core contract, and core contracts are user-unfriendly. It's expected that core contracts are only
-user by other contracts which make interaction with a pool easier.
+used by other contracts which make interaction with a pool easier.
 1. We don't want to calculate the square root of reserves in the contract because it's an expensive operation. But we still
 need to be sure that the liquidity deposited by user is correct. To achieve this, we calculate $\Delta x$ and $\Delta y$,
 which doesn't require calculating square roots. But this approach forces us to use a callback to let the caller know the
