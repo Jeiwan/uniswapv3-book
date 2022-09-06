@@ -35,9 +35,9 @@ This is how the manager contract will work:
 1. We'll then call `mint` function of the manager contract and pass it minting parameters, as well as the address of
 the pool we want to provide liquidity into.
 1. The manager contract will call the pool's `mint` function and will implement `uniswapV3MintCallback`. It'll have
-permissions permissions to send our tokens to the pool contract.
+permissions to send our tokens to the pool contract.
 1. To swap tokens, we'll also approve spending of tokens to the manager contract.
-1. We'll then call `swap` function of the manager contract and, similarly to minting, it'll pass the call to the pool.
+2. We'll then call `swap` function of the manager contract and, similarly to minting, it'll pass the call to the pool.
 The pool will take tokens from the manager contract, swap then, and will send the output amount to us.
 
 At this point, the manager contract will act as a simple intermediary, but in later chapter we'll add more useful

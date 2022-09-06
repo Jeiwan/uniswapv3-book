@@ -135,7 +135,7 @@ vm.stopBroadcast();
 ```
 
 > Everything that goes after `broadcast()` cheat code or between `startBroadcast/stopBroadcast` is converted to
-transactions and these transactions are sent to the node that executes the script.
+transactions(otherwise, it's just a normal statement included in the function), and these transactions are sent to the node that executes the script.
 
 Between the broadcast cheat codes, we'll put the actual deployment steps. First, we need to deploy the tokens:
 ```solidity
@@ -143,7 +143,7 @@ ERC20Mintable token0 = new ERC20Mintable("Wrapped Ether", "WETH", 18);
 ERC20Mintable token1 = new ERC20Mintable("USD Coin", "USDC", 18);
 ```
 We cannot deploy the pool without having tokens, so we need to deploy them first.
-
+((TODO: Also need to explain why we cannot treat it as a normal "new" statement, but must convert then to transactions))
 > Since we're deploying to a local development network, we need to deploy the tokens ourselves. In the mainnet and public
 test networks (Ropsten, Goerli, Sepolia), the tokens are already created. Thus, to deploy to those networks, we'll need
 to write network-specific deployment scripts.
