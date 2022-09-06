@@ -61,8 +61,8 @@ $$\sqrt{P_{target}} = 5604469350942327889444743441197$$
 After finding the target price, we can calculate token amounts using the amounts calculation functions from a previous
 chapter:
 
-$$ x = \frac{L(\sqrt{p_b}-\sqrt{p_a})}{\sqrt{p_b}\sqrt{p_a}}$$
-$$ y = L(\sqrt{p_b}-\sqrt{p_a}) $$
+$$ \Delta x = \frac{L(\sqrt{p_b}-\sqrt{p_a})}{\sqrt{p_b}\sqrt{p_a}}$$
+$$ \Delta y = L(\sqrt{p_b}-\sqrt{p_a}) $$
 
 > In Python:
 > ```python
@@ -75,7 +75,7 @@ $$ y = L(\sqrt{p_b}-\sqrt{p_a}) $$
 > # ETH out: 0.008396714242162444
 > ```
 
-To verify the amounts, let's recall another formula:
+To verify the amounts by calculate them manually, let's recall another formula:
 
 $$\Delta x = \Delta \frac{1}{\sqrt{P}} L$$
 
