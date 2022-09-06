@@ -15,7 +15,7 @@ weight: 7
 
 Finally, we made it to the final stop of this milestone–building a user interface!
 
-[TODO: screenshot of the main page]
+![basic-ui](../../../static/images/milestone_1_basic_ui.png)
 
 Since building a front-end app is not the main goal of this book, I won't show how to build such an app from scratch.
 Instead, I'll show how to use MetaMask to interact with a decentralized exchange.
