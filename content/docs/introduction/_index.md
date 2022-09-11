@@ -1,5 +1,5 @@
 ---
-title: "Milestone 0"
+title: "Milestone 0. Introduction"
 weight: 0
 bookFlatSection: true
 # bookToc: true
