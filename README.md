@@ -1,59 +1,37 @@
-# 🚧 Uniswap V3 Development Book 🚧
+# Uniswap V3 Development Book (🚧 NOT FINISHED YET 🚧)
+
+This book will teach how to develop an advanced decentralized application! Specifically, we'll be building a clone of 
+[Uniswap V3](https://uniswap.org/), which is a decentralized exchange.
+
+## Why Uniswap?
+- It implements a very simple mathematical concept, `x * y = k`, which still makes it very powerful.
+- It's an advanced application that has a thick layer of engineering on top of the simple formula.
+- It's permissionless and battle-tested. Learning from an application that's been running in production for
+several years and handling billions of dollars will make you a better developer.
+
+## What we'll build
 
 ![Front-end application screenshot](/screenshot.png)
 
+We'll build a full clone of Uniswap V3. It **won't be an exact copy** and it **won't be production-ready** because we'll
+do something in our own way and we'll **definitely** introduce multiple bugs. So, don't deploy this to the mainnet!
+
+While our focus will primarily be on smart contracts, we'll also build a front-end application as a side hustle. 🙂
+I'm not a front-end developer and I cannot make a front-end application better than you, but I can show you how a
+decentralized exchange can be integrated into a front-end application.
+
+The full code of what we'll build is stored in a separate repository:
+
+https://github.com/Jeiwan/uniswapv3-code
+
+You can read this book at:
+
+https://uniswapv3book.com/
+
 ## Table of Contents
 
-### Introduction
-1. ~~Introduction, overview of the course~~
-1. ~~Automated Market Makers (overview, V2, theory, math, visualizations, curve, Dan's desmos)~~
-1. ~~Uniswap V3 (overview of V3, concentrated liquidity, L, sqrt(P))~~
-1. ~~Tools (quick intro to blockchains, Foundry, Hardhat, testing, local node; Metamask, React, Ethers.js)~~
+TODO
 
-### Milestone 1: First swap
-1. ~~Liquidity provision (minting)~~
-1. ~~First swap (Pool contract, 0-to-1, hardcoded ticks and sqrt(P))~~
-1. ~~Front-end app (basic React app, Metamask, integration with the contract, swaps through the UI)~~
-
-### Milestone 2: Second swap
-1. ~~Math libraries~~
-1. ~~Calculated ticks and sqrt(P)~~
-1. ~~Second swap (1-to-0)~~
-1. ~~Quoter contract~~
-1. ~~Updated front end~~
-
-### Milestone 3: Cross-tick swaps
-1. ~~Cross-tick swaps, theory~~
-1. ~~Adding liquidity to different price ranges~~
-1. ~~Cross-tick swaps, implementation~~
-1. ~~Slippage protection~~
-1. ~~Flash loans~~
-1. ~~Update 'Add Liquidity' interface~~
-
-### Milestone 4: Multi-pool Swaps
-1. ~~Factory, theory~~
-1. ~~Deploying via Factory~~
-1. ~~Using Factory everywhere (Manager, Quoter, UI)~~
-1. ~~Path library~~
-1. ~~Chained swaps~~
-1. ~~Auto Router (simple implementation, DFS maybe).~~
-1. ~~Front end: allow to create pairs via the UI~~
-1. ~~Tick Rounding~~
-
-### Milestone 5: Fees and price oracle
-1. ~~Trading fees, theory~~
-1. ~~Collecting fees~~
-1. ~~Withdrawing fees~~
-1. ~~Removing liquidity (burn)~~
-1. ~~Protocol fees~~
-1. ~~Overview of the price oracle in Uniswap V3~~
-1. ~~Implementation in Pool contract~~
-1. ~~Front end: allow to add/remove liquidity through the UI~~
-
-### Milestone 6: NFT-positions
-1. ~~NFT-position manager contract~~
-1. ~~Basic NFTSVG contract~~
-1. ~~Front end: add an endpoint to render NFT-positions~~
 
 ### TODO
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
