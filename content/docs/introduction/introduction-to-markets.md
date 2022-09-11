@@ -65,3 +65,6 @@ managed by anyone**. There are no managers, admins, privileged users, etc. There
 (they can be the same people), and all the algorithms are programmed, immutable, and public.
 
 Let's now look closer at how Uniswap implements an AMM.
+
+> Please note that I use *pool* and *pair* terms interchangeably throughout the book because a Uniswap pool is a pair
+of two tokens.
