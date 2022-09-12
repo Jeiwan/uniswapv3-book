@@ -99,7 +99,7 @@ $$\sqrt{P} = \sqrt{\frac{y}{x}}$$
 
 $L$ is *the amount of liquidity*. Liquidity in a pool is the combination of token reserves (that is,
 two numbers). We know that their product is $k$, and we can use this to derive the measure of liquidity, which is
-$\sqrt{xy}$–a number that, when multiplied by itself, equals to $k$.
+$\sqrt{xy}$–a number that, when multiplied by itself, equals to $k$. $L$ is the geometric mean of $x$ and $y$.
 
 $y/x$ is the price of token 0 in terms of 1. Since token prices in a pool are reciprocals of each other, we can use only
 one of them in calculations (and by convention Uniswap V3 uses $y/x$). The price of token 1 in terms of token 0 is simply 
@@ -114,23 +114,24 @@ the change in $\sqrt{P}$.
 
     $$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
 
-[TODO: prove this]
+> Proof:
+$$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
+$$\sqrt{xy} = \frac{y_1 - y_0}{\sqrt{P_1} - \sqrt{P_0}}$$
+$$\sqrt{xy} (\sqrt{P_1} - \sqrt{P_0}) = y_1 - y_0$$
+$$\sqrt{xy} (\sqrt{\frac{y_1}{x_1}} - \sqrt{\frac{y_0}{x_0}}) = y_1 - y_0$$
+$$\sqrt{y_1^2} - \sqrt{y_0^2} = y_1 - y_0$$
+$$y_1 - y_0 = y_1 - y_0$$
 
 ## Pricing
 
-Pool reserves in Uniswap V3 are defined as:
+Again, we don't need to calculate actual prices–we can calculate output amount right away. Also, since we're not going
+to track and store $x$ and $y$, our calculation will be based only on $L$ and $\sqrt{P}$.
 
-$$x = \frac{L}{\sqrt{P}}$$
-$$y = L \sqrt{P}$$
-
-However, we'll never need to calculate them because $L$ and $\sqrt{P}$ allow us to find trade amounts without knowing
-$x$ and $y$. Let's return to this formula:
-
-$$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
-
-We can find $\Delta y$ from it:
+From the above formula, we can find $\Delta y$:
 
 $$\Delta y = \Delta \sqrt{P} L$$
+
+> See the third step in the proof above.
 
 As we discussed above, prices in a pool are reciprocals of each other. Thus, $\Delta x$ is:
 
@@ -141,11 +142,14 @@ because we can always find $\Delta \sqrt{P}$ and its reciprocal.
 
 ## Ticks
 
-Uniswap V3, however, doesn't allow us to select arbitrary prices when providing liquidity. Instead, it implements a scale
-and we choose certain marks on it.
+As we learned in this chapter, the infinite price range of V2 is split into shorter price ranges in V3. Each of these
+shorter price ranges is limited by boundaries–upper and lower points. To track the coordinates of these boundaries,
+Uniswap V3 uses *ticks*.
 
-The entire price range is demarcated by evenly distributed discrete *ticks*. Each tick has an index and corresponds to
-a certain price:
+![Price ranges and ticks](/images/milestone_0/ticks_and_ranges.png)
+
+In V3, the entire price range is demarcated by evenly distributed discrete ticks. Each tick has an index and corresponds
+to a certain price:
 
 $$p(i) = 1.0001^i$$
 
@@ -161,9 +165,11 @@ $$\sqrt{p(i)} = \sqrt{1.0001}^i = 1.0001 ^{\frac{i}{2}}$$
 
 So, we get values like: $\sqrt{p(0)} = 1$, $\sqrt{p(1)} = \sqrt{1.0001} \approx 1.00005$, $\sqrt{p(-1)} \approx 0.99995$.
 
-Ticks are integers that can be positive and negative and, of course, they're not infinite. Ticks are mapped to prices,
-thus they're limited by the price range. Uniswap V3 stores $\sqrt{P}$ as a fixed point Q64.96 number, which is a rational
-number that uses 64 bits for the integer part and 96 bits for the fraction part. It's stored in an `uint160` variable and
-it supports prices between $2^{-128}$ and $2^{128}$. Thus, the tick range is:
+Ticks are integers that can be positive and negative and, of course, they're not infinite. Uniswap V3 stores $\sqrt{P}$
+as a fixed point Q64.96 number, which is a rational number that uses 64 bits for the integer part and 96 bits for the
+fractional part. Thus, prices are within the range: $[2^{-128}, 2^{128}]$. And ticks are within the range:
 
 $$[log_{1.0001}2^{-128}, log_{1.0001}{2^{128}}] = [-887272, 887272]$$
+
+> For deeper dive into the math of Uniswap V3, I cannot but recommend [this technical note](https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf)
+by [Atis Elsts](https://twitter.com/atiselsts).
