@@ -49,4 +49,5 @@ To run the book locally:
 
 
 ### TODO
+1. Fix the padding before <katext>
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
