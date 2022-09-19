@@ -32,6 +32,21 @@ https://uniswapv3book.com/
 
 TODO
 
+## Running locally
+
+To run the book locally:
+1. Install [Hugo](https://gohugo.io/).
+1. Clone the repo:
+  ```shell
+  $ git clone https://github.com/Jeiwan/uniswapv3-book
+  $ cd uniswapv3-book
+  ```
+1. Run:
+  ```shell
+  $ hugo server -D
+  ```
+1. Visit http://localhost:1313/ (or whatever URL the previous command outputs!)
+
 
 ### TODO
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
