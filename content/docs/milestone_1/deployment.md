@@ -186,7 +186,7 @@ console.log("Manager address", address(manager));
 
 Alright, let's run the script (ensure Anvil is running in another terminal window):
 ```shell
-$ forge script scripts/DeployDevelopment.s.sol --broadcast --fork-url localhost:8545 --private-key $PRIVATE_KEY
+$ forge script scripts/DeployDevelopment.s.sol --broadcast --fork-url http://localhost:8545 --private-key $PRIVATE_KEY
 ```
 
 `--broadcast` enables broadcasting of transactions. It's not enabled by default because not every script sends
