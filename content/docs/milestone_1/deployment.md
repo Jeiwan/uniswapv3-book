@@ -9,9 +9,11 @@ weight: 6
 # bookSearchExclude: false
 ---
 
+{{< katex display >}} {{</ katex >}}
+
 # Deployment
 
-Alright, our contract is done. Now, let's see how we can deploy it to a local Ethereum network so we could use it from
+Alright, our pool contract is done. Now, let's see how we can deploy it to a local Ethereum network so we could use it from
 a front-end app later on.
 
 
@@ -93,12 +95,11 @@ Now, let's deploy the pool and manager contracts to the local network.
 At its core, deploying a contract means:
 1. Compiling source code into EVM bytecode.
 1. Sending a transaction with the bytecode.
-1. Creating a new address, executing the constructor par of the bytecode, storing initialized bytecode on the address.
-This step is done automatically by an Ethereum node, when your transaction is mined.
+1. Creating a new address, executing the constructor part of the bytecode, storing initialized bytecode on the address.
+This step is done automatically by an Ethereum node, when your contract creation transaction is mined.
 
 Deployment usually consists of multiple steps: preparing parameters, deploying auxiliary contracts, deploying main
-contracts, initializing contracts, etc. To automate these steps, scripting is used. As you might've already guessed,
-we'll write scripts in Solidity!
+contracts, initializing contracts, etc. Scripting helps to automate these steps, and we'll write scripts in Solidity!
 
 Create `scripts/DeployDevelopment.sol` contract with this content:
 ```solidity
@@ -114,9 +115,9 @@ contract DeployDevelopment is Script {
 }
 ```
 
-It looks very similar to the test contract, besides the fact that it inherits from `Script` contract, not from `Test`.
-And, by convention, we need to define `run` function which will be the body of our deployment script. In the `run`
-function, we define the parameters of the deployment first:
+It looks very similar to the test contract, with only difference is that it inherits from `Script` contract, not from
+`Test`. And, by convention, we need to define `run` function which will be the body of our deployment script. In the
+`run` function, we define the parameters of the deployment first:
 ```solidity
 uint256 wethBalance = 1 ether;
 uint256 usdcBalance = 5042 ether;
@@ -134,7 +135,10 @@ vm.startBroadcast();
 vm.stopBroadcast();
 ```
 
-> Everything that goes after `broadcast()` cheat code or between `startBroadcast/stopBroadcast` is converted to
+> These cheat codes are [provided by of Foundry](https://github.com/foundry-rs/foundry/tree/master/forge#cheat-codes).
+We got them in the script contract by inheriting from `forge-std/Script.sol`.
+
+Everything that goes after the `broadcast()` cheat code or between `startBroadcast()/stopBroadcast()` is converted to
 transactions and these transactions are sent to the node that executes the script.
 
 Between the broadcast cheat codes, we'll put the actual deployment steps. First, we need to deploy the tokens:
@@ -158,7 +162,7 @@ UniswapV3Pool pool = new UniswapV3Pool(
 );
 ```
 
-Next, manager contract deployment:
+Next goes Manager contract deployment:
 ```solidity
 UniswapV3Manager manager = new UniswapV3Manager();
 ```
@@ -169,8 +173,8 @@ token0.mint(msg.sender, wethBalance);
 token1.mint(msg.sender, usdcBalance);
 ```
 
-`msg.sender` in Foundy scripts is the address sending transactions, i.e. this is the address that will pay for the
-transaction.
+> `msg.sender` in Foundry scripts is the address that sends transactions within the `broadcast` block. We'll be able to
+set it when running scripts.
 
 Finally, at the end of the script, add some `console.log` calls to print the addresses of deployed contracts:
 ```solidity
@@ -186,9 +190,9 @@ $ forge script scripts/DeployDevelopment.s.sol --broadcast --fork-url localhost:
 ```
 
 `--broadcast` enables broadcasting of transactions. It's not enabled by default because not every script sends
-transactions. `--fork-url` sets the address of the node to send transactions to. `--private-key` sets the sender account:
+transactions. `--fork-url` sets the address of the node to send transactions to. `--private-key` sets the sender wallet:
 a private key is needed to sign transactions. You can pick any of the private keys printed by Anvil when it's starting.
-I picked the first one:
+I took the first one:
 > 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 Deployment takes several seconds. In the end, you'll see a list of transactions it sent. It'll also save transactions
@@ -202,30 +206,32 @@ Congratulations! You've just deployed a smart contract!
 
 Now, let's see how we can interact with the deployed contracts.
 
-Every contract exposes a set of public functions. In the case of the pool contract, these are `mint` and `swap`.
-Additionally, Solidity creates getters for public variables, so we can also call `token0`, `token1`, `positions`, etc.
+Every contract exposes a set of public functions. In the case of the pool contract, these are `mint(...)` and `swap(...)`.
+Additionally, Solidity creates getters for public variables, so we can also call `token0()`, `token1()`, `positions()`, etc.
 However, since contracts are compiled bytecodes, **function names are lost during compilation and not stored on
 blockchain**. Instead, every function is identified by a selector, which is the first 4 bytes of the hash of the
 signature of the function. In pseudocode:
 ```
-keccak256("transfer(address,address,uint256)")[0:4]
+hash("transfer(address,address,uint256)")[0:4]
 ```
 
-Knowing this, let's make two calls to the deployed contracts: one will be a low-level call via `curl`, and one will be
-done via `cast`.
+> EVM uses [the Keccak hashing algorithm](https://en.wikipedia.org/wiki/SHA-3), which was standardized as SHA-3.
+Specifically, the hashing function in Solidity is `keccak256`.
 
-> We'll soon learn how to make contract calls from a front-end application using a JS library.
+Knowing this, let's make two calls to the deployed contracts: one will be a low-level call via `curl`, and one will be
+made using `cast`.
 
 ### Token Balance
-Let's check the WETH balance of the deployer address. The signature of the function is `balanceOf(address)`. To find the
-id of this function (its selector), we'll hash it and take the first four bytes:
+Let's check the WETH balance of the deployer address. The signature of the function is `balanceOf(address)` (as defined
+in [ERC-20](https://eips.ethereum.org/EIPS/eip-20)). To find the
+ID of this function (its selector), we'll hash it and take the first four bytes:
 ```shell
 $ cast keccak "balanceOf(address)"| cut -b 1-10
 0x70a08231
 ```
 
 To pass the address, we simply append it to the function selector (and add left padding up to 32 digits since addresses
-take 32 bytes in calldata):
+take 32 bytes in function call data):
 > 0x70a08231000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266
 
 `0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266` is the address we're going to check balance of. This is our address, the first
@@ -244,23 +250,23 @@ $ curl -X POST -H 'Content-Type: application/json' \
 
 > The "to" address is the USDC token. It's printed by the deployment script and it can be different in your case.
 
-The node responses are in the hexadecimal system. To parse the result, we need to know its type. In the case of `balanceOf`
-function, the type of returned value is `uint256`. Using `cast`, we can convert it to a decimal number and then convert
-it to ethers:
+Ethereum nodes return results as raw bytes, to parse them we need to know the type of a returned value. In the case of
+`balanceOf` function, the type of a returned value is `uint256`. Using `cast`, we can convert it to a decimal number and
+then convert it to ethers:
 ```shell
 $ cast --to-dec 0x00000000000000000000000000000000000000000000011153ce5e56cf880000| cast --from-wei
 5042.000000000000000000
 ```
 
-The balance is correct! We minted to ourselves 42 USDC.
+The balance is correct! We minted 42 USDC to our address.
 
 
 ### Current Tick and Price
 
 The above example is a demonstration of low-level contract calls. Usually, you never do calls via `curl` and use a tool
-or library instead. And Cast can help us here again!
+or library that makes it easier. And Cast can help us here again!
 
-Let's get current pool liquidity using `cast`:
+Let's get the current price and tick of a pool using `cast`:
 ```shell
 $ cast call POOL_ADDRESS "slot0()"| xargs cast --abi-decode "a()(uint160,int24)"
 5602277097478614198912276234240
@@ -283,4 +289,4 @@ is to make it easier to encode function parameters and decode return values. To 
 $ forge inspect UniswapV3Pool abi
 ```
 
-Feel free skimming through the file better understand its content.
+Feel free skimming through the file to better understand its content.
