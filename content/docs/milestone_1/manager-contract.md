@@ -23,7 +23,7 @@ to transfer tokens from the caller. Instead, it uses two callbacks:
 1. `uniswapV3SwapCallback`, which is called when swapping tokens.
 
 In our tests, we implemented these callbacks in the test contract. Since it's only a contract that can implement them,
-**the pool contract cannot be called by regular users** (non-contract addresses). This is fine. But not anymore 🙂.
+the pool contract cannot be called by regular users (non-contract addresses). This is fine. But not anymore 🙂.
 
 Our next steps in the book is deploying the pool contract to a local blockchain and interacting with it from a front-end
 app. Thus, we need to build a contract that will let non-contract addresses to interact with the pool. Let's do this now!
@@ -35,13 +35,13 @@ This is how the manager contract will work:
 1. We'll then call `mint` function of the manager contract and pass it minting parameters, as well as the address of
 the pool we want to provide liquidity into.
 1. The manager contract will call the pool's `mint` function and will implement `uniswapV3MintCallback`. It'll have
-permissions permissions to send our tokens to the pool contract.
+permissions to send our tokens to the pool contract.
 1. To swap tokens, we'll also approve spending of tokens to the manager contract.
 1. We'll then call `swap` function of the manager contract and, similarly to minting, it'll pass the call to the pool.
-The pool will take tokens from the manager contract, swap then, and will send the output amount to us.
+The manager contract will send our tokens to the pool contract, the pool contract will swap them, and will send the output
+amount to us.
 
-At this point, the manager contract will act as a simple intermediary, but in later chapter we'll add more useful
-functions to it.
+Thus, the manager contract will act as a intermediary between users and pools.
 
 ## Passing Data to Callbacks
 
@@ -64,9 +64,7 @@ Key points here:
 `transferFrom`.
 1. The function knows `token0` and `token1`, which will be different for every pool.
 
-Conclusion: we want to change the arguments of the callback so we could pass:
-1. User address.
-1. Pool address.
+Idea: we need to change the arguments of the callback so we could pass user and pool addresses.
 
 Now, let's look at the swap callback:
 ```solidity
@@ -84,7 +82,7 @@ function uniswapV3SwapCallback(int256 amount0, int256 amount1) public {
 Identically, it transfers tokens from the test contract and it knows `token0` and `token1`.
 
 To pass the extra data to the callbacks, we need to pass it to `mint` and `swap` first (since callbacks are called from
-these functions). However, since this extra data is not used in the function and to not make their arguments messy, we'll
+these functions). However, since this extra data is not used in the functions and to not make their arguments messier, we'll
 encode the extra data using [abi.encode()](https://docs.soliditylang.org/en/latest/units-and-global-variables.html?highlight=abi.encode#abi-encoding-and-decoding-functions).
 
 Let's define the extra data as a structure:
@@ -99,7 +97,7 @@ struct CallbackData {
 ...
 ```
 
-And then pass encoded data to callbacks:
+And then pass encoded data to the callbacks:
 ```solidity
 function mint(
     address owner,
@@ -154,9 +152,14 @@ Try updating the rest of the code yourself, and if it gets too difficult, feel f
 
 ## Implementing Manager Contract
 
-Besides implementing the callbacks, the manager contract won't much; it'll simply redirect calls to a pool contract. This
+Besides implementing the callbacks, the manager contract won't do much: it'll simply redirect calls to a pool contract. This
 is a very minimalistic contract at this moment:
 ```solidity
+pragma solidity ^0.8.14;
+
+import "../src/UniswapV3Pool.sol";
+import "../src/interfaces/IERC20.sol";
+
 contract UniswapV3Manager {
     function mint(
         address poolAddress_,
@@ -184,6 +187,6 @@ contract UniswapV3Manager {
 ```
 
 The callbacks are identical to those in the test contract, with the exception that there are no `transferInMintCallback`
-and `transferInSwapCallback` flags since the manager contract always transfers contracts.
+and `transferInSwapCallback` flags since the manager contract always transfers tokens.
 
-Well, we're now fully prepared for deploying and integrating with front end!
+Well, we're now fully prepared for deploying and integrating with a front-end app!
