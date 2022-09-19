@@ -14,20 +14,20 @@ weight: 2
 # Output Amount Calculation
 
 Our collection of Uniswap math formulas lacks a final piece: the formula of calculating the output amount when selling
-ETH (that is: selling token $X$). In the previous milestone, we had an analogous formula for the scenario when ETH is
-bought (buying token $X$):
+ETH (that is: selling token $x$). In the previous milestone, we had an analogous formula for the scenario when ETH is
+bought (buying token $x$):
 
 $$\Delta \sqrt{P} = \frac{\Delta y}{L}$$
 
-This formula finds the change in the price when selling token $Y$. We then added this change to the current price to
+This formula finds the change in the price when selling token $y$. We then added this change to the current price to
 find the target price:
 
 $$\sqrt{P_{target}} = \sqrt{P_{current}} + \Delta \sqrt{P}$$
 
-Now, we need a similar formula to find the target price when selling token $X$ (ETH in our case) and buying token $Y$
+Now, we need a similar formula to find the target price when selling token $x$ (ETH in our case) and buying token $y$
 (USDC in our case).
 
-Recall that the change in token $X$ can be calculated as:
+Recall that the change in token $x$ can be calculated as:
 
 $$\Delta x = \Delta \frac{1}{\sqrt{P}}L$$
 
@@ -72,8 +72,8 @@ ETH in: 0.013369999999998142
 USDC out: 66.80838889019013
 ```
 
-Which means that we'll get 66.8 USDC when selling 0.01337 ETH using the liquidity we provided in the previous step.
+Which means that we'll get 66.8 USDC when selling 0.01337 ETH using the liquidity
+we provided in the previous step.
 
----
-
-Now, we'going to implement all the mathematical formulas in Solidity.
+This looks good, but enough of Python! We're going to implement all the
+math calculations in Solidity.
