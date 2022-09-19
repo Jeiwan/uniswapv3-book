@@ -20,10 +20,10 @@ Now that we have liquidity, we can make our first swap!
 First step, of course, is to figure out how to calculate swap amounts. And, again, let's pick and hardcode some amount
 of USDC we're going to trade in for ETH. Let it be 42! We're going to buy ETH for 42 USDC.
 
-After deciding how many tokens we want to sell, we need to calculate how many tokens we'll get in exchange. There are
-multiple ways of doing this. In Uniswap V2, we would've used current pool reserves, but in Uniswap V3 we have $L$ and
-$\sqrt{P}$ and we know the fact that, when swapping within a price range, only $\sqrt{P}$ changes and $L$ remains
-unchanged. We also know that:
+After deciding how many tokens we want to sell, we need to calculate how many tokens we'll get in exchange. In Uniswap V2,
+we would've used current pool reserves, but in Uniswap V3 we have $L$ and $\sqrt{P}$ and we know the fact that, when
+swapping within a price range, only $\sqrt{P}$ changes and $L$ remains unchanged (Uniswap V3 acts exactly as V2 when
+swapping is done only within one price range). We also know that:
 $$L = \frac{\Delta y}{\Delta \sqrt{P}}$$
 
 And... we know $\Delta y$! This is the 42 USDC we're going to trade in! Thus, we can find how selling 42 USDC will affect
@@ -110,7 +110,7 @@ function swap(address recipient)
 ```
 At this moment, it only takes a recipient, who is a receiver of tokens.
 
-First, we need to find the target price and tick, as well as calculate the token amounts. Again, we'll simply hardcode
+First, we need to find the target price and tick, as well as calculate the token amounts. Again, we'll simply hard code
 the values we calculated earlier to keep things as simple as possible:
 ```solidity
 ...
