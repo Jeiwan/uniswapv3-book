@@ -55,7 +55,7 @@ In a nutshell, a Uniswap V3 pair is many small Uniswap V2 pairs. The main differ
 there are **many price ranges** in one pair. And each of these shorter price ranges has **finite reserves**. The entire
 price range from 0 to infinite is split into shorter price ranges, with each of them having its own amount of
 liquidity. But, what's crucial is that within that shorter price ranges, **it works exactly as Uniswap V2**. This is why
-I say that a V3 pair os many small V2 pairs.
+I say that a V3 pair is many small V2 pairs.
 
 Now, let's try to visualize it. What we're saying is that we don't want the curve to be finite. We cut it at the points
 $a$ and $b$ and say that these are the boundaries of the curve. Moreover, we shift the curve so the boundaries lay on
