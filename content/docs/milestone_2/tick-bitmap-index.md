@@ -26,22 +26,18 @@ function swap(address recipient, bytes calldata data)
 ```
 
 When there's liquidity provided in different price ranges, we cannot simply calculate the target tick. We need to **find
-it** depending on the amount of liquidity in different price ranges. Thus, we need to index all ticks that have liquidity
-and then use the index to find ticks to "fill" enough liquidity for a swap. In this step, we're going to implement such
-index.
+it**. Thus, we need to index all ticks that have liquidity and then use the index to find ticks to "inject" enough
+liquidity for a swap. In this step, we're going to implement such index.
 
 ## Bitmap
 
-Bitmap is a popular technique of indexing data in a compact way. A bitmap is simply an array of zeros and ones, where
-each element as and index and corresponds to some external entity (something that's indexed). Each element can be a zero
-or a one, which can be seemed as setting a flag: when 0, flag is not set; when 1, flag is set. What makes this approach
-favorable is that the whole array can be stored as a single number in the binary number system!
-
-For example, the array `111101001101001` is number 31337. The number takes two bytes (0x7a69) and two bytes can store 16
-flags (1 byte = 8 bits).
+Bitmap is a popular technique of indexing data in a compact way. A bitmap is simply a number represented in the binary
+system, e.g. 31337 is `111101001101001`. We can look at it as an array of zeros and ones, with each digit having an index.
+We then say that 0 means a flag is not set and 1 means it's set. So what we get is a very compact array of indexed flags:
+each byte can fit 8 flags. In Solidity, we can have integers up to 256 bits, which means one `uint256` can hold 256 flags.
 
 Uniswap V3 uses this technique to store the information about initialized ticks, that is ticks with some liquidity. When
-a flag is set (1), the tick has liquidity; when flag is not set (0), the tick is not initialized. Let's review the
+a flag is set (1), the tick has liquidity; when a flag is not set (0), the tick is not initialized. Let's look at the
 implementation.
 
 ## TickBitmap Contract
@@ -58,7 +54,7 @@ contract UniswapV3Pool {
 This is mapping where keys are `int16`'s and values are words (`uint256`). Imagine an infinite continuous array of ones
 and zeros:
 
-[TODO: add illustration]
+![Tick indexes in tick bitmap](/images/milestone_2/tick_bitmap.png)
 
 Each element in this array corresponds to a tick. To navigate in this array, we break it into words: sub-arrays of
 length 256 bits. To find tick's position in this array, we do:
@@ -70,8 +66,8 @@ function position(int24 tick) private pure returns (int16 wordPos, uint8 bitPos)
 }
 ```
 
-That is: we find its word position and then its bit in this word. `>> 8` is identical to division by 256. So, word
-position is the integer part of tick index divided by 256, and bit position is the remainder.
+That is: we find its word position and then its bit in this word. `>> 8` is identical to integer division by 256. So,
+word position is the integer part of a tick index divided by 256, and bit position is the remainder.
 
 As an example, let's calculate word and bit positions for one of our ticks:
 ```python
@@ -112,11 +108,18 @@ print(bin(mask))
 Next, to flip a flag, we apply the mask to the tick's word via bitwise XOR:
 ```python
 word = (2**256) - 1 # set word to all ones
-print(bin(word ^ mask))
-#0b11111111111111111111111111111111111111111111111111111111111111111111111->0<-1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+print(bin(word ^ mask))                                                   ↓ here
+#0b1111111111111111111111111111111111111111111111111111111111111111111111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
 ```
 
 You'll see that 184th bit (counting from the right starting at 0) has flipped to 0.
+
+If a bit is zero, it'll set it to 1:
+```python
+word = 0
+print(bin(word ^ mask))
+#0b10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+```
 
 ### Finding Next Tick
 
@@ -124,17 +127,21 @@ Next step is finding ticks with liquidity using the bitmap index.
 
 During swapping, we need to find a tick with liquidity that's before or after the current tick (that is: to the left or
 to the right of it). In the previous milestone, we used to [calculate and hard code it](https://github.com/Jeiwan/uniswapv3-code/blob/85b8605c37a9065c141a234ee2c18d9507eeba22/src/UniswapV3Pool.sol#L142),
-but now we need to find such tick using the bitmap index. We'll do this in `TickMath.nextInitializedTickWithinOneWord`
-method. In this function, we'll need to implement two scenarios:
+but now we need to find such tick using the bitmap index. We'll do this in the `TickMath.nextInitializedTickWithinOneWord`
+function. In this function, we'll need to implement two scenarios:
 
-1. When selling token $X$ (ETH in our case), find next initialized tick in the current tick's word and **to the right** of the current tick.
-1. When selling token $Y$ (USDC in our case), find next initialized tick in the next (current + 1) tick's word and **to the left** of the current tick.
+1. When selling token $x$ (ETH in our case), find next initialized tick in the current tick's word and **to the right** of the current tick.
+1. When selling token $y$ (USDC in our case), find next initialized tick in the next (current + 1) tick's word and **to the left** of the current tick.
 
 This corresponds to the price movement when making swaps in either directions:
 
-[TODO: add illustration, price change direction and tick change direction]
+![Finding next initialized tick during a swap](/images/milestone_2/find_next_tick.png)
 
-We include the current price when price grows.
+> Be aware that, in the code, the direction is flipped: when buying token $x$, we search for initialized ticks **to the
+left** of the current; when selling token $x$, we search ticks **to the right**. But this is only true within a word;
+words are ordered from left to right.
+
+When there's no initialized tick in the current word, we'll continue searching in an adjacent word in the next loop cycle.
 
 Now, let's look at the implementation:
 ```solidity
@@ -151,8 +158,9 @@ function nextInitializedTickWithinOneWord(
 1. First arguments makes this function a method of `mapping(int16 => uint256)`.
 1. `tick` is the current tick.
 1. `tickSpacing` is always 1 until we start using it in Milestone 3.
-1. `lte` is the flag that sets the direction. When `true`, we're selling token $X$ and searching for next initialized tick
-to the right of the current one. When `false,` it's the other way around.
+1. `lte` is the flag that sets the direction. When `true`, we're selling token $x$ and searching for next initialized tick
+to the right of the current one. When `false,` it's the other way around. `lte` equals to the swap direction: `true` when
+selling token $x$, `false` otherwise.
 
 ```solidity
 if (lte) {
@@ -162,7 +170,7 @@ if (lte) {
     ...
 ```
 
-When selling $X$, we're:
+When selling $x$, we're:
 1. taking current tick's word and bit positions;
 1. making a mask where all bits to the right of the current bit position, including it, are ones (`mask` is all ones,
 its length = `bitPos`);
@@ -189,7 +197,7 @@ leftmost bit in the next word–this will allow to search for initialized ticks 
     ...
 ```
 
-Similarly, when selling $Y$, we're:
+Similarly, when selling $y$, we're:
 1. taking next tick's word and bit positions;
 1. making a different mask, where all bits to the left of next tick bit position are ones and all the bits to the right
 are zeros;
@@ -208,6 +216,5 @@ Again, if there's no initialized ticks to the left, the rightmost bit of the pre
 
 And that's it!
 
-As you can see, `nextInitializedTickWithinOneWord` doesn't find the exact tick–it's scope of search is current or next
-tick's word. Indeed, we don't want to iterate over all the words since the we don't send boundaries on the bitmap index.
-This function, however, plays well with `swap` function–soon, we'll see this.
+As you can see, `nextInitializedTickWithinOneWord` doesn't find the exact tick if it's far away–it's scope of search is
+current or next tick's word. Indeed, we don't want to iterate over the infinite bitmap index.

@@ -50,4 +50,5 @@ To run the book locally:
 
 ### TODO
 1. Fix the padding before <katext>
+1. Milestone 2, Tick Bitmap Index: what happens when there are no ticks? Will it keep looping until it reaches max/min tick?
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
