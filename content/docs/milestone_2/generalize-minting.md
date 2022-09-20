@@ -13,12 +13,12 @@ weight: 5
 
 # Generalize Minting
 
-Now, we're ready to update `mint` function so it calculates the amounts of tokens instead of hard coding them.
+Now, we're ready to update `mint` function so we don't need to hard code values anymore and can calculate them instead.
 
 
 ## Indexing Initialized Ticks
 
-Recall that, in `mint` function, we update the TickInfo mapping to store information about available liquidity at ticks.
+Recall that, in the `mint` function, we update the TickInfo mapping to store information about available liquidity at ticks.
 Now, we also need to index newly initialized ticks in the bitmap index–we'll later use this index to find next initialized
 tick during swapping.
 
@@ -56,7 +56,7 @@ if (flippedUpper) {
 ...
 ```
 
-> Again, we're setting tick spacing to 1 until we introduce different values in Milestone 3.
+> Again, we're setting tick spacing to 1 until we introduce different values in Milestone 4.
 
 ## Token Amounts Calculation
 
@@ -72,7 +72,7 @@ And now we're going to calculate them in Solidity using formulas from Milestone 
 $$\Delta x = \frac{L(\sqrt{p(i_u)} - \sqrt{p(i_c)})}{\sqrt{p(i_u)}\sqrt{p(i_c)}}$$
 $$\Delta y = L(\sqrt{p(i_c)} - \sqrt{p(i_l)})$$
 
-$\Delta x$ is the amount of `token0`, or token $X$. Let's implement it in Solidity:
+$\Delta x$ is the amount of `token0`, or token $x$. Let's implement it in Solidity:
 ```solidity
 // src/lib/Math.sol
 function calcAmount0Delta(
@@ -121,9 +121,6 @@ function mulDivRoundingUp(
 `mulmod` is a Solidity function that multiplies two numbers (`a` and `b`), divides the result by `denominator`, and 
 returns the remainder. If the remainder is positive, we round the result up.
 
-> We always round calculated amounts up because we haven't implement liquidity removal yet. We adding liquidity, we want
-to ensure that calculated token amounts "fill" the entire liquidity.
-
 Next, $\Delta y$:
 ```solidity
 function calcAmount1Delta(
@@ -154,13 +151,13 @@ function mint(...) {
     Slot0 memory slot0_ = slot0;
 
     amount0 = Math.calcAmount0Delta(
-        TickMath.getSqrtRatioAtTick(slot0_.tick),
+        slot0_.sqrtPriceX96,
         TickMath.getSqrtRatioAtTick(upperTick),
         amount
     );
 
     amount1 = Math.calcAmount1Delta(
-        TickMath.getSqrtRatioAtTick(slot0_.tick),
+        slot0_.sqrtPriceX96,
         TickMath.getSqrtRatioAtTick(lowerTick),
         amount
     );

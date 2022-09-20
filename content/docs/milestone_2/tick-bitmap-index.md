@@ -157,7 +157,7 @@ function nextInitializedTickWithinOneWord(
 
 1. First arguments makes this function a method of `mapping(int16 => uint256)`.
 1. `tick` is the current tick.
-1. `tickSpacing` is always 1 until we start using it in Milestone 3.
+1. `tickSpacing` is always 1 until we start using it in Milestone 4.
 1. `lte` is the flag that sets the direction. When `true`, we're selling token $x$ and searching for next initialized tick
 to the right of the current one. When `false,` it's the other way around. `lte` equals to the swap direction: `true` when
 selling token $x$, `false` otherwise.
