@@ -12,7 +12,7 @@ weight: 8
 # User Interface
 
 Let's make our web app work more like a real DEX. We can now remove hardcoded swap amounts and let users type arbitrary
-amounts. Moreover, we can now let users swap in the both direction, so we also need a button to swap the token inputs.
+amounts. Moreover, we can now let users swap in both direction, so we also need a button to swap the token inputs.
 After updating, the swap form will look like:
 
 ```js
@@ -69,8 +69,7 @@ const setAmount_ = (setAmountFn) => {
 }
 ```
 
-Notice the `callStatic` called on `quoter`–this is what we discussed in a previous chapter. We need to force ethers.js
-to make a static call. Since `quote` doesn't have a `pure` or `view` restriction, ethers.js will try to call `quote` in
-a transaction.
+Notice the `callStatic` called on `quoter`–this is what we discussed in the previous chapter: we need to force Ethers.js
+to make a static call. Since `quote` is not a `pure` or `view` function, Ethers.js will try to call `quote` in a transaction.
 
 And that's it! The UI now allows to specify arbitrary amounts and swap in either direction!
