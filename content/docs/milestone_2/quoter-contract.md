@@ -18,9 +18,9 @@ in exchange. We'll do this through Quoter contract.
 Since liquidity in Uniswap V3 is scattered over multiple price ranges, we cannot calculate swap amounts with a formula
 (which was possible in Uniswap V2). The design of Uniswap V3 forces us to use a different approach: to calculate swap
 amounts, we'll initiate a real swap and will interrupt it in the callback function, grabbing the amounts calculated
-by Pool contract. That is, we have to simulate a real swap to calculate output amount.
+by Pool contract. That is, we have to simulate a real swap to calculate output amount!
 
-Let's do this in a separate contract!
+Again, we'll make a helper contract for that:
 
 ```solidity
 contract UniswapV3Quoter {
@@ -58,9 +58,9 @@ try
 }
 ```
 The only thing that the contract does is calling `swap` function of a pool. The call is expected to revert (i.e. throw
-an error)–we'll do this in the swap callback. In case of a revert, revert reason is decoded and returned (`quote` will
-not revert). Notice that we're passing only pool address as the extra data–we're free to pass whatever data we want, but
-we'll need to know pool address to read updated price and tick. Yes, the function also returns updated price and tick.
+an error)–we'll do this in the swap callback. In the case of a revert, revert reason is decoded and returned; `quote` will
+never revert. Notice that, in the extra data, we're passing only pool address–in the swap callback, we'll use it to get
+pool's `slot0` after a swap.
 
 ```solidity
 function uniswapV3SwapCallback(
@@ -91,8 +91,8 @@ assembly {
 }
 ```
 
-Since `revert` function in Solidity can only return a string as the reason (not bytes), we need to turn to [Yul](https://docs.soliditylang.org/en/latest/assembly.html),
-the language used for inline assembly in Solidity. Let's break this piece down:
+For gas optimization, this piece is implemented in [Yul](https://docs.soliditylang.org/en/latest/assembly.html), the
+language used for inline assembly in Solidity. Let's break it down:
 1. `mload(0x40)` reads the pointer of the next available memory slot (memory in EVM is organized in 32 byte slots);
 1. at that memory slot, `mstore(ptr, amountOut)` writes `amountOut`;
 1. `mstore(add(ptr, 0x20), sqrtPriceX96After)` writes `sqrtPriceX96After` right after `amountOut`;
@@ -100,7 +100,8 @@ the language used for inline assembly in Solidity. Let's break this piece down:
 1. `revert(ptr, 96)` reverts the call and returns 96 bytes (total length of the values we wrote to memory) of data at
 address `ptr` (start of the data we wrote above).
 
-Notice that the offsets are always 32 bytes, even though `sqrtPriceX96After` takes 14 bytes (`uint160`) and `tickAfter`
+So, we're basically concatenating the bytes representations of the values we need (exactly what `abi.encode()` does).
+Notice that the offsets are always 32 bytes, even though `sqrtPriceX96After` takes 20 bytes (`uint160`) and `tickAfter`
 takes 3 bytes (`int24`). This is so we could use `abi.decode()` to decode the data: its counterpart, `abi.encode()`,
 encodes all integers as 32-byte words.
 
@@ -124,9 +125,9 @@ This design has one significant limitation: since `quote` calls `swap` function 
 not a pure or view function (because it modifies contract state), `quote` cannot also be pure or view. `swap` modifies
 state and so does `quote`, even if not in Quoter contract. But we treat `quote` as a getter, a function that only reads
 contract data. This inconsistency means that EVM will use [CALL](https://www.evm.codes/#f1) opcode instead of [CALLSTATIC](https://www.evm.codes/#fa)
-when `quote` is called. This is not a big problem since Quoter reverts in the swap callback, and reverting reset state
-modified during a call–this guarantees that `quote` won't modify state of Pool contract.
+when `quote` is called. This is not a big problem since Quoter reverts in the swap callback, and reverting resets the state
+modified during a call–this guarantees that `quote` won't modify the state of Pool contract (no actual trade will happen).
 
-Another inconvenience that comes from this issue is that calling `quote` from a client library (ethers.js, web3.js, etc.)
+Another inconvenience that comes from this issue is that calling `quote` from a client library (Ethers.js, Web3.js, etc.)
 will trigger a transaction. To fix this, we'll need to force the library to make a static call. We'll see how to do this
-in ethers.js later in this milestone.
+in Ethers.js later in this milestone.
