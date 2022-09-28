@@ -13,14 +13,14 @@ weight: 8
 
 # User Interface
 
-We're now ready to update the UI with the changes we made in this milestone. We'll update two things:
-1. Add Liquidity dialog window.
-1. Slippage tolerance in swapping.
+We're now ready to update the UI with the changes we made in this milestone. We'll add two new features:
+1. Add Liquidity dialog window;
+1. slippage tolerance in swapping.
 
 
 ## Add Liquidity Dialog
 
-![Add Liquidity dialog window](/images/milestone_3_add_liquidity_dialog.png)
+![Add Liquidity dialog window](/images/milestone_3/add_liquidity_dialog.png)
 
 This change will finally remove hard coded liquidity amounts from our code and will allow use to add liquidity at
 arbitrary ranges.
@@ -31,15 +31,14 @@ but the contracts expect ticks. To make our job easier, we'll use [the official 
 for that.
 
 To convert price to $\sqrt{P}$, we can use [encodeSqrtRatioX96](https://github.com/Uniswap/v3-sdk/blob/08a7c050cba00377843497030f502c05982b1c43/src/utils/encodeSqrtRatioX96.ts)
-function. The function takes two amounts as input and calculates a price by dividing one by the other. Since we expect
-prices for users, we can pass a price as the first argument and 1 as the second one:
-
+function. The function takes two amounts as input and calculates a price by dividing one by the other. Since we only want
+to convert $\sqrt{P}$ to price, we can pass 1 as `amount0`:
 ```javascript
 const priceToSqrtP = (price) => encodeSqrtRatioX96(price, 1);
 ```
 
 To convert price to tick index, we can use [TickMath.getTickAtSqrtRatio](https://github.com/Uniswap/v3-sdk/blob/08a7c050cba00377843497030f502c05982b1c43/src/utils/tickMath.ts#L82)
-function. This is the implementation of the Solidity TickMath library in JavaScript:
+function. This is an implementation of the Solidity TickMath library in JavaScript:
 
 ```javascript
 const priceToTick = (price) => TickMath.getTickAtSqrtRatio(priceToSqrtP(price));
@@ -68,9 +67,9 @@ const amount1Min = amount1Desired.mul((100 - slippage) * 100).div(10000);
 Even though we're the only user of the application and thus will never have problems with slippage during development,
 let's add an input to control slippage tolerance during swaps.
 
-![Main screen of the web app](/images/milestone_3_slippage_tolerance.png)
+![Main screen of the web app](/images/milestone_3/slippage_tolerance.png)
 
-When swapping, slippage protection is implemented via limiting price–a price we don't to go above during a swap. This
+When swapping, slippage protection is implemented via limiting price–a price we don't to go above or below during a swap. This
 means that we need to know this price before sending a swap transaction. However, we don't need to calculate it on the
 front end because Quoter contract does this for us:
 
