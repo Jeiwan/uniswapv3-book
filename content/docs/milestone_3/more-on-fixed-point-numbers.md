@@ -15,10 +15,10 @@ weight: 6
 
 In this bonus chapter, I'd like to show you how to convert prices to ticks in Solidity. We don't need to do this in the
 main contracts, but it's helpful to have such function in tests so we don't hardcode ticks and could write something like
-`tick(5000)`–this makes code easier to read because it's more convenient for us to think in prices, not tick numbers.
+`tick(5000)`–this makes code easier to read because it's more convenient for us to think in prices, not tick indexes.
 
 Recall that, to find ticks, we use `TickMath.getTickAtSqrtRatio` function, which takes $\sqrt{P}$ as its argument, and
-$\sqrt{P}$ in its turns is a Q64.96 fixed-point number. In smart contract tests, we need to check $\sqrt{P}$ many times
+the $\sqrt{P}$ is a Q64.96 fixed-point number. In smart contract tests, we need to check $\sqrt{P}$ many times
 in many different test cases: mostly after mints and swaps. Instead of hard coding actual values, it might be cleaner to
 use a helper function like `sqrtP(5000)` that converts prices to $\sqrt{P}$.
 
@@ -30,7 +30,7 @@ to lose precision when taking square root.
 
 You probably remember that we used `PRBMath` earlier in the book to implement multiply-then-divide operation that doesn't
 overflow during multiplication. If you check `PRBMath.sol` contract, you'll notice `sqrt` function. However, the function
-doesn't support fixed-point numbers, as the function description points at. You can give it a try and see that
+doesn't support fixed-point numbers, as the function description says. You can give it a try and see that
 `PRBMath.sqrt(5000)` results in `70`, which is an integer number with lost precision (without the fractional part).
 
 If you check [prb-math](https://github.com/paulrberg/prb-math) repo, you'll see these contracts: `PRBMathSD59x18.sol`
@@ -39,7 +39,7 @@ and `PRBMathUD60x18.sol`. Aha! These are fixed-point number implementations. Let
 `PRBMathUD60x18` is a library that implements fixed-numbers with 18 decimal places in the fractional part. So the number
 we got is actually 70.710678118654752440 (use `cast --from-wei 70710678118654752440`).
 
-However! We cannot use this number!
+However, we cannot use this number!
 
 There are fixed-point numbers and fixed-point numbers. The Q64.96 fixed-point number used by Uniswap V3 is a **binary**
 number–64 and 96 signify *binary places*. But `PRBMathUD60x18` implements a *decimal* fixed-point number (UD in the
@@ -54,7 +54,7 @@ Let's now see how to convert numbers with the fractional part (42.1337):
 1. UD60.18: $421337 * 10^{14}$. The result is 42133700000000000000.
 
 The second variant makes more sense to us because it uses the decimal system, which we learned in our childhood. The
-first variant uses the binary system and it makes absolutely no sense.
+first variant uses the binary system and it's much harder for us to read.
 
 But the biggest problem with different variants is that it's hard to convert between them.
 
@@ -78,4 +78,4 @@ function tick(uint256 price) internal pure returns (int24 tick_) {
 
 `ABDKMath64x64.sqrt` takes Q64.64 numbers so we need to convert `price` to such number. The price is expected to not have the
 fractional part, so we're shifting it by 64 bits. The `sqrt` function also returns a Q64.64 number but `TickMath.getTickAtSqrtRatio`
-takes a Q64.96 number–this is why we need to shift the square root by 96 - 64 bits to the left.
+takes a Q64.96 number–this is why we need to shift the result of the square root operation by `96 - 64` bits to the left.
