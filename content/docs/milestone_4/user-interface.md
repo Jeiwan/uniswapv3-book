@@ -11,7 +11,7 @@ weight: 5
 
 # User Interface
 
-After introducing swap paths, we can significantly simplify the internal of our web app. First of all, every swap now
+After introducing swap paths, we can significantly simplify the internals of our web app. First of all, every swap now
 uses a path since path doesn't have to contain multiple pools. Second, it's now easier to change the direction of swap:
 we can simply reverse the path. And, thanks to the unified pool address generation via `CREATE2` and unique salts, we
 no longer need to store pool addresses and care about tokens order.
@@ -24,24 +24,24 @@ question: "How to find a path between two tokens that don't have a pool?"
 Uniswap implements what's called *AutoRouter*, an algorithm that find shortest path between two tokens. Moreover, it also
 splits one payment into multiple smaller payments to find the best average exchange rate. The profit can be as big as 
 [36.84% compared to trades that are not split](https://uniswap.org/blog/auto-router-v2). This sounds great, however, we're
-not going to build such an advanced algorithm. Instead, we'll be a simpler one.
+not going to build such an advanced algorithm. Instead, we'll build something simpler.
 
 ## A Simple Router Design
 
 Suppose we have a whole bunch of pools:
 
-[TODO: illustrate]
+![Scattered pools](/images/milestone_4/pools_scattered.png)
 
-How do find a shortest path between two tokens in such a mess?
+How do we find a shortest path between two tokens in such a mess?
 
-The most suitable solution for such kind of task is based on a *graph*. A graph is a data structure that consists of
+The most suitable solution for such kind of tasks is based on a *graph*. A graph is a data structure that consists of
 nodes (objects representing something) and edges (links connecting nodes). We can turn that mess of pools into a graph
 where each node is a token (that has a pool) and each edge is a pool this token belongs to. So a pool represented as a
 graph is two nodes connected with an edge. And the above pools become this graph:
 
-[TODO: illustrate]
+![Pools graph](/images/milestone_4/pools_graph.png)
 
-The biggest advantage graphs give us is the ability to traverse them, from one node to another, to find paths. Specifically,
+The biggest advantage graphs give us is the ability to traverse its nods, from one node to another, to find paths. Specifically,
 we'll use [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm). Feel free learning about how the
 algorithm works, but, in our app, we'll use a library to make our life easier. The set of libraries we'll use is:
 [ngraph.ngraph](https://github.com/anvaka/ngraph.graph) for building graphs and [ngraph.path](https://github.com/anvaka/ngraph.path)
