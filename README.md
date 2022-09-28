@@ -37,14 +37,14 @@ TODO
 To run the book locally:
 1. Install [Hugo](https://gohugo.io/).
 1. Clone the repo:
-  ```shell
-  $ git clone https://github.com/Jeiwan/uniswapv3-book
-  $ cd uniswapv3-book
-  ```
+    ```shell
+    $ git clone https://github.com/Jeiwan/uniswapv3-book
+    $ cd uniswapv3-book
+    ```
 1. Run:
-  ```shell
-  $ hugo server -D
-  ```
+    ```shell
+    $ hugo server -D
+    ```
 1. Visit http://localhost:1313/ (or whatever URL the previous command outputs!)
 
 
