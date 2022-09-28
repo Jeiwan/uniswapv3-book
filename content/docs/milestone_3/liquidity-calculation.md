@@ -29,7 +29,7 @@ def liquidity1(amount, pa, pb):
     return amount * q96 / (pb - pa)
 ```
 
-Let's implement them in Solidity so we could calculate liquidity in `Manager.mint` function.
+Let's implement them in Solidity so we could calculate liquidity in the `Manager.mint()` function.
 
 ## Implementing Liquidity Calculation for Token X
 
@@ -46,8 +46,7 @@ $$L = \frac{\Delta x}{\Delta \frac{1}{\sqrt{P}}}$$
 Or, after simplifying it:
 $$L = \frac{\Delta x \sqrt{P_u} \sqrt{P_l}}{\sqrt{P_u} - \sqrt{P_l}}$$
 
-Where $\Delta\sqrt{P} = \sqrt{P_u} - \sqrt{P_l}$ and $\Delta\frac{1}{\sqrt{P}} = \frac{1}{\sqrt{P_u}}-\frac{1}{\sqrt{P_l}}$
-and $P_u$ is the bigger of the two prices and $P_l$ is the smaller of them.
+> We derived this formula in [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation).
 
 In Solidity, we'll again use `PRBMath` to handle overflows when multiplying and then dividing:
 
@@ -73,7 +72,8 @@ function getLiquidityForAmount0(
 
 ## Implementing Liquidity Calculation for Token Y
 
-Likewise, we're using a formula from the other chapter to find $L$ when amount of $Y$ and price range is known:
+Similarly, we'll use the other formula from [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation)
+to find $L$ when amount of $y$ and price range is known:
 $$\Delta y = \Delta\sqrt{P} L$$
 $$L = \frac{\Delta y}{\sqrt{P_u}-\sqrt{P_l}}$$
 
@@ -122,12 +122,11 @@ if (slot0_.tick < lowerTick) {
 ```
 
 It turns out, we also need to follow this logic when calculating liquidity:
-1. If we're calculating liquidity for a range that's below current price, we use the $\Delta x$ version on the formula.
-1. When calculation liquidity for a range that's above current price, we use the $\Delta y$ one.
-1. When a price range includes the current price, we calculate **both** and pick the smaller of them.
+1. if we're calculating liquidity for a range that's below current price, we use the $\Delta x$ version on the formula;
+1. when calculation liquidity for a range that's above current price, we use the $\Delta y$ one;
+1. when a price range includes the current price, we calculate **both** and pick the smaller of them.
 
-The reasoning is the same as that of the piece of the code above: when price range is outside of current price, it's
-entirely configured by either of the tokens, not both of them.
+> Again, we discussed these ideas in [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation).
 
 Let's implement this logic now.
 When current price is below the lower bound of a price range:
@@ -150,7 +149,7 @@ function getLiquidityForAmounts(
         );
 ```
 
-When current price is within a range:
+When current price is within a range, we're picking the smaller $L$:
 ```solidity
 } else if (sqrtPriceX96 <= sqrtPriceBX96) {
     uint128 liquidity0 = getLiquidityForAmount0(
@@ -166,10 +165,6 @@ When current price is within a range:
 
     liquidity = liquidity0 < liquidity1 ? liquidity0 : liquidity1;
 ```
-
-We're picking the smaller $L$ because the bigger one already includes it.
-
-[TODO: what about different distances between P_l-P-P_u? Will L be much smaller if P-P_l is smaller than P_u-P?]
 
 And finally:
 ```solidity
