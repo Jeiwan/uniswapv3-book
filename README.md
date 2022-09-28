@@ -30,7 +30,59 @@ https://uniswapv3book.com/
 
 ## Table of Contents
 
-TODO
+- Milestone 0. Introduction
+  1. Introduction to markets
+  1. Constant Function Market Makers
+  1. Uniswap V3
+  1. Development Environment
+- Milestone 1. First Swap
+  1. Introduction
+  1. Calculating Liquidity
+  1. Providing Liquidity
+  1. First Swap
+  1. Manager Contract
+  1. Deployment
+  1. User Interface
+- Milestone 2. Second Swap
+  1. Introduction
+  1. Output Amount Calculation
+  1. Math in Solidity
+  1. Tick Bitmap Index
+  1. Generalize Minting
+  1. Generalize Swapping
+  1. Quoter Contract
+  1. User Interface
+- Milestone 3. Cross-tick Swaps
+  1. Introduction
+  1. Different Price Ranges
+  1. Cross-Tick Swaps
+  1. Slippage Protection
+  1. Liquidity Calculation
+  1. A Little Bit More on Fixed-point Numbers
+  1. Flash Loans
+  1. User Interface
+
+... the next chapters haven't been proofread yet ...
+
+- Milestone 4. Multi-pool Swaps
+  1. Introduction
+  1. Factory Contract
+  1. Swap Path
+  1. Multi-pool Swaps
+  1. User Interface
+  1. Tick Rounding
+- Milestone 5. Fees and Price Oracle
+  1. Introduction
+  1. Swap Fees
+  1. Flash Loan Fees
+  1. Protocol Fees
+  1. Price Oracle
+  1. User Interface
+- Milestone 6: NFT positions
+  1. Introduction
+  1. ERC721 Overview
+  1. NFT Manager
+  1. NFT Renderer
 
 ## Running locally
 
