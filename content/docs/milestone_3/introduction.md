@@ -11,7 +11,7 @@ weight: 1
 
 # Cross-tick Swaps
 
-We have made a great progress so far and our Uniswap V3 implementation is quote close to the original one! However, our
+We have made a great progress so far and our Uniswap V3 implementation is quite close to the original one! However, our
 implementation only supports swaps within a price range–and this is what we're going to improve in this milestone.
 
 In this milestone, we'll:
