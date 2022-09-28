@@ -17,9 +17,9 @@ improve our contracts to handle such chained, or multi-pool, swaps. Of course, w
 
 When doing multi-pool swaps, we're sending output of a previous swap to the input of the next one. For example:
 
-1. In WETH/USDC pool, we're selling WETH and buying USDC.
-1. In USDC/USDT pool, we're selling USDC from the previous swap and buying USDT.
-1. In WBTC/USDT pool, we're selling USDT from the previous pool and buying WBTC.
+1. in WETH/USDC pool, we're selling WETH and buying USDC;
+1. in USDC/USDT pool, we're selling USDC from the previous swap and buying USDT;
+1. in WBTC/USDT pool, we're selling USDT from the previous pool and buying WBTC.
 
 We can turn this series into a path:
 
@@ -29,7 +29,7 @@ WETH/USDC,USDC/USDT,WBTC/USDT
 
 And iterate over such path in our contracts to perform multiple swaps in one transaction. However, recall from the previous
 chapter that we don't need to know pool addresses and, instead, we can derive them from pool parameters. Thus, the above
-swap can be turned into:
+swap can be turned into a series of tokens:
 
 ```
 WETH, USDC, USDT, WBTC
@@ -41,7 +41,8 @@ And recall that tick spacing is another parameter (besides tokens) that identifi
 WETH, 60, USDC, 10, USDT, 60, WBTC
 ```
 
-Where 60 and 10 are tick spacings. We're using 60 for volatile assets like ETH and BTC, and 10 for stablecoins.
+Where 60 and 10 are tick spacings. We're using 60 in volatile pairs (e.g. ETH/USDC, WBTC/USDT) and 10 in stablecoin
+pairs (USDC/USDT).
 
 Now, having such path, we can iterate over it to build pool parameters for each of the pool:
 
@@ -52,11 +53,14 @@ Now, having such path, we can iterate over it to build pool parameters for each 
 Knowing these parameters, we can derive pool addresses using `PoolAddress.computeAddress`, which we implemented in the
 previous chapter.
 
+> We also can use this concept when doing swaps within one pool: the path would simple contain the parameters of one
+pool. And, thus, we can use swap paths in all swaps, universally.
+
 Let's build a library to work with swap paths.
 
 ## Path Library
 
-In code, path is a sequence of bytes. In Solidity, a path can be built like that:
+In code, a swap path is a sequence of bytes. In Solidity, a path can be built like that:
 ```solidity
 bytes.concat(
     bytes20(address(weth)),
@@ -80,12 +84,12 @@ And it looks like that:
   2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599 # wbtc address
 ```
 
-Here's a set of function that we'll need to implement:
+These are the functions that we'll need to implement:
 1. calculating the number of pools in a path;
 1. figuring out if a path has multiple tokens;
 1. extracting first pool parameters from a path;
-1. proceeding to a next pair in a path;
-1. and decoding first pool parameters;
+1. proceeding to the next pair in a path;
+1. and decoding first pool parameters.
 
 ### Calculating the Number of Pools in a Path
 Let's begin with calculating the number of pools in a path:
@@ -138,10 +142,10 @@ function hasMultiplePools(bytes memory path) internal pure returns (bool) {
 
 To implement the other functions, we'll need a helper library because Solidity doesn't have native bytes manipulation
 functions. Specifically, we'll need a function to extract a sub-array from an array of bytes, and a couple of functions
-to convert bytes to address and `uint24`.
+to convert bytes to `address` and `uint24`.
 
 Luckily, there's a great open-source library called [solidity-bytes-utils](https://github.com/GNSPS/solidity-bytes-utils).
-To use the library, we need to extend `bytes` type in `Path`:
+To use the library, we need to extend the `bytes` type in the `Path` library:
 ```solidity
 library Path {
     using BytesLib for bytes;
@@ -160,7 +164,7 @@ function getFirstPool(bytes memory path)
 }
 ```
 
-The function simply returns "token address + tick spacing + token address" encoded as bytes.
+The function simply returns the first "token address + tick spacing + token address" segment encoded as bytes.
 
 ### Proceeding to a Next Pair in a Path
 
@@ -177,7 +181,7 @@ function skipToken(bytes memory path) internal pure returns (bytes memory) {
 
 ### Decoding First Pool Parameters
 
-And, finally, we need to decode first pool parameters in a pool:
+And, finally, we need to decode the parameters of the first pool in a path:
 
 ```solidity
 function decodeFirstPool(bytes memory path)
@@ -195,8 +199,8 @@ function decodeFirstPool(bytes memory path)
 }
 ```
 
-Unfortunately, `BytesLib` doesn't implement `toUint24` function but we can implement it ourselves! Find a similar function
-in `BytesLib.sol` and turn it into a `uint24` one:
+Unfortunately, `BytesLib` doesn't implement `toUint24` function but we can implement it ourselves! `BytesLib` has multiple
+`toUintXX` functions, so we can take one of them and convert to a `uint24` one:
 ```solidity
 library BytesLibExt {
     function toUint24(bytes memory _bytes, uint256 _start)
