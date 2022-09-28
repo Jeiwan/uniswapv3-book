@@ -62,8 +62,6 @@ https://uniswapv3book.com/
   1. Flash Loans
   1. User Interface
 
-... the next chapters haven't been proofread yet ...
-
 - Milestone 4. Multi-pool Swaps
   1. Introduction
   1. Factory Contract
@@ -71,6 +69,9 @@ https://uniswapv3book.com/
   1. Multi-pool Swaps
   1. User Interface
   1. Tick Rounding
+
+... the next chapters haven't been proofread yet ...
+
 - Milestone 5. Fees and Price Oracle
   1. Introduction
   1. Swap Fees
