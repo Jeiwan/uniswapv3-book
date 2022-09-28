@@ -52,11 +52,12 @@ struct SwapParams {
 ```
 
 1. `SwapSingleParams` takes pool parameters, input amount, and a limiting price–this is pretty much identical to what
-we had before. Notice, that `data` is not longer required.
+we had before. Notice, that `data` is no longer required.
 1. `SwapParams` takes path, output amount recipient, input amount, and minimal output amount. The latter parameter
 replaces `sqrtPriceLimitX96` because, when doing multi-pool swaps, we cannot use the slippage protection from Pool
-contract (which uses a limiting price). We need to implement another slippage protection, which checks final output amount
-and compares it with `minAmountOut`: the slippage protection fails when final output amount is less than `minAmountOut`.
+contract (which uses a limiting price). We need to implement another slippage protection, which checks the final output
+amount and compares it with `minAmountOut`: the slippage protection fails when the final output amount is smaller than
+`minAmountOut`.
 
 ### Core Swapping Logic
 
@@ -81,8 +82,8 @@ struct SwapCallbackData {
 }
 ```
 
-`path` is a swap path (it contain only one pool) and `payer` is the address that provides input tokens in swaps–we'll
-have different payers during multi-pool swaps. 
+`path` is a swap path and `payer` is the address that provides input tokens in swaps–we'll have different payers during
+multi-pool swaps. 
 
 First thing we do in `_swap`, is extracting pool parameters using `Path` library:
 
@@ -99,7 +100,7 @@ Then we identify swap direction:
 bool zeroForOne = tokenIn < tokenOut;
 ```
 
-Then we make an actual swap:
+Then we make the actual swap:
 ```solidity
 // function _swap(...) {
 (int256 amount0, int256 amount1) = getPool(
@@ -121,7 +122,7 @@ Then we make an actual swap:
     );
 ```
 
-This piece is identical to what we had before but this time we're calling `getPool` to find pool address. `getPool` is
+This piece is identical to what we had before but this time we're calling `getPool` to find the pool. `getPool` is
 a function that sorts tokens and calls `PoolAddress.computeAddress`:
 
 ```solidity
@@ -176,7 +177,7 @@ Notice that we're building a one-pool path here: single-pool swap is a multi-poo
 
 ### Multi-pool Swapping
 
-Multi-pool swapping is only slightly more difficult than single-pool one. Let's look at it:
+Multi-pool swapping is only slightly more difficult than single-pool swapping. Let's look at it:
 
 ```solidity
 function swap(SwapParams memory params) public returns (uint256 amountOut) {
@@ -187,7 +188,7 @@ function swap(SwapParams memory params) public returns (uint256 amountOut) {
 
 First swap is paid by user because it's user who provides input tokens.
 
-Then, we start iterating over pools in a path:
+Then, we start iterating over pools in the path:
 
 ```solidity
 ...
@@ -206,13 +207,13 @@ while (true) {
     ...
 ```
 
-On each iteration, we're calling `_swap`:
+In each iteration, we're calling `_swap` with these parameters:
 1. `params.amountIn` tracks input amounts. During the first swap it's the amount provided by user. During next swaps
 its the amounts returned from previous swaps.
 1. `hasMultiplePools ? address(this) : params.recipient`–if there are multiple pools in the path, recipient is the manager
 contract, it'll store tokens between swaps. If there's only one pool (last one) in the path, recipient is the one
-specified in parameters (usually the same user that initiates the swap).
-1. `sqrtPriceLimitX96` is set to 0 to disable slippage protection in Pool contract.
+specified in the parameters (usually the same user that initiates the swap).
+1. `sqrtPriceLimitX96` is set to 0 to disable slippage protection in the Pool contract.
 1. Last parameter is what we pass to `uniswapV3SwapCallback`–we'll look at it shortly.
 
 After making one swap, we need to proceed to next pool in a path or return:
@@ -229,7 +230,7 @@ After making one swap, we need to proceed to next pool in a path or return:
 }
 ```
 
-This is where we're changing payer and removing processed pools from path.
+This is where we're changing payer and removing a processed pool from the path.
 
 Finally, the new slippage protection:
 
@@ -240,7 +241,7 @@ if (amountOut < params.minAmountOut)
 
 ### Swap Callback
 
-Let's look at updated swap callback:
+Let's look at the updated swap callback:
 
 ```solidity
 function uniswapV3SwapCallback(
@@ -272,12 +273,12 @@ figures out swap direction (`zeroForOne`), and the amount the contract needs to 
 depending on payer address:
 1. If payer is the current contract (this is so when making consecutive swaps), it transfers tokens to the next pool (the
 one that called this callback) from current contract's balance.
-1. If payer is a different address (the user that initiated the swap), it transfers tokens from user's balance–this is
-what we had before.
+1. If payer is a different address (the user that initiated the swap), it transfers tokens from user's
+balance.
 
 ## Updating Quoter Contract
 
-Quoter is another contract that needs to be updated because we want to use it to find output amounts in multi-pool swaps.
+Quoter is another contract that needs to be updated because we want to use it to also find output amounts in multi-pool swaps.
 Similarly to Manager, we'll have two variants of `quote` function: single-pool and multi-pool one. Let's look at the
 former first.
 
@@ -285,7 +286,7 @@ former first.
 We need to make only a couple of changes in our current `quote` implementation:
 1. rename it to `quoteSingle`;
 1. extract parameters into a struct (this is mostly a cosmetic change);
-1. take token address and tick spacing in the parameters instead of a pool address.
+1. instead of a pool address, take a token address and a tick spacing in the parameters.
 
 ```solidity
 // src/UniswapV3Quoter.sol
@@ -380,4 +381,4 @@ The logic of the loop is identical to the one in the updated `swap` function:
 1. get current pool's parameters;
 1. call `quoteSingle` on current pool;
 1. save returned values;
-1. repeat if there's more pool or return otherwise.
+1. repeat if there're more pools in the path, or return otherwise.
