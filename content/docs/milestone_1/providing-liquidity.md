@@ -284,6 +284,15 @@ if (amount0 > 0 && balance0Before + amount0 > balance0())
     revert InsufficientInputAmount();
 if (amount1 > 0 && balance1Before + amount1 > balance1())
     revert InsufficientInputAmount();
+
+
+function balance0() internal returns (uint256 balance) {
+        balance = IERC20(token0).balanceOf(address(this));
+}
+
+function balance1() internal returns (uint256 balance) {
+        balance = IERC20(token0).balanceOf(address(this));
+}
 ```
 
 First, we record current token balances. Then we call `uniswapV3MintCallback` method on the caller–this is the callback.
