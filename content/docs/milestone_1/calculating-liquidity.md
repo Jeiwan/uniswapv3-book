@@ -110,7 +110,7 @@ so getting the amounts we want is not a problem.
 For our first swap, let's deposit 1 ETH and 5000 USDC.
 
 > Recall that the proportion of current pool reserves tells the current spot price. So if we want to put more tokens into
-the pool and keep the same price, the amounts must be proportional, e.g.: 2 ETH and 10,000 USDC; 10 ETH and 500,000 USDC, etc.
+the pool and keep the same price, the amounts must be proportional, e.g.: 2 ETH and 10,000 USDC; 10 ETH and 50,000 USDC, etc.
 
 ## Liquidity Amount Calculation
 
