@@ -11,9 +11,9 @@ weight: 7
 
 ## Flash Loans
 
-Both Uniswap V2 and V3 implement flash loans: an unlimited and uncollateralized loan that must be repaid in the same
-transaction. Pools are basically giving caller an arbitrary amount of tokens that caller requests, but, by the end of
-the call, caller must return the full amount plus fee.
+Both Uniswap V2 and V3 implement flash loans: unlimited and uncollateralized loans that must be repaid in the same
+transaction. Pools basically give users arbitrary amounts of tokens that they request, but, by the end of
+the call, the amounts must be repaid, with a small fee on top.
 
 The fact that flash loans must be repaid in the same transaction means that flash loans cannot be taken by regular users:
 as a user, you cannot program custom logic in transactions. Flash loans can only be taken and repaid by smart contracts.
@@ -26,8 +26,8 @@ permissionless flash loans.
 ### Implementing Flash Loans
 
 In Uniswap V2 flash loans were part of the swapping functionality: it was possible to borrow tokens during a swap, but
-you had to return them, or an equal amount of the other pool tokens, in the same transaction. In V3, flash loans are
-separated from swapping–it's simply a function that gives caller an amount of tokens they requested, calls a callback
+you had to return them or an equal amount of the other pool token, in the same transaction. In V3, flash loans are
+separated from swapping–it's simply a function that gives the caller an amount of tokens they requested, calls a callback
 on the caller, and ensures a flash loan was repaid:
 
 ```solidity
@@ -52,7 +52,7 @@ function flash(
 ```
 
 The function sends tokens to the caller and then calls `uniswapV3FlashCallback` on it–this is where the caller is expected
-to repay the loan. Then the function ensures that it's balances haven't decreased. Notice that custom data is allowed
+to repay the loan. Then the function ensures that its balances haven't decreased. Notice that custom data is allowed
 to be passed to the callback.
 
 Here's an example of the callback implementation:
