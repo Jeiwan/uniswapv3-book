@@ -272,26 +272,31 @@ amount1 = 5000 ether;
 
 Now, we're ready to take tokens from the user. This is done via a callback:
 ```solidity
-uint256 balance0Before;
-uint256 balance1Before;
-if (amount0 > 0) balance0Before = balance0();
-if (amount1 > 0) balance1Before = balance1();
-IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(
-    amount0,
-    amount1
-);
-if (amount0 > 0 && balance0Before + amount0 > balance0())
-    revert InsufficientInputAmount();
-if (amount1 > 0 && balance1Before + amount1 > balance1())
-    revert InsufficientInputAmount();
+function mint(...) ... {
+    ...
 
+    uint256 balance0Before;
+    uint256 balance1Before;
+    if (amount0 > 0) balance0Before = balance0();
+    if (amount1 > 0) balance1Before = balance1();
+    IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(
+        amount0,
+        amount1
+    );
+    if (amount0 > 0 && balance0Before + amount0 > balance0())
+        revert InsufficientInputAmount();
+    if (amount1 > 0 && balance1Before + amount1 > balance1())
+        revert InsufficientInputAmount();
+
+    ...
+}
 
 function balance0() internal returns (uint256 balance) {
-        balance = IERC20(token0).balanceOf(address(this));
+    balance = IERC20(token0).balanceOf(address(this));
 }
 
 function balance1() internal returns (uint256 balance) {
-        balance = IERC20(token0).balanceOf(address(this));
+    balance = IERC20(token1).balanceOf(address(this));
 }
 ```
 
