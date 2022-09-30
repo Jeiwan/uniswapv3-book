@@ -20,9 +20,8 @@ the counter at which a token was minted. ERC721 tokens also have an extended con
 is tracked and stored in the contract. This means that only distinct tokens, identified by token IDs, can be transferred
 (or approved for transfer).
 
-Unique identity is what NFT tokens and Uniswap V3 liquidity positions have in common: each NFT token is identified by its
-unique ID and each liquidity position is identified by an ID (which is computed from position owner address and the price
-range). It's this similarity that will allow us to integrate the two concepts.
+What Uniswap V3 liquidity positions and NFTs have in common is this non-fungibility: NFTS and liquidity positions are not
+interchangeable and are identified by unique IDs. It's this similarity that will allow us to merge the two concepts.
 
 The biggest difference between ERC20 and ERC721 is the `tokenURI` function in the latter. NFT tokens, which are
 implemented as ERC721 smart contracts, have linked assets that are stored externally, not on blockchain. To link token IDs to
@@ -38,11 +37,14 @@ is expected to return a link to a JSON file that defines NFT token metadata, e.g
 ```
 (This example is taken from the [ERC721 documentation on OpenZeppelin](https://docs.openzeppelin.com/contracts/4.x/erc721))
 
-Such JSON file defines: name of a token, description of a collection, link to the image of a token, properties of a
+Such JSON file defines: the name of a token, the description of a collection, the link to the image of a token, properties of a
 token.
 
-Optionally, we can store JSON metadata files and token images on-chain. We don't actually need to store full JSON files
-for each of the token in a collection because we can simply generate them on-the-fly (when `tokenURI` is called) and
-fill the fields with token-specific data. The same is true if we use SVG for token images: we can store an SVG template
-on-chain and generate token-specific SVG when `tokenURI` is called. To store JSON and SVG on-chain, we can use the [data URI scheme](https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax)
-(and this is what we'll do!).
+Alternatively, we may store JSON metadata and token images on-chain. This is very expensive of course (saving data on-chain
+is the most expensive operation in Ethereum), but we can make it cheaper if we store templates. All tokens within a collection
+have similar metadata (mostly identical but image links and properties are different for each token) and visuals. For the 
+latter, we can use SVG, which is an HTML-like format, and HTML is a good templating language.
+
+When storing JSON metadata and SVG on-chain, the `tokenURI` function, instead of returning a link, would return JSON
+metadata directly, using the [data URI scheme](https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax) to encode it. SVG
+images would also be inlined, it won't be necessary making external requests to download token metadata and image.
