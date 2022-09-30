@@ -9,19 +9,21 @@ weight: 3
 # bookSearchExclude: false
 ---
 
+{{< katex display >}} {{</ katex >}}
+
 # NFT Manager Contract
 
 Obviously, we're not going to add NFT-related functionality to the pool contract–we need a separate contract that will
-merge NFT and concentrated liquidity. Recall that, while working on our implementation, we built the `UniswapV3Manager`
+merge NFTs and liquidity positions. Recall that, while working on our implementation, we built the `UniswapV3Manager`
 contract to facilitate interaction with pool contracts (to make some calculations simpler and to enable multi-pool
 swaps). This contract was a good demonstration of how core Uniswap contracts can be extended. And we're going to push
 this idea a little bit further.
 
 We'll need a manager contract that will implement the ERC721 standard and will manage liquidity positions. The contract
-will have the standard NFT-tokens logic (minting, burning, transferring, balances and ownership tracking, etc.) and will
+will have the standard NFT functionality (minting, burning, transferring, balances and ownership tracking, etc.) and will
 allow to provide and remove liquidity to pools. The contract will need to be the actual owner of liquidity in pools
-because we don't want to let users to add liquidity without minting a token and remove liquidity without burning one.
-We want every liquidity position to be linked to an NFT token, and we want to them to be synchronized.
+because we don't want to let users to add liquidity without minting a token and removing entire liquidity without burning
+one.  We want every liquidity position to be linked to an NFT token, and we want to them to be synchronized.
 
 Let's see what functions we'll have in the new contract:
 1. since it'll be an NFT contract, it'll have all the ERC721 functions, including `tokenURI`, which returns the URI of
@@ -63,14 +65,15 @@ contract UniswapV3NFTManager is ERC721 {
 }
 ```
 
-`tokenURI` will return an empty string until we implement a metadata and SVG renderer. We implement the stub so that
-the Solidity compiler doesn't fail while we're working on the rest of the contract.
+`tokenURI` will return an empty string until we implement a metadata and SVG renderer. We've added the stub so that
+the Solidity compiler doesn't fail while we're working on the rest of the contract (the `tokenURI` function in the Solmate
+ERC721 contract is virtual, so we must implement it).
 
 ## Minting
 
 Minting, as we discussed earlier, will involve two operations: adding liquidity to a pool and minting an NFT.
 
-To keep the links between pool liquidity positions and NFTs, we'll need a state variable and a structure:
+To keep the links between pool liquidity positions and NFTs, we'll need a mapping and a structure:
 
 ```solidity
 struct TokenPosition {
@@ -82,13 +85,13 @@ mapping(uint256 => TokenPosition) public positions;
 ```
 
 To find a position we need:
-1. pool address;
-1. owner address;
+1. a pool address;
+1. an owner address;
 1. the boundaries of a position (lower and upper ticks).
 
-Since the NFT manager contract will be the owner of all positions created via it, we don't need to store position owner
+Since the NFT manager contract will be the owner of all positions created via it, we don't need to store position's owner
 address and we can only store the rest data. The keys in the `positions` mapping are token IDs; the mapping links NFT
-IDs to position data that's required to find a liquidity position.
+IDs to the position data that's required to find a liquidity position.
 
 Let's implement minting:
 
@@ -111,7 +114,7 @@ function mint(MintParams calldata params) public returns (uint256 tokenId) {
 }
 ```
 
-The minting parameters are identical to that of `UniswapV3Manager`, with an addition of `recipient`, which will allow
+The minting parameters are identical to those of `UniswapV3Manager`, with an addition of `recipient`, which will allow
 to mint NFT to another address.
 
 In the `mint` function, we first add liquidity to a pool:
@@ -146,7 +149,7 @@ totalSupply++;
 `tokenId` is set to the current `nextTokenId` and the latter is then incremented. The `_mint` function is provided by
 the ERC721 contract from Solmate. After minting a new token, we update `totalSupply`.
 
-Finally, we need to store the information about the new token:
+Finally, we need to store the information about the new token and the new position:
 
 ```solidity
 TokenPosition memory tokenPosition = TokenPosition({
@@ -162,8 +165,9 @@ This will later help us find liquidity position by token ID.
 
 ## Adding Liquidity
 
-Next, we'll implement a function to add liquidity to an existing position. For that, we'll only need to provide a token
-ID and token amounts:
+Next, we'll implement a function to add liquidity to an existing position, in the case when we want more liquidity to
+a position that already has some. In such cases, we don't want to mint an NFT, but only to increase the amount of liquidity
+in an existing. position. For that, we'll only need to provide a token ID and token amounts:
 
 ```solidity
 function addLiquidity(AddLiquidityParams calldata params)
@@ -191,7 +195,7 @@ function addLiquidity(AddLiquidityParams calldata params)
 }
 ```
 
-This function ensures there's an existing token and calls `pool.mint()` with position parameters of a token.
+This function ensures there's an existing token and calls `pool.mint()` with parameters of an existing position.
 
 ## Remove Liquidity
 
@@ -233,8 +237,8 @@ to burn.
 
 ## Collecting Tokens
 
-The NFT manager contract can also collect tokens after burning liquidity. Notice that collected tokens are send to users
-since the contract manages liquidity on behalf of users:
+The NFT manager contract can also collect tokens after burning liquidity. Notice that collected tokens are send to `msg.sender`
+since the contract manages liquidity on behalf of the caller:
 
 ```solidity
 struct CollectParams {
@@ -266,9 +270,11 @@ function collect(CollectParams memory params)
 ## Burning
 
 Finally, burning. Unlike the other functions of the contract, this function doesn't do anything with a pool: it only
-burns an NFT. And to burn an NFT, the underlying position must be emptied and tokens must be collected. So, if we want
-to burn an NFT, we need: to call `removeLiquidity` an remove the entire position liquidity; call `collect` to collect
-the tokens after burning; call `burn` to burn the token.
+burns an NFT. And to burn an NFT, the underlying position must be empty and tokens must be collected. So, if we want
+to burn an NFT, we need to:
+1. call `removeLiquidity` an remove the entire position liquidity;
+1. call `collect` to collect the tokens after burning the position;
+1. call `burn` to burn the token.
 
 ```solidity
 function burn(uint256 tokenId) public isApprovedOrOwner(tokenId) {
