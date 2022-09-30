@@ -24,7 +24,7 @@ In fact, there's a way for Uniswap Labs to start making money on the DEX. Howeve
 (again, as of September 2022). Each Uniswap pool has *protocol fees* collection mechanism. Protocol fees are collected
 from swap fees: a small portion of swap fees is subtracted and saved as protocol fees to later be collected by Factory
 contract owner (Uniswap Labs). The size of protocol fees is expected to be determined by UNI token holders, but it must
-be between $1/4$ and $1/10$ (inclusive).
+be between $1/4$ and $1/10$ (inclusive) of swap fees.
 
 For brevity, we're not going to add protocol fees to our implementation, but let's see how they're implemented in Uniswap.
 
@@ -41,7 +41,7 @@ struct Slot0 {
 }
 ```
 
-And we'll also need a global accumulator to track accrued fees:
+And a global accumulator is needed to track accrued fees:
 ```solidity
 // accumulated protocol fees in token0/token1 units
 struct ProtocolFees {
@@ -51,7 +51,7 @@ struct ProtocolFees {
 ProtocolFees public override protocolFees;
 ```
 
-Protocol fees can be set in `setFeeProtocol` function:
+Protocol fees are set in the `setFeeProtocol` function:
 
 ```solidity
 function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOwner {
@@ -68,7 +68,8 @@ function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external overrid
 As you can see, it's allowed to set protocol fees separate for each of the tokens. The values are two `uint8` that are
 packed to be stored in one `uint8`: `feeProtocol1` is shifted to the left by 4 bits (this is identical to multiplying it
 by 16) and added to `feeProtocol0`. To unpack `feeProtocol0`, a remainder of division `slot0.feeProtocol` by 16 is taken;
-`feeProtocol1` is simply integer division of `slot0.feeProtocol`  by 4.
+`feeProtocol1` is simply integer division of `slot0.feeProtocol`  by 4. Such packing works because neither `feeProtocol0`,
+nor `feeProtocol1` can be greater than 10.
 
 Before beginning a swap, we need to choose one of the protocol fees depending on swap direction (swap and protocol fees
 are collected on input tokens):
@@ -98,7 +99,7 @@ while (...) {
 ...
 ```
 
-After a swap is done, the protocol fees accumulator needs to be updated:
+After a swap is done, the global protocol fees accumulator needs to be updated:
 ```solidity
 if (zeroForOne) {
     if (state.protocolFee > 0) protocolFees.token0 += state.protocolFee;
@@ -107,7 +108,7 @@ if (zeroForOne) {
 }
 ```
 
-Finally, Factory contract owner can collect accrued protocol fees:
+Finally, Factory contract owner can collect accrued protocol fees by calling `collectProtocol`:
 
 ```solidity
 function collectProtocol(
