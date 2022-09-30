@@ -23,7 +23,7 @@ Price oracle is a mechanism that provides asset prices to blockchain. Since bloc
 no direct way of querying external data, e.g. fetching asset prices from centralized exchanges via API. Another, a very
 hard one, problem is data validity and authenticity: when fetching prices from an exchange, how do you know they're real?
 You have to trust the source. But the internet is not often secure and, sometimes, prices can be manipulated, DNS records
-can be hijacked, API servers can go down. All these difficulties need to be addressed so we could have reliable and
+can be hijacked, API servers can go down, etc. All these difficulties need to be addressed so we could have reliable and
 correct on-chain prices.
 
 One of the first working solution of the above mentioned problems was [Chainlink](https://chain.link/). Chainlink runs
@@ -33,12 +33,10 @@ that can be read by anyone (any other contract or user) but can be written to on
 
 This is one way of looking at price oracles. There's another.
 
-If we have native on-chain exchanges, why would we need to fetch prices from outside? This how the Uniswap price oracle
-works.
-
-Thanks to arbitraging and high liquidity, asset prices on Uniswap are close to those on centralized exchanges. So, instead
-of using centralized exchanges as the source of truth for asset prices, we can use Uniswap, and we don't need to solve
-the problems related to delivering data on-chain (we also don't need to trust the oracles).
+If we have native on-chain exchanges, why would we need to fetch prices from outside? This is how the Uniswap price oracle
+works. Thanks to arbitraging and high liquidity, asset prices on Uniswap are close to those on centralized exchanges. So,
+instead of using centralized exchanges as the source of truth for asset prices, we can use Uniswap, and we don't need to
+solve the problems related to delivering data on-chain (we also don't need to trust to data providers).
 
 ## How Uniswap Price Oracle Works
 
@@ -77,12 +75,15 @@ price.
 
 ## Price Manipulation Mitigation
 
-Last thing worth mentioning discussing is how price manipulation is mitigated in Uniswap.
+Another important topic is price manipulation and how it's mitigated in Uniswap.
 
 It's theoretically possible to manipulate a pool's price to your advantage: for example, buy a big amount of tokens to
 raise its price and get a profit on a third-party DeFi service that uses Uniswap price oracles, then trade the tokens
 back to the real price. To mitigate such attacks, Uniswap tracks prices **at the end of a block**, *after* the last trade
 of a block. This removes the possibility of in-block price manipulations.
+
+Technically, prices in the Uniswap oracle are updated at the beginning of each block, and each price is calculated before
+the first swap in a block.
 
 ## Price Oracle Implementation
 
@@ -90,7 +91,7 @@ Alright, let's get to code.
 
 ### Observations and Cardinality
 
-We'll begin by creating `Oracle` library contract and `Observation` structure:
+We'll begin by creating the `Oracle` library contract and the `Observation` structure:
 
 ```solidity
 // src/lib/Oracle.sol
@@ -104,7 +105,9 @@ library Oracle {
 }
 ```
 
-An observation is a fact of recording of a price. A pool contract can store up to 65,535 observations:
+*An observation* is a slot that stores a recorded price. It stores a price, the timestamp when this price was recorded,
+and the `initialized` flag that is set to `true` when the observation is activated (not all observations are activated by
+default). A pool contract can store up to 65,535 observations:
 
 ```solidity
 // src/UniswapV3Pool.sol
@@ -116,9 +119,9 @@ contract UniswapV3Pool is IUniswapV3Pool {
 ```
 
 However, since storing that many instances of `Observation` requires a lot of gas (someone would have to pay for writing
-each of them to contract's storage), a pool by default can store only 1 observation, which gets overwritten each time.
-The number of historical observations, the *cardinality* of observations, can be increased at any time by anyone who's
-willing to pay for that. To manage cardinality, we need a few extra state variables:
+each of them to contract's storage), a pool by default can store only 1 observation, which gets overwritten each time
+a new price is recorded. The number of activated observations, the *cardinality* of observations, can be increased at
+any time by anyone who's willing to pay for that. To manage cardinality, we need a few extra state variables:
 ```solidity
     ...
     struct Slot0 {
@@ -136,9 +139,11 @@ willing to pay for that. To manage cardinality, we need a few extra state variab
     ...
 ```
 
-`observationIndex` tracks the index of most recent observation; `observationCardinality` tracks the maximum number of
-observations the pool can store; `observationCardinalityNext` track the next cardinality the array of observations can
-expand to. Observations are stored in a fixed-length array that expands when a new observation is saved and `observationCardinalityNext`
+- `observationIndex` tracks the index of the most recent observation;
+- `observationCardinality` tracks the number of activated observations;
+- `observationCardinalityNext` track the next cardinality the array of observations can expand to.
+
+Observations are stored in a fixed-length array that expands when a new observation is saved and `observationCardinalityNext`
 is greater than `observationCardinality` (which signals that cardinality can be expanded). If the array cannot be expanded
 (next cardinality value equals to the current one), oldest observations get overwritten, i.e. observation is stored at
 index 0, next one is stored at index 1, and so on.
@@ -188,18 +193,12 @@ library Oracle {
 
 ### Writing Observations
 
-In `swap` function, when current price is changes, an observation is written to the observations array:
+In `swap` function, when current price is changed, an observation is written to the observations array:
 
 ```solidity
 // src/UniswapV3Pool.sol
 contract UniswapV3Pool is IUniswapV3Pool {
-    function swap(
-        address recipient,
-        bool zeroForOne,
-        uint256 amountSpecified,
-        uint160 sqrtPriceLimitX96,
-        bytes calldata data
-    ) public returns (int256 amount0, int256 amount1) {
+    function swap(...) public returns (...) {
         ...
         if (state.tick != slot0_.tick) {
             (
@@ -230,10 +229,14 @@ contract UniswapV3Pool is IUniswapV3Pool {
 }
 ```
 
-Notice that the tick that's observed here is **slot0_.tick**, i.e. the price before the swap! It's updated with a new
-price in the next statement. When writing a new observation, we first check if there's already an observation at this
-block number. If there's one, the new observation is not saved. This is the price manipulation mitigation we discussed
-earlier: Uniswap tracks prices **before** the first trade in the block and **after** the last trade in the previous block.
+Notice that the tick that's observed here is `slot0_.tick` (not `state.stick`), i.e. the price before the swap! It's
+updated with a new price in the next statement. This is the price manipulation mitigation we discussed earlier: Uniswap
+tracks prices **before** the first trade in the block and **after** the last trade in the previous block.
+
+Also notice that each observation is identified by `_blockTimestamp()`, i.e. the current block timestamp. This means that
+if there's already an observation for the current block, a price is not recorded. If there are no observations for the
+current block (i.e. this is the first swap in the block), a price is recorded. This is part of the price manipulation
+mitigation mechanism.
 
 ```solidity
 // src/lib/Oracle.sol
@@ -262,7 +265,7 @@ function write(
 
 Here we see that an observation is skipped when there's already an observation made at the current block. If there's no
 such observation though, we're saving a new one and trying to expand the cardinality when possible. The modulo operator
-(`%`) ensures that observation index stays within the range [0, cardinality] and resets to 0 when the upper bound is
+(`%`) ensures that observation index stays within the range $[0, cardinality)$ and resets to 0 when the upper bound is
 reached.
 
 Now, let's look at the `transform` function:
@@ -287,7 +290,7 @@ function transform(
 ```
 
 What we're calculating here is the accumulated price: current tick gets multiplied by the number of the seconds since
-the last observation and added to the last accumulated price.
+the last observation and gets added to the last accumulated price.
 
 ### Increase of Cardinality
 
@@ -345,27 +348,29 @@ write the values to contract's storage.
 We've finally come to the trickiest part of this chapter: reading of observations. Before moving on, let's review how
 observations are stored to get a better picture.
 
-Observations are stored in a fixed-length array that can be expanded in a separate operation:
+Observations are stored in a fixed-length array that can be expanded:
 
-[TODO: illustrate]
+![Observations array](/images/milestone_5/observations.png)
 
-If a new observation doesn't fit into the array, writing continues starting at index 0, i.e. oldest observations get
-overwritten:
+As we noted above, observations are expected to overflow: if a new observation doesn't fit into the array, writing
+continues starting at index 0, i.e. oldest observations get overwritten:
 
-[TODO: illustrate]
+![Observations wrapping](/images/milestone_5/observations_wrapping.png)
 
-When reading observations, we want to read them at multiple different historical points, no matter whether there was
-an actual observation at a point or not. If there's no observation at a point we need, then we want the contract to
-return an average value (the average between two surrounding observations):
+There's no guarantee that an observation will be stored for every block because swaps don't happen in every block. Thus,
+there will be blocks we don't know prices at, and such periods of missing observations can be long. Of course, we don't
+want to have gaps in the prices reported by the oracle, and this is why we're using time-weighted average prices (TWAP)–so we
+could have averaged prices in the periods where there were no observations. TWAP allows us to *interpolate* prices, i.e.
+to draw a line between two observations–each point on the line will be a price at a specific timestamp between the two
+observations.
 
-[TODO: illustrate]
+![Interpolated prices](/images/milestone_5/interpolated_prices.png)
 
-Also, to keep gas costs low, the contract will return accumulated price, not actual prices: we'll be able to compute
-actual prices using the formula above later on.
 
-All of this leads us to this conclusion: to read observations, we're going to find elements in an array, which will
-require implementing the [binary search algorithm](https://en.wikipedia.org/wiki/Binary_search_algorithm) to optimize
-gas costs.
+So, reading observations means finding observations by timestamps and interpolating missing observations, taking into
+consideration that the observations array is allowed to overflow (e.g. the oldest observation can come after the most
+recent one in the array). Since we're not indexing the observations by timestamps (to save gas), we'll need to use the
+[binary search algorithm](https://en.wikipedia.org/wiki/Binary_search_algorithm) to efficient search. But not always.
 
 Let's break it down into smaller steps and begin by implementing `observe` function in `Oracle`:
 
@@ -419,9 +424,9 @@ function observeSingle(
 When most recent observation is requested (0 seconds passed), we can return it right away. If it wasn't record in the
 current block, transform it to consider the current block and the current tick.
 
-If an older time point is requested, we need several checks before going to the binary search algorithm:
+If an older time point is requested, we need to make several checks before switching to the binary search algorithm:
 1. if the requested time point is the last observation, we can return the accumulated price at the latest observation;
-1. if the requested time point is after the last observation, we can call `transform` to find the accumulated price at
+1. if the requested time point is after the last observation, we can call `transform`  to find the accumulated price at
 this point, knowing the last observed price and the current price;
 1. if the requested time point is before the last observation, we have to use the binary search.
 
@@ -442,7 +447,7 @@ function binarySearch(
 ```
 
 The function takes the current block timestamp (`time`), the timestamp of the price point requested (`target`), as well
-as current observations index and cardinality. It returns the range between two observations in which the requested time
+as the current observations index and cardinality. It returns the range between two observations in which the requested time
 point is located.
 
 To initialize the binary search algorithm, we set the boundaries:
@@ -452,7 +457,7 @@ uint256 r = l + cardinality - 1; // newest observation
 uint256 i;
 ```
 
-Recall that the observations array is expected to overflow, that's why we're using the module operator here.
+Recall that the observations array is expected to overflow, that's why we're using the modulo operator here.
 
 Then we spin up an infinite loop, in which we check the middle point of the range: if it's not initialized (there's no
 observation), we're continuing with the next point:
@@ -510,8 +515,8 @@ requested time point:
 ```
 
 This is as simple as finding the average rate of change within the range and multiplying it by the number of seconds
-that has passed between the lower bound of the range and the time point we need. (This kind of assumes there's a straight
-line between the points of the range and the target time point lies on it.)
+that has passed between the lower bound of the range and the time point we need. This is the interpolation we discussed
+earlier.
 
 The last thing we need to implement here is a public function in Pool contract that reads and returns observations:
 
@@ -540,7 +545,7 @@ Let's now see how to interpret observations.
 The `observe` function we just added returns an array of accumulated prices, and we want to know how to convert them
 to actual prices. I'll demonstrate this in a test of the `observe` function.
 
-In the test, I run multiple swaps in different directions at different blocks:
+In the test, I run multiple swaps in different directions and at different blocks:
 
 ```solidity
 function testObserve() public {
@@ -561,7 +566,7 @@ function testObserve() public {
 > `vm.warp` is a cheat-code provided by Foundry: it forwards to a block with the specified timestamp. 2, 7, 20 – these
 are block timestamps.
 
-The first swap is make at block with timestamp 2, the second one is made at timestamp 7, and the third one is made at
+The first swap is made at the block with timestamp 2, the second one is made at timestamp 7, and the third one is made at
 timestamp 20. We can then read the observations:
 
 ```solidity
@@ -583,7 +588,7 @@ timestamp 20. We can then read the observations:
 1. The earliest observed price is 0, which is the initial observation that's set when the pool is deployed. However,
 since the cardinality was set to 3 and we made 3 swaps, it was overwritten by the last observation.
 1. During the first swap, tick 85176 was observed, which is the initial price of the pool–recall that the price before
-a swap is observed.
+a swap is observed. Because the very first observation was overwritten, this is the oldest observation now.
 1. Next returned accumulated price is 170370, which is `85176 + 85194`. The former is the previous accumulator value,
 the latter is the price after the first swap that was observed during the second swap.
 1. Next returned accumulated price is 511146, which is `(511146 - 170370) / (17 - 13) = 85194`, the accumulated price
@@ -591,9 +596,7 @@ between the second and the third swap.
 1. Finally, the most recent observation is 1607059, which is `(1607059 - 511146) / (20 - 7) = 84301`, which is ~4581
 USDC/ETH, the price after the second swap that was observed during the third swap.
 
-I hope this makes sense!
-
-Here's another example, which requests evenly spaced time intervals:
+And here's an example that involves interpolation: the time points requested are not the time points of the swaps:
 
 ```solidity
 secondsAgos = new uint32[](5);
