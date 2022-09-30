@@ -69,9 +69,6 @@ https://uniswapv3book.com/
   1. Multi-pool Swaps
   1. User Interface
   1. Tick Rounding
-
-... the next chapters haven't been proofread yet ...
-
 - Milestone 5. Fees and Price Oracle
   1. Introduction
   1. Swap Fees
@@ -79,6 +76,9 @@ https://uniswapv3book.com/
   1. Protocol Fees
   1. Price Oracle
   1. User Interface
+
+... the next chapters haven't been proofread yet ...
+
 - Milestone 6: NFT positions
   1. Introduction
   1. ERC721 Overview
