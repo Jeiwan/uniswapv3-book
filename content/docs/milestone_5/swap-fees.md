@@ -13,15 +13,16 @@ weight: 2
 
 # Swap Fees
 
-As a mentioned in the introduction, swap fees is a core mechanism of Uniswap. Liquidity providers need to get paid for
+As I mentioned in the introduction, swap fees is a core mechanism of Uniswap. Liquidity providers need to get paid for
 the liquidity they provide, otherwise they'll just use it somewhere else. To incentivize them, trades pay a small fee
-during each swap. These fees then distributed among all liquidity providers pro rata (proportionally to their share).
+during each swap. These fees then distributed among all liquidity providers pro rata (proportionally to their share
+in total pool liquidity).
 
-To better understand the mechanism of fees collection and distribution, let's see how they flow.
+To better understand the mechanism of fees collection and distribution, let's see how they work.
 
 ## How Swap Fees are Collected
 
-[TODO: illustrate]
+![Liquidity ranges and fees](/images/milestone_5/liquidity_ranges_fees.png)
 
 Swap fees are collected only when a price range is engaged (used in trades). So we need to track the moments when price
 range boundaries get crossed. This is when a price range gets engaged and this is when we want to start collecting
@@ -33,7 +34,7 @@ This is when a price range gets disengaged:
 1. when price is increasing and a tick is crossed from right to left;
 1. when price is decreasing and a tick is crossed from left to right.
 
-[TODO: illustrate]
+![Liquidity range engaged/disengaged](/images/milestone_5/liquidity_range_engaged.png)
 
 Besides knowing when a price range gets engaged/disengaged, we also want to keep track of how much fees each price
 range accumulated.
@@ -72,7 +73,7 @@ current price.
 
 When current price is inside the position, we subtract the fees that have been collected outside of ticks by this moment:
 
-[TODO: illustrate]
+![Fees accrued inside and outside of a price range](/images/milestone_5/fees_inside_and_outside_price_range.png)
 
 When current price is outside of the position, we need to update fees collected by either upper or lower ticks before
 subtracting them from fees collecting globally. We update them only for the calculations and don't overwrite them in
@@ -90,7 +91,7 @@ To calculate fees collected inside a position:
 $$f_{r} = f_{g} - f_{b}(i_{l}) - f_{a}(i_{u})$$
 
 We subtract fees collected below its lower tick ($f_{b}(i_{l})$) and above its upper tick ($f_{a}(i_{u})$) from fees
-collected globally outside of the range ($f_{g}$). This is what we saw on the illustration above.
+collected globally from all price ranges ($f_{g}$). This is what we saw on the illustration above.
 
 Now, when current price is above the lower tick (i.e. the position is engaged), we don't need to update fees accumulated
 below the lower tick and can simply take them from the lower tick. The same is true for fees collected outside of the
@@ -102,12 +103,12 @@ recently).
 
 I hope this all is not too confusing. Luckily, we now know everything to start coding!
 
-## Collecting Fees on Swaps
+## Accruing Swap Fees
 
-To keep it simple, we'll add fees to our codebase step by step. And we'll begin with fees collection.
+To keep it simple, we'll add fees to our codebase step by step. And we'll begin with accruing swap fees.
 
 ### Adding Required State Variables
-First thing we need to do is to add the fee amount parameter to Pool–every pool will have a fixed, immutable, fee
+First thing we need to do is to add the fee amount parameter to Pool–every pool will have a fixed and immutable fee
 configured during deployment. In the previous chapter, we added Factory contract that unified and simplified pools
 deployment. One of the required pool parameters was tick spacing. Now, we're going to replace it with fee amount and
 we'll tie fee amounts to tick spacing: the bigger the fee amount, the larger the tick spacing. This is so that low
@@ -143,7 +144,7 @@ contract UniswapV3Factory is IUniswapV3PoolDeployer {
 }
 ```
 
-Fee amounts are hundredths of a basis point. That is, 1 fee unit is 0.0001%, 500 is 0.05%, and 3000 is 0.3%.
+Fee amounts are hundredths of the basis point. That is, 1 fee unit is 0.0001%, 500 is 0.05%, and 3000 is 0.3%.
 
 Next step is to start accumulating fees in Pool. For that, we'll add two global fee accumulator variables:
 ```solidity
@@ -185,14 +186,16 @@ if (!max) {
 ```
 When it's not reached, the current price range has enough liquidity to fulfill the swap, thus we simply return the
 difference between the amount we needed to fulfill and the actual amount fulfilled. Notice that `amountRemainingLessFee`
-is not involved here since the actual final amount was calculated in `amountIn` (it's calculated from actual liquidity).
+is not involved here since the actual final amount was calculated in `amountIn` (it's calculated based on available
+liquidity).
 
 When the target price is reached, we cannot subtract fees from the entire `amountRemaining` because the current price
 range doesn't have enough liquidity to fulfill the swap. Thus, fee amount is subtracted from the amount the current
 price range has fulfilled (`amountIn`).
 
 After `SwapMath.computeSwapStep` has returned, we need to update fees accumulated by the swap. Notice that there's only
-one variable to track them because, when staring a swap, we already know the input token:
+one variable to track them because, when staring a swap, we already know the input token (during a swap, fees are collected
+in either `token0` or `token1`, not both of them):
 ```solidity
 SwapState memory state = SwapState({
     ...
@@ -210,7 +213,7 @@ state.feeGrowthGlobalX128 += PRBMath.mulDiv(
 );
 ```
 
-This is where adjust collected fees by the amount of liquidity to later distribute fees among liquidity providers in a
+This is where we adjust accrued fees by the amount of liquidity to later distribute fees among liquidity providers in a
 fair way.
 
 ### Updating Fee Trackers in Ticks
@@ -238,7 +241,7 @@ if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
 
 Since we haven't yet updated `feeGrowthGlobal0X128/feeGrowthGlobal1X128` state variables at this moment, we pass
 `state.feeGrowthGlobalX128` as either of the fee parameters depending on swap direction. `cross` function updates the
-fee trackers according to the logic we discussed above:
+fee trackers as we discussed above:
 ```solidity
 // src/lib/Tick.sol
 function cross(
@@ -279,10 +282,10 @@ That's it for swapping! Let's now see what happens to fees when liquidity is add
 ## Fee Tracking in Positions Management
 
 When adding or removing liquidity (we haven't implemented the latter yet), we also need to initialize or update fees.
-Fees need to be tracked both in ticks (fees accumulated outside of ticks) and positions (fees accumulated inside of
-positions). In case of positions, we also need to keep track of and update the amounts of tokens collected as fees–or 
-in other words, we convert fees per liquidity to token amounts. The latter is needed so that when a liquidity provider
-removes liquidity, they get extra tokens collected as swap fees.
+Fees need to be tracked both in ticks (fees accumulated outside of ticks–the `feeGrowthOutside` variables we added just
+now) and positions (fees accumulated inside of positions). In case of positions, we also need to keep track of and update
+the amounts of tokens collected as fees–or in other words, we convert fees per liquidity to token amounts. The latter is
+needed so that when a liquidity provider removes liquidity, they get extra tokens collected as swap fees.
 
 Let's do it step by step again.
 
@@ -319,13 +322,13 @@ function update(
 ```
 
 If it's not inside of the current price range, its fee trackers will be 0 and they'll be update when the tick is crossed
-next time.
+next time (see the `cross` function we updated above).
 
 ### Updating Position Fees and Token Amounts
 
 Next step is to calculate the fees and tokens accumulated by a position. Since a position is a range between two ticks,
-we'll calculated these values using the fee trackers we added to ticks on the previous step. The next function might
-look messy, but it's implements the exact price range fee formulas we saw earlier:
+we'll calculate these values using the fee trackers we added to ticks on the previous step. The next function might
+look messy, but it implements the exact price range fee formulas we saw earlier:
 ```solidity
 // src/lib/Tick.sol
 function getFeeGrowthInside(
@@ -388,7 +391,12 @@ the globally accumulated ones. This is the formula we saw earlier:
 
 $$f_{r} = f_{g} - f_{b}(i_{l}) - f_{a}(i_{u})$$
 
-After finding the fees accumulated inside of a position, we're ready to update fee and token amounts trackers of the
+When calculating fees collected above and below a tick, we do it differently depending on whether the price range is
+engaged or not (whether the current price is between the boundary ticks of the price range). When it's engaged we simply
+use the current fee trackers of a tick; when it's not engaged we need to take updated fee trackers of a tick–you can see
+these calculations in the two `else` branches in the code above.
+
+After finding the fees accumulated inside of a position, we're ready to update fee and token amount trackers of the
 position:
 ```solidity
 // src/lib/Position.sol
@@ -460,10 +468,9 @@ function mint(...) {
 ## Removing Liquidity
 
 We're now ready to add the only core feature we haven't implemented yet–removal of liquidity. As opposed to minting,
-we'll call this function `burn`. This is the function that will let liquidity providers remove a fraction of or whole
+we'll call this function `burn`. This is the function that will let liquidity providers remove a fraction or whole
 liquidity from a position they previously added liquidity to. In addition to that, it'll also calculate the fee tokens
-liquidity providers are eligible for. However, actual transferring of tokens will be done in a separate function–
-`collect`.
+liquidity providers are eligible for. However, actual transferring of tokens will be done in a separate function–`collect`.
 
 ### Burning Liquidity
 
@@ -510,7 +517,7 @@ function burn(
 In `burn` function, we first update a position and remove some amount of liquidity from it. Then, we update the token
 amount owed by the position–they now include amounts accumulated via fees as well as amounts that were previously
 provided as liquidity. We can also see this as conversion of position liquidity into token amounts owed by the position–
-these amounts won't be used as liquidity anymore and can be freely redeemed by calling `collect` function.
+these amounts won't be used as liquidity anymore and can be freely redeemed by calling the `collect` function:
 
 ```solidity
 function collect(
@@ -555,7 +562,7 @@ function collect(
 ```
 
 This function simply transfers tokens from a pool and ensures that only valid amounts can be transferred (one cannot
-transfer out more than they burned + fees).
+transfer out more than they burned + fees they earned).
 
 There's also a way to collect fees only without burning liquidity: burn 0 amount of liquidity and then call `collect`.
 During burning, the position will be updated and token amounts it owes will be updated as well.
