@@ -12,8 +12,8 @@ weight: 4
 # NFT Renderer
 
 Now we need to build an NFT renderer: a library that will handle calls to `tokenURI` in the NFT manager contract. It
-will render JSON metadata and SVG for each minted token. As we discussed earlier, we'll use the data URI syntax, which
-requires base64 encoding–this means we'll need a base64 encoder in Solidity. But first, let's look at how our tokens
+will render JSON metadata and an SVG for each minted token. As we discussed earlier, we'll use the data URI format, which
+requires base64 encoding–this means we'll need a base64 encoder in Solidity. But first, let's look at what our tokens
 will look like.
 
 
@@ -69,7 +69,7 @@ This is a simple SVG template, and we're going to make a Solidity contract that 
 returns it in `tokenURI`. The fields that will be filled uniquely for each token:
 1. the color of the background, which is set in the first two `rect`s; the hue component (330 in the template) will be
 unique for each token;
-1. the names of the tokens of a pool the position is added to (WETH/USDC in the template);
+1. the names of the tokens of a pool the position belongs to (WETH/USDC in the template);
 1. the fee of a pool (0.05%);
 1. tick values of the boundaries of the position (123456).
 
@@ -81,7 +81,7 @@ Here are examples of NFTs our contract will be able to produce:
 
 ## Dependencies
 
-Solidity doesn't provide native base64 encoding tool so we'll use a third-party one. Specifically, we'll use [the one from OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Base64.sol).
+Solidity doesn't provide native Base64 encoding tool so we'll use a third-party one. Specifically, we'll use [the one from OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Base64.sol).
 
 Another tedious thing about Solidity is that is has very poor support for operations with strings. For example, there's
 no way to convert integers to strings–but we need that to render pool fee and position ticks in the SVG template. We'll
@@ -105,7 +105,7 @@ The JSON will look like that:
 }
 ```
 
-And image will be the above template filled with position data and encoded in base64.
+The image will be the above SVG template filled with position data and encoded in Base64.
 
 ## Implementing the Renderer
 
@@ -127,10 +127,10 @@ library NFTRenderer {
 }
 ```
 
-In the `render` function, we'll first render an SVG, then the JSON metadata. For the sake of cleaner code, we'll break
+In the `render` function, we'll first render an SVG, then a JSON. To keep the code cleaner, we'll break
 down each step into smaller steps.
 
-We begin with fetching tokens symbols:
+We begin with fetching token symbols:
 ```solidity
 function render(RenderParams memory params) {
     IUniswapV3Pool pool = IUniswapV3Pool(params.pool);
@@ -330,7 +330,7 @@ return
 
 ### Filling the Gap in `tokenURI`
 
-Now we're ready to return to the `tokenURI` function in the NFT manager contract and add actual rendering:
+Now we're ready to return to the `tokenURI` function in the NFT manager contract and add the actual rendering:
 
 ```solidity
 function tokenURI(uint256 tokenId)
@@ -365,8 +365,8 @@ significantly. This gets even worse the more advanced your SVGs are: the more th
 etc. the more expensive it gets.
 
 Keep in mind that the NFT renderer we implemented above is not gas optimized: you can see the repetitive `rect` and `text`
-tag strings that can be extracted into internal functions. I sacrifices gas costs for the readability of the contract.
-In real NFT projects that store all data on-chain, code readability is usually very poor due to have gas cost optimizations.
+tag strings that can be extracted into internal functions. I sacrificed gas efficiency for the readability of the contract.
+In real NFT projects that store all data on-chain, code readability is usually very poor due to heavy gas cost optimizations.
 
 # Testing
 
@@ -386,7 +386,7 @@ assertTokenURI(
 ```
 
 The first argument is the actual output and the second argument is the name of the file that stores the expected one.
-The assertion load the content of the file and compares it with the actual one:
+The assertion loads the content of the file and compares it with the actual one:
 
 ```solidity
 function assertTokenURI(
@@ -410,7 +410,7 @@ permissions to allow only permitted file operations. Specifically, to make the a
 fs_permissions = [{access='read',path='.'}]
 ```
 
-This is how you can read the SVG from `tokenURI` output:
+And this is how you can read the SVG from a `tokenURI` fixture:
 ```shell
 $ cat test/fixtures/tokenuri0 \
     | awk -F ',' '{print $2}' \
@@ -421,4 +421,4 @@ $ cat test/fixtures/tokenuri0 \
     && open nft.svg
 ```
 
-> This is the [jq tool](https://stedolan.github.io/jq/), a CLI JSON parser.
+> Ensure you have [jq tool](https://stedolan.github.io/jq/) installed.
