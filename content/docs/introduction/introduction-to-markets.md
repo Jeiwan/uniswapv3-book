@@ -68,3 +68,5 @@ Let's now look closer at how Uniswap implements an AMM.
 
 > Please note that I use *pool* and *pair* terms interchangeably throughout the book because a Uniswap pool is a pair
 of two tokens.
+
+> If you have any questions feel free asking them in [the GitHub Discussion of this milestone](https://github.com/Jeiwan/uniswapv3-book/discussions/categories/milestone-0-introduction)!

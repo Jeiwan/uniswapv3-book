@@ -47,3 +47,8 @@ Alright, let's get started!
 1. All source codes are hosted in a separate repo: https://github.com/Jeiwan/uniswapv3-code
 1. If you think you can help Uniswap, they have [a grants program](https://www.notion.so/unigrants/Welcome-to-UNI-Grants-6e3e84967a984a5fb127ae749649ddc9).
 1. If you're interested in DeFi and blockchains, [follow me on Twitter](https://twitter.com/jeiwan7).
+
+## Questions?
+
+Each milestone has its own section in [the GitHub Discussions](https://github.com/Jeiwan/uniswapv3-book/discussions).
+Don't hesitate to ask questions about anything that's not clear in the book!
