@@ -1,8 +1,8 @@
 # Uniswap V3 Development Book
 
-<div style="text-align:center">
+<p align="center">
 <img src="/static/images/cover-360.png" alt="Uniswap V3 Development Book cover"/>
-</div>
+</p>
 
 This book will teach how to develop an advanced decentralized application! Specifically, we'll be building a clone of 
 [Uniswap V3](https://uniswap.org/), which is a decentralized exchange.
