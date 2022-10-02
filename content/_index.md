@@ -11,9 +11,9 @@ weight: 0
 
 # Uniswap V3 Development Book
 
-<div style="text-align:center">
-<img src="/images/cover-360.png" alt="Uniswap V3 Development Book cover"/>
-</div>
+<p align="center">
+<img src="/images/book.jpg" alt="Uniswap V3 Development Book cover" width="480"/>
+</p>
 
 Welcome to the world of decentralized finances and automated market makers! This book will be your guide in this
 mysterious and amusing world! Together, we'll build one of the most interesting and important applications, which serves
