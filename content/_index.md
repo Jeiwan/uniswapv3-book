@@ -11,12 +11,9 @@ weight: 0
 
 # Uniswap V3 Development Book
 
-## 🚧 IN DEVELOPMENT 🚧
-
-**This book is not finished yet but it's going through final proofreading. All `TODO`s will be replaced with something
-useful.**
-
-TODO: add cover
+<div style="text-align:center">
+<img src="/images/cover-360.png" alt="Uniswap V3 Development Book cover"/>
+</div>
 
 Welcome to the world of decentralized finances and automated market makers! This book will be your guide in this
 mysterious and amusing world! Together, we'll build one of the most interesting and important applications, which serves
