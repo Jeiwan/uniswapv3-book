@@ -21,7 +21,7 @@ contracts.
 A bonus feature of Uniswap V3 was the ability to turn liquidity positions into NFT tokens. Here's an example of one
 such NFT tokens:
 
-![Uniswap V3 NFT example](/images/milestone_6_nft_example.png)
+![Uniswap V3 NFT example](/images/milestone_6/nft_example.png)
 
 It shows token symbols, pool fee, position ID, lower and upper ticks, token addresses, and the segment of the curve the
 position is provided at.

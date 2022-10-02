@@ -21,7 +21,7 @@ will look like.
 
 I built this simplified variation of the Uniswap V3 NFTs:
 
-![SVG template for NFT tokens](/images/milestone_6_nft_template.png)
+![SVG template for NFT tokens](/images/milestone_6/nft_template.png)
 
 This is what its code looks like;
 ```svg
@@ -75,8 +75,8 @@ unique for each token;
 
 Here are examples of NFTs our contract will be able to produce:
 
-![NFT example 1](/images/milestone_6_nft_example_2.png)
-![NFT example 2](/images/milestone_6_nft_example_3.png)
+![NFT example 1](/images/milestone_6/nft_example_2.png)
+![NFT example 2](/images/milestone_6/nft_example_3.png)
 
 
 ## Dependencies
