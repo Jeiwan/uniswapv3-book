@@ -1,5 +1,5 @@
 # Uniswap V3 Development Book
-
+[中文版](https://github.com/y1cunhui/uniswapV3-book-zh-cn)
 <p align="center">
 <img src="/static/images/cover.png" alt="Uniswap V3 Development Book cover" width="360"/>
 </p>
