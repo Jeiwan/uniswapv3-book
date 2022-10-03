@@ -10,7 +10,7 @@ weight: 0
 ---
 
 # Uniswap V3 Development Book
-
+English/[中文](https://y1cunhui.github.io/uniswapV3-book-zh-cn/)
 <p align="center">
 <img src="/images/book.jpg" alt="Uniswap V3 Development Book cover" width="480"/>
 </p>
