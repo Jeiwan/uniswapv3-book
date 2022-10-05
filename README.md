@@ -106,6 +106,7 @@ To run the book locally:
 1. Fix the padding before <katext>
 1. Milestone 2, Tick Bitmap Index: what happens when there are no ticks? Will it keep looping until it reaches max/min tick?
 1. MOVE TO MILESTONE 2: Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
+1. Milestone 3: liquidity management
 
 #### Something that can be added as extra chapters after the book is finished
 1. Breakdown of the alpha-router: https://github.com/Uniswap/swap-router-contracts
