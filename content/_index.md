@@ -58,5 +58,5 @@ Don't hesitate to ask questions about anything that's not clear in the book!
 ![Uniswap Foundation logo](/images/uf_logo.png)
 
 The author of this book received a grant from [Uniswap Foundation](https://uniswapfoundation.mirror.xyz/). Without the
-grant, I wouldn't probably had enough motivation and patience to dig Uniswap into its deepest depths and to finish the
+grant, I wouldn't probably have had enough motivation and patience to dig Uniswap into its deepest depths and to finish the
 book. You can [learn more about Uniswap Grants Program](https://www.unigrants.org/) (and maybe apply!).
