@@ -113,5 +113,5 @@ To run the book locally:
 1. Milestone 3: liquidity management
 1. Somewhere: clarify that sqrtP has better precision than ticks and that current price is never computed from current tick.
 1. Ideas for Extras:
-  1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
-  1. Breakdown of the alpha-router: https://github.com/Uniswap/swap-router-contracts
+    1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
+    1. Breakdown of the alpha-router: https://github.com/Uniswap/swap-router-contracts
