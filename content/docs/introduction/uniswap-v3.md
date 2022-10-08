@@ -39,7 +39,7 @@ any price, from 0 to infinity:
 This might not seem like a bad thing, but this makes capital inefficient. Historical prices of an asset stay within
 some defined range, whether it's narrow or wide. For example, the historical price range of ETH is from <span>$0.75</span>
 to <span>$4,800</span> (according to [CoinMarketCap](https://coinmarketcap.com/currencies/ethereum/)). Today (June 2022,
- 1 ETH costs <span>$1,1800</span>), no one would buy 1 ether at <span>$5000</span>, so it makes no sense to provide
+ 1 ETH costs <span>$1,800</span>), no one would buy 1 ether at <span>$5000</span>, so it makes no sense to provide
 liquidity at this price. Thus, it doesn't really make sense providing liquidity in a price range that's far away from the
 current price or that will never be reached.
 
