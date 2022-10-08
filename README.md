@@ -32,6 +32,11 @@ You can read this book at:
 
 https://uniswapv3book.com/
 
+### Questions?
+
+Each milestone has its own section in [the GitHub Discussions](https://github.com/Jeiwan/uniswapv3-book/discussions).
+Don't hesitate to ask questions about anything that's not clear in the book!
+
 ## Table of Contents
 
 - Milestone 0. Introduction
