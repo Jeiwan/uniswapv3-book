@@ -25,7 +25,7 @@ a price range.
 
 ## Price Range Calculation
 
-Recall that, in Uniswap V3, the entire price range is demaracted into ticks: each tick corresponds to a price and has
+Recall that, in Uniswap V3, the entire price range is demarcated into ticks: each tick corresponds to a price and has
 an index. In our first pool implementation, we're going to buy ETH for USDC at the price of <span>$5000</span> per 1 ETH.
 Buying ETH will remove some amount of it from the pool and will push the price slightly above <span>$5000</span>.
 We want to provide liquidity at a range that includes this price. And we want to be sure that the final price will stay
