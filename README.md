@@ -114,6 +114,7 @@ To run the book locally:
 1. Somewhere: clarify that sqrtP has better precision than ticks and that current price is never computed from current tick.
 1. Where to start for complete Uniswap beginners
 1. Add dark mode (with images)
+1. Make a PDF
 1. Ideas for Extras:
     1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
     1. Breakdown of the alpha-router: https://github.com/Uniswap/swap-router-contracts
