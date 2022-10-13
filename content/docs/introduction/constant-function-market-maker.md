@@ -77,7 +77,7 @@ Such prices are called *spot prices* and they only reflect current market prices
 is calculated differently. And this is where we need to bring the demand part back.
 
 Concluding from the law of supply and demand, **high demand increases the price**–and this is a property we need to have
-in a permissionless. We want the price be high when demand is high, and we can use pool reserves to measure the demand:
+in a permissionless way. We want the price be high when demand is high, and we can use pool reserves to measure the demand:
 the more tokens you want to remove from a pool, the high the penalty is.
 
 Let's return to the trade formula and look at it closer:
