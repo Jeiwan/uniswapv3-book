@@ -129,7 +129,7 @@ $ cd uniswapv3clone
 $ forge init
 ```
 
-> If you're using Visual Studio Code, add `--init` flag to `forge init`: `forge init --vscode`. Forge will initialize
+> If you're using Visual Studio Code, add `--vscode` flag to `forge init`: `forge init --vscode`. Forge will initialize
 the project with VSCode specific settings.
 
 Forge will create sample contracts in `src`, `test`, and `script` folders–these can be removed.
