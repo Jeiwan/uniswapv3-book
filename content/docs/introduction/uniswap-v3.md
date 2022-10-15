@@ -167,7 +167,7 @@ So, we get values like: $\sqrt{p(0)} = 1$, $\sqrt{p(1)} = \sqrt{1.0001} \approx 
 
 Ticks are integers that can be positive and negative and, of course, they're not infinite. Uniswap V3 stores $\sqrt{P}$
 as a fixed point Q64.96 number, which is a rational number that uses 64 bits for the integer part and 96 bits for the
-fractional part. Thus, prices are within the range: $[2^{-128}, 2^{128}]$. And ticks are within the range:
+fractional part. Thus, prices (equal to the square of $\sqrt{P}$) are within the range: $[2^{-128}, 2^{128}]$. And ticks are within the range:
 
 $$[log_{1.0001}2^{-128}, log_{1.0001}{2^{128}}] = [-887272, 887272]$$
 
