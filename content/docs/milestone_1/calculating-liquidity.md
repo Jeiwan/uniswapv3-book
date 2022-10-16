@@ -145,11 +145,28 @@ lower than the start price.
 
 Now, break the curve from the image above into two segments: one to the left of the start point and one to the right of
 the start point. We're going to calculate **two** $L$'s, one for each of the segments. Why? Because each of the two
-tokens of a pool contributes to **either of the segments**. And since we want to distribute liquidity evenly along the
-entire curve, we want to pick the minimal of the two $L$'s.
+tokens of a pool contributes to **either of the segments**: the left segment is made entirely of token $x$, the right
+segment is made entirely of token $y$. This comes from the fact that, during swapping, the price moves in either direction:
+it's either growing or falling. For the price to move, only either of the tokens is needed:
+1. when the price is growing, only token $x$ is needed for the swap (we're buying token $x$,
+so we want to take only token $x$ from the pool);
+1. when the price is falling, only token $y$ is needed for the swap.
 
+Thus, the liquidity in the segment of the curve to the left of the current price consists only of token $x$ and is
+calculated only from the amount of token $x$ provided. And, similarly, the liquidity in the segment of the curve to the
+right of the current price consists only of token $y$ and is calculated only from the amount of token $y$ provided.
 
 ![Liquidity on the curve](/images/milestone_1/curve_liquidity.png)
+
+This is why, when providing liquidity, we calculate two $L$'s and pick one of them. Which one? The smaller one. Why?
+Because the bigger one already includes the smaller one! We want the new liquidity to be distributed **evenly** along
+the curve, thus we want to add the same $L$ to the left and to the right of the current price. If we pick the bigger one,
+the user would need to provide more liquidity to compensate the shortage in the smaller one. This is doable, of course,
+but this would make the smart contract more complex.
+
+> What happens with the remainder of the bigger $L$? Well, nothing. After picking the smaller $L$ we can simply convert
+it to a smaller amount of the token that resulted in the bigger $L$–this will adjust it down. After that, we'll have token
+amounts that will result in the same $L$.
 
 And the final detail I need to focus your attention on here is: **new liquidity must not change the current price**. That
 is, it must be proportional to the current proportion of the reserves. And this is why the two $L$'s can be different–when
@@ -167,7 +184,9 @@ We can expands these formulas by replacing the delta P's with actual prices (we 
 $$\Delta x = (\frac{1}{\sqrt{P_b}} - \frac{1}{\sqrt{P_c}}) L$$
 $$\Delta y = (\sqrt{P_c} - \sqrt{P_a}) L$$
 
-$P_a$ is the price at the point $a$, $P_b$ is the price at the point $b$, and $P_c$ is the current price.
+$P_a$ is the price at the point $a$, $P_b$ is the price at the point $b$, and $P_c$ is the current price (see the above
+chart). Notice that, since the price is calculated as $\frac{y}{x}$ (i.e. it's the price of $x$ in terms of $y$), the
+price at point $b$ is higher than the current price and the price at $a$. The price at $a$ is the lowest of the three.
 
 Let's find the $L$ from the first formula:
 
