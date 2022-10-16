@@ -55,7 +55,7 @@ An AMM is a set of smart contracts that define how liquidity is managed. Each tr
 contract that stores both ETH and USDC and that's programmed to mediate trades: exchanging ETH for USDC and vice versa.
 
 The core idea is **pooling**: each contract is a *pool* that stores liquidity let's different users (including other
-smart contract) to trade in a permissioned way. There are two roles, *liquidity providers* and trades, and these roles
+smart contract) to trade in a permissioned way. There are two roles, *liquidity providers* and traders, and these roles
 interact with each other through pools of liquidity, and the way they can interact with pools is programmed and immutable.
 
 ![Automated Market Maker simplified](/images/milestone_0/amm_simplified.png)
