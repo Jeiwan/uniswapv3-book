@@ -60,7 +60,7 @@ see how this works:
 ![Liquidity ranges outside of the current price](/images/milestone_3/ranges_outside_current_price.png)
 
 If you provide liquidity below current price (i.e. the price range you chose lays entirely below the current price) or
-above it, then your whole liquidity will be composed of **only one asset**–the asset will be the cheapest one of the two.
+above it, then your whole liquidity will be composed of **only one asset**–the asset will be the cheaper one of the two.
 In our example, we're building a pool with ETH being token $x$ and USDC being token $y$, and we define the price as:
 
 $$P = \frac{y}{x}$$
@@ -75,12 +75,12 @@ Recall this illustration from the introduction:
 
 If we buy all available amount of ETH from this range, the range will contain only the other token, USDC, and
 the price will move to the right of the curve. The price, as we defined it ($\frac{y}{x}$), will **increase**. If there's a price range
-to the right of this one, it needs to have USDC liquidity, and only USDC, not ETH: it needs to provide USDC for next swaps.
+to the right of this one, it needs to have ETH liquidity, and only ETH, not USDC: it needs to provide ETH for next swaps.
 If we keep buying and rising the price, we might "drain" the next price range as well, which means buying all its ETH and
 selling USDC. Again, the price range ends up having only USDC and current price moves outside of it.
 
 Similarly, if we're buying USDC token, we move the price to the left and removing USDC tokens from the pool. The next
-price range will only contain ETH tokens to satisfy our demand, and, similarly to the above scenario, will end up containing
+price range will only contain USDC tokens to satisfy our demand, and, similarly to the above scenario, will end up containing
 only ETH tokens if we buy all USDC from it.
 
 Note the interesting fact: when crossing an entire price range, it's liquidity is swapped from one token to another. And
