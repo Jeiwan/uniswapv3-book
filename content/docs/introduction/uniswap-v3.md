@@ -57,7 +57,7 @@ price range from 0 to infinite is split into shorter price ranges, with each of 
 liquidity. But, what's crucial is that within that shorter price ranges, **it works exactly as Uniswap V2**. This is why
 I say that a V3 pair is many small V2 pairs.
 
-Now, let's try to visualize it. What we're saying is that we don't want the curve to be finite. We cut it at the points
+Now, let's try to visualize it. What we're saying is that we don't want the curve to be infinite. We cut it at the points
 $a$ and $b$ and say that these are the boundaries of the curve. Moreover, we shift the curve so the boundaries lay on
 the axes. This is what we get:
 
@@ -167,7 +167,7 @@ So, we get values like: $\sqrt{p(0)} = 1$, $\sqrt{p(1)} = \sqrt{1.0001} \approx 
 
 Ticks are integers that can be positive and negative and, of course, they're not infinite. Uniswap V3 stores $\sqrt{P}$
 as a fixed point Q64.96 number, which is a rational number that uses 64 bits for the integer part and 96 bits for the
-fractional part. Thus, prices are within the range: $[2^{-128}, 2^{128}]$. And ticks are within the range:
+fractional part. Thus, prices (equal to the square of $\sqrt{P}$) are within the range: $[2^{-128}, 2^{128}]$. And ticks are within the range:
 
 $$[log_{1.0001}2^{-128}, log_{1.0001}{2^{128}}] = [-887272, 887272]$$
 

@@ -258,7 +258,7 @@ $ cast --to-dec 0x00000000000000000000000000000000000000000000011153ce5e56cf8800
 5042.000000000000000000
 ```
 
-The balance is correct! We minted 42 USDC to our address.
+The balance is correct! We minted 5042 USDC to our address.
 
 
 ### Current Tick and Price

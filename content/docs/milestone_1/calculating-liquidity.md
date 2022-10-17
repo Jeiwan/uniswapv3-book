@@ -181,7 +181,7 @@ $$\Delta y = \Delta \sqrt{P} L$$
 
 We can expands these formulas by replacing the delta P's with actual prices (we know them from the above):
 
-$$\Delta x = (\frac{1}{\sqrt{P_b}} - \frac{1}{\sqrt{P_c}}) L$$
+$$\Delta x = (\frac{1}{\sqrt{P_c}} - \frac{1}{\sqrt{P_b}}) L$$
 $$\Delta y = (\sqrt{P_c} - \sqrt{P_a}) L$$
 
 $P_a$ is the price at the point $a$, $P_b$ is the price at the point $b$, and $P_c$ is the current price (see the above
@@ -190,8 +190,8 @@ price at point $b$ is higher than the current price and the price at $a$. The pr
 
 Let's find the $L$ from the first formula:
 
-$$\Delta x = (\frac{1}{\sqrt{P_b}} - \frac{1}{\sqrt{P_c}}) L$$
-$$\Delta x = \frac{L}{\sqrt{P_b}} - \frac{L}{\sqrt{P_c}}$$
+$$\Delta x = (\frac{1}{\sqrt{P_c}} - \frac{1}{\sqrt{P_b}}) L$$
+$$\Delta x = \frac{L}{\sqrt{P_c}} - \frac{L}{\sqrt{P_b}}$$
 $$\Delta x = \frac{L(\sqrt{P_b} - \sqrt{P_c})}{\sqrt{P_b} \sqrt{P_c}}$$
 $$L = \Delta x \frac{\sqrt{P_b} \sqrt{P_c}}{\sqrt{P_b} - \sqrt{P_c}}$$
 
