@@ -64,7 +64,7 @@ When selling token $x$ (`zeroForOne` is true), `sqrtPriceLimitX96` must be betwe
 $\sqrt{P}$ since selling token $x$ moves the price down. Likewise, when selling token $y$, `sqrtPriceLimitX96` must be
 between the current price and the maximal $\sqrt{P}$ because price moves up.
 
-In the while loop, we want to satisfy two conditions: full swap amount is filled and current price isn't equal to `sqrtPriceLimitX96`:
+In the while loop, we want to satisfy two conditions: full swap amount has not been filled and current price isn't equal to `sqrtPriceLimitX96`:
 ```solidity
 ..
 while (
