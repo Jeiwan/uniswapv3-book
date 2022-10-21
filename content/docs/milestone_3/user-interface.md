@@ -32,7 +32,7 @@ for that.
 
 To convert price to $\sqrt{P}$, we can use [encodeSqrtRatioX96](https://github.com/Uniswap/v3-sdk/blob/08a7c050cba00377843497030f502c05982b1c43/src/utils/encodeSqrtRatioX96.ts)
 function. The function takes two amounts as input and calculates a price by dividing one by the other. Since we only want
-to convert $\sqrt{P}$ to price, we can pass 1 as `amount0`:
+to convert price to $\sqrt{P}$, we can pass 1 as `amount0`:
 ```javascript
 const priceToSqrtP = (price) => encodeSqrtRatioX96(price, 1);
 ```
