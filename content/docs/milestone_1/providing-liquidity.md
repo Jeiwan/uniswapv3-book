@@ -270,6 +270,12 @@ amount1 = 5000 ether;
 
 > We'll replace these with actual calculations in a later chapter.
 
+We will also update the `liquidity` of the pool, based on the `amount` being added.
+
+```solidity
+liquidity += uint128(amount);
+```
+
 Now, we're ready to take tokens from the user. This is done via a callback:
 ```solidity
 function mint(...) ... {
