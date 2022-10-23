@@ -233,6 +233,10 @@ Of these two, we'll pick the smaller one.
 >     if pa > pb:
 >         pa, pb = pb, pa
 >     return amount * q96 / (pb - pa)
+>
+> eth = 10**18
+> amount_eth = 1 * eth
+> amount_usdc = 5000 * eth
 > 
 > liq0 = liquidity0(amount_eth, sqrtp_cur, sqrtp_upp)
 > liq1 = liquidity1(amount_usdc, sqrtp_cur, sqrtp_low)
