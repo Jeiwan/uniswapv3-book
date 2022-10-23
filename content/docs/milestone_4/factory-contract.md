@@ -51,7 +51,7 @@ computes a hash using these pool parameters:
 keccak256(abi.encodePacked(token0, token1, tickSpacing))
 ```
 
-`token0` and `token` are the addresses of pool tokens, and `tickSpacing` is something we're going to learn about next.
+`token0` and `token1` are the addresses of pool tokens, and `tickSpacing` is something we're going to learn about next.
 
 ## Tick Spacing
 
