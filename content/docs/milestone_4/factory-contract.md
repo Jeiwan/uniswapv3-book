@@ -273,7 +273,7 @@ pool = address(
 );
 ```
 
-This is what `CREATE2` does under the hood to calculate new token address. Let's unwind it:
+This is what `CREATE2` does under the hood to calculate new contract address. Let's unwind it:
 
 1. first, we calculate salt (`abi.encodePacked(token0, token1, tickSpacing)`) and hash it;
 1. then, we obtain Pool contract code (`type(UniswapV3Pool).creationCode`) and also hash it;
