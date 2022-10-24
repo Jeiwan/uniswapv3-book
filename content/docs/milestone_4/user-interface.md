@@ -41,7 +41,7 @@ graph is two nodes connected with an edge. And the above pools become this graph
 
 ![Pools graph](/images/milestone_4/pools_graph.png)
 
-The biggest advantage graphs give us is the ability to traverse its nods, from one node to another, to find paths. Specifically,
+The biggest advantage graphs give us is the ability to traverse its nodes, from one node to another, to find paths. Specifically,
 we'll use [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm). Feel free learning about how the
 algorithm works, but, in our app, we'll use a library to make our life easier. The set of libraries we'll use is:
 [ngraph.ngraph](https://github.com/anvaka/ngraph.graph) for building graphs and [ngraph.path](https://github.com/anvaka/ngraph.path)
