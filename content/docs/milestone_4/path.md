@@ -29,7 +29,7 @@ WETH/USDC,USDC/USDT,WBTC/USDT
 
 And iterate over such path in our contracts to perform multiple swaps in one transaction. However, recall from the previous
 chapter that we don't need to know pool addresses and, instead, we can derive them from pool parameters. Thus, the above
-swap can be turned into a series of tokens:
+path can be turned into a series of tokens:
 
 ```
 WETH, USDC, USDT, WBTC
@@ -86,7 +86,7 @@ And it looks like that:
 
 These are the functions that we'll need to implement:
 1. calculating the number of pools in a path;
-1. figuring out if a path has multiple tokens;
+1. figuring out if a path has multiple pools;
 1. extracting first pool parameters from a path;
 1. proceeding to the next pair in a path;
 1. and decoding first pool parameters.
@@ -129,7 +129,7 @@ function numPools(bytes memory path) internal pure returns (uint256) {
 }
 ```
 
-### Figuring Out If a Path Has Multiple Tokens
+### Figuring Out If a Path Has Multiple Pools
 To check if there are multiple pools in a path, we need to compare the length of a path with `MULTIPLE_POOLS_MIN_LENGTH`:
 
 ```solidity
@@ -140,7 +140,7 @@ function hasMultiplePools(bytes memory path) internal pure returns (bool) {
 
 ### Extracting First Pool Parameters From a Path
 
-To implement the other functions, we'll need a helper library because Solidity doesn't have native bytes manipulation
+To implement other functions, we'll need a helper library because Solidity doesn't have native bytes manipulation
 functions. Specifically, we'll need a function to extract a sub-array from an array of bytes, and a couple of functions
 to convert bytes to `address` and `uint24`.
 
