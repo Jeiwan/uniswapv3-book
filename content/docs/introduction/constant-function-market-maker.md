@@ -8,8 +8,6 @@ weight: 2
 # bookComments: false
 # bookSearchExclude: false
 ---
-{{< katex display >}} {{</ katex >}}
-
 # Constant Function Market Makers
 
 > This chapter retells [the whitepaper of Uniswap V2](https://uniswap.org/whitepaper.pdf). Understanding this math is
@@ -161,3 +159,5 @@ this new point.
 
 Well, this is the math of Uniswap V2, and we're studying Uniswap V3. So in the next part, we'll see how the mathematics
 of Uniswap V3 is different.
+
+{{< katex display >}} {{</ katex >}}

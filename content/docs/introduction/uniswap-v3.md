@@ -8,7 +8,6 @@ weight: 3
 # bookComments: false
 # bookSearchExclude: false
 ---
-{{< katex display >}} {{</ katex >}}
 
 # Introduction to Uniswap V3
 
@@ -173,3 +172,5 @@ $$[log_{1.0001}2^{-128}, log_{1.0001}{2^{128}}] = [-887272, 887272]$$
 
 > For deeper dive into the math of Uniswap V3, I cannot but recommend [this technical note](https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf)
 by [Atis Elsts](https://twitter.com/atiselsts).
+
+{{< katex display >}} {{</ katex >}}

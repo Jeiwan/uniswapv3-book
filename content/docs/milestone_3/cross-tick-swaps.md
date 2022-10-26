@@ -9,8 +9,6 @@ weight: 3
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Cross-Tick Swaps
 
 Cross-tick swaps is probably the most advanced feature of Uniswap V3. Luckily, we have already implemented almost everything
@@ -506,3 +504,5 @@ providing more liquidity into the overlapping ranges.
 
 Also notice that, in both swaps, we got more tokens than in the "Consecutive Price Ranges" scenarios–this is again due
 to deeper liquidity in the overlapping ranges.
+
+{{< katex display >}} {{</ katex >}}

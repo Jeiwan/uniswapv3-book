@@ -9,8 +9,6 @@ weight: 5
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Generalize Minting
 
 Now, we're ready to update `mint` function so we don't need to hard code values anymore and can calculate them instead.
@@ -167,3 +165,5 @@ function mint(...) {
 
 Everything else remains the same. You'll need to update the amounts in the pool tests, they'll be slightly different
 due to rounding.
+
+{{< katex display >}} {{</ katex >}}

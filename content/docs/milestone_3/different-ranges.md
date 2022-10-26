@@ -9,8 +9,6 @@ weight: 2
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Different Price Ranges
 
 The way we implemented it, our Pool contract creates only price ranges that include the current price:
@@ -142,3 +140,6 @@ In all other cases, when the price range is below the current price, we want the
 ```
 
 And that's it!
+
+
+{{< katex display >}} {{</ katex >}}

@@ -9,8 +9,6 @@ weight: 3
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Providing Liquidity
 
 Enough of theory, let's start coding!
@@ -587,3 +585,5 @@ providing liquidity? Here are a couple of hints:
 1. Liquidity provider doesn't have enough of tokens.
 
 I'll leave it for you to implement these scenarios! Feel free peeking at [the code in the repo](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_1/test/UniswapV3Pool.t.sol).
+
+{{< katex display >}} {{</ katex >}}

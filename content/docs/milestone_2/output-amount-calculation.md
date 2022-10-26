@@ -9,8 +9,6 @@ weight: 2
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Output Amount Calculation
 
 Our collection of Uniswap math formulas lacks a final piece: the formula of calculating the output amount when selling
@@ -77,3 +75,5 @@ we provided in the previous step.
 
 This looks good, but enough of Python! We're going to implement all the
 math calculations in Solidity.
+
+{{< katex display >}} {{</ katex >}}

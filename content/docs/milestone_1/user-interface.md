@@ -9,8 +9,6 @@ weight: 7
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # User Interface
 
 Finally, we made it to the final stop of this milestone–building a user interface!
@@ -282,3 +280,5 @@ And that's it! We're done with milestone 1!
 <p style="font-size:3rem; text-align: center">
 🎉🍾🍾🍾🎉
 </p>
+
+{{< katex display >}} {{</ katex >}}

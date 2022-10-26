@@ -108,7 +108,6 @@ To run the book locally:
 
 
 ### TODO
-1. Fix the padding before <katext>
 1. Milestone 2, Tick Bitmap Index: what happens when there are no ticks? Will it keep looping until it reaches max/min tick?
 1. Milestone 3: liquidity management
 1. Somewhere: clarify that sqrtP has better precision than ticks and that current price is never computed from current tick.

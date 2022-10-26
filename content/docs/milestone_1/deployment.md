@@ -9,8 +9,6 @@ weight: 6
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Deployment
 
 Alright, our pool contract is done. Now, let's see how we can deploy it to a local Ethereum network so we could use it from
@@ -290,3 +288,5 @@ $ forge inspect UniswapV3Pool abi
 ```
 
 Feel free skimming through the file to better understand its content.
+
+{{< katex display >}} {{</ katex >}}

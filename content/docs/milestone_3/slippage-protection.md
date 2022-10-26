@@ -9,8 +9,6 @@ weight: 4
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Slippage Protection
 
 Slippage is a very important issued in decentralized exchanges. Slippage simply means the difference between the price
@@ -181,3 +179,5 @@ if (amount0 < params.amount0Min || amount1 < params.amount1Min)
 ```
 
 That's it!
+
+{{< katex display >}} {{</ katex >}}

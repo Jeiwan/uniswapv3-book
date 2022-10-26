@@ -9,8 +9,6 @@ weight: 6
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # A Little Bit More on Fixed-point Numbers
 
 In this bonus chapter, I'd like to show you how to convert prices to ticks in Solidity. We don't need to do this in the
@@ -79,3 +77,5 @@ function tick(uint256 price) internal pure returns (int24 tick_) {
 `ABDKMath64x64.sqrt` takes Q64.64 numbers so we need to convert `price` to such number. The price is expected to not have the
 fractional part, so we're shifting it by 64 bits. The `sqrt` function also returns a Q64.64 number but `TickMath.getTickAtSqrtRatio`
 takes a Q64.96 number–this is why we need to shift the result of the square root operation by `96 - 64` bits to the left.
+
+{{< katex display >}} {{</ katex >}}

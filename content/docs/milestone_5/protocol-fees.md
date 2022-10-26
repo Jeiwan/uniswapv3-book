@@ -9,8 +9,6 @@ weight: 4
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Protocol Fees
 
 While working on the Uniswap implementation, you've probably asked yourself, "How does Uniswap make money?" Well, it
@@ -133,3 +131,5 @@ function collectProtocol(
     emit CollectProtocol(msg.sender, recipient, amount0, amount1);
 }
 ```
+
+{{< katex display >}} {{</ katex >}}

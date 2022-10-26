@@ -9,8 +9,6 @@ weight: 2
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Calculating liquidity
 
 Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.
@@ -278,3 +276,5 @@ $$\Delta y = L(\sqrt{P_c} - \sqrt{P_a})$$
 
 > **Hint**: use `cast --from-wei AMOUNT` to convert from wei to ether, e.g.:  
 > `cast --from-wei 998976618347425280` will give you `0.998976618347425280`.
+
+{{< katex display >}} {{</ katex >}}
