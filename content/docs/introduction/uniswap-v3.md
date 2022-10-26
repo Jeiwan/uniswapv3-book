@@ -118,6 +118,8 @@ $$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
 $$\sqrt{xy} = \frac{y_1 - y_0}{\sqrt{P_1} - \sqrt{P_0}}$$
 $$\sqrt{xy} (\sqrt{P_1} - \sqrt{P_0}) = y_1 - y_0$$
 $$\sqrt{xy} (\sqrt{\frac{y_1}{x_1}} - \sqrt{\frac{y_0}{x_0}}) = y_1 - y_0$$
+$$\textrm{Since } \sqrt{x_1y_1} = \sqrt{x_0y_0} = \sqrt{xy} = L,$$
+$$\sqrt{\frac{x_1y_1y_1}{x_1}} - \sqrt{\frac{x_0y_0y_0}{x_0}} = y_1 - y_0$$
 $$\sqrt{y_1^2} - \sqrt{y_0^2} = y_1 - y_0$$
 $$y_1 - y_0 = y_1 - y_0$$
 
