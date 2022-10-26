@@ -38,8 +38,6 @@ to program and deploy smart contracts, and how to run and test them on your comp
 
 Alright, let's get started!
 
----
-
 ## Useful links
 
 1. This book is available at: https://uniswapv3book.com/
@@ -52,6 +50,28 @@ Alright, let's get started!
 
 Each milestone has its own section in [the GitHub Discussions](https://github.com/Jeiwan/uniswapv3-book/discussions).
 Don't hesitate to ask questions about anything that's not clear in the book!
+
+---
+
+## Where to start for a complete beginner?
+
+This book will be easy for those who know something about constant-function market makers and Uniswap. If you're a complete
+beginner in decentralized exchanges, here's how I'd recommend starting:
+1. Read my Uniswap V1 series. It covers the very basics of Uniswap, and the code is much more simpler. If you have some
+experience with Solidity, skip the code since it's very basic and Uniswap V2 does it better.
+    1. [Programming DeFi: Uniswap. Part 1](https://jeiwan.net/posts/programming-defi-uniswap-1/)
+    1. [Programming DeFi: Uniswap. Part 2](https://jeiwan.net/posts/programming-defi-uniswap-2/)
+    1. [Programming DeFi: Uniswap. Part 3](https://jeiwan.net/posts/programming-defi-uniswap-3/)
+1. Read my Uniswap V2 series. I don't go too deep into the math and underlying concepts here since they're covered in the
+V1 series, but the code of V2 is really worth getting familiar with–it'll hopefully teach you a different way of thinking
+about smart contracts programming (it's not how we usually write programs).
+    1. [Programming DeFi: Uniswap V2. Part 1](https://jeiwan.net/posts/programming-defi-uniswapv2-1/)
+    1. [Programming DeFi: Uniswap V2. Part 2](https://jeiwan.net/posts/programming-defi-uniswapv2-2/)
+    1. [Programming DeFi: Uniswap V2. Part 3](https://jeiwan.net/posts/programming-defi-uniswapv2-3/)
+    1. [Programming DeFi: Uniswap V2. Part 4](https://jeiwan.net/posts/programming-defi-uniswapv2-4/)
+
+If math is an issue, consider going through [Algebra 1](https://www.khanacademy.org/math/algebra) and [Algebra 2](https://www.khanacademy.org/math/algebra2)
+courses on Khan Academy. The math of Uniswap is not hard, but it requires the skill of basic algebraic manipulations.
 
 ## Uniswap Grants Program
 
