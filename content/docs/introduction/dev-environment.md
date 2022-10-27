@@ -72,15 +72,9 @@ full list of available endpoints.
 
 ## Local Development Environment
 
-We're going to build smart contracts and run them on Ethereum, which means we need a node. Until recently, for both
-testing and running contracts locally you needed a node. This used to make smart contracts development somewhat tedious
-because running dozens (if not hundreds) tests in a real node is slow. Nowadays, luckily, we have a faster solution.
+We’re going to build smart contracts and run them on Ethereum, which means we need a node. Before deploying to a node on a live network, such as a testnet or mainnet, we'll use a node on our local machine. This lets us develop more quickly, since we don't have to wait for transactions to mine, and gives us more flexibility with additional developer functionality, such as state snapshots.
 
-Another problems with solutions like [Truffle](https://trufflesuite.com) and [Hardhat](https://hardhat.org) is that we
-we have to use JavaScript to write tests and program interactions with the blockchain. This need comes from the fact that
-Truffle and Hardhat run a local node and use JavaScript Web3 libraries to interact with it.
-
-Instead of using Truffle or Hardhat, we'll use Foundry.
+There are a few popular local nodes, such as [Truffle Ganache](https://trufflesuite.com/docs/ganache/) and [HardHat Network](https://hardhat.org/hardhat-network/docs/overview), but in our case we'll be using Foundry's suite of tools, namely Anvil as our local node because of its speed.
 
 ### Foundry
 
