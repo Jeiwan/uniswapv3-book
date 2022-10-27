@@ -74,7 +74,7 @@ full list of available endpoints.
 
 We’re going to build smart contracts and run them on Ethereum, which means we need a node. Before deploying to a node on a live network, such as a testnet or mainnet, we'll use a node on our local machine. This lets us develop more quickly, since we don't have to wait for transactions to mine, and gives us more flexibility with additional developer functionality, such as state snapshots.
 
-There are a few popular local nodes, such as [Truffle Ganache](https://trufflesuite.com/docs/ganache/) and [HardHat Network](https://hardhat.org/hardhat-network/docs/overview), but in our case we'll be using Foundry's suite of tools, namely Anvil as our local node because of its speed.
+There are a few popular local nodes, such as [Truffle Ganache](https://trufflesuite.com/docs/ganache/) and [Hardhat Network](https://hardhat.org/hardhat-network/docs/overview), but in our case we'll be using Foundry's suite of tools, namely Anvil as our local node because of its speed.
 
 ### Foundry
 
