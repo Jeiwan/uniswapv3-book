@@ -24,6 +24,7 @@ but I'll still provide the code.
 
 Ethereum is a blockchain that allows anyone to run applications on it. It might look like a cloud provider, but there are
 multiple differences:
+
 1. You don't pay for hosting your application. But you pay for deployment.
 1. Your application is immutable. That is: you won't be able to modify it after it's deployed.
 1. Users will pay to use your application.
@@ -31,7 +32,7 @@ multiple differences:
 To better understand these moments, let's see what Ethereum is made of.
 
 At the core of Ethereum (and any other blockchain) is a database. The most valuable data in Ethereum's database is
-*the state of accounts*. An account is an Ethereum address with associated data:
+_the state of accounts_. An account is an Ethereum address with associated data:
 
 1. Balance: account's ether balance.
 1. Code: bytecode of the smart contract deployed at this address.
@@ -42,11 +43,11 @@ Ethereum's main job is building and maintaining this data in a secure way that d
 
 Ethereum is also a network, a network of computers that build and maintain the state independently of each other. The
 main goal of the network is to **decentralize access to the database**: there must be no single authority that's allowed
-to modify anything in the database unilaterally. This is achieved by a means of *consensus*, which is a set of rules all
+to modify anything in the database unilaterally. This is achieved by a means of _consensus_, which is a set of rules all
 the nodes in the network follow. If one party decides to abuse a rule, it'll be excluded from the network.
 
-> Fun fact: blockchain can use MySQL! Nothing prevents this besides performance. In its turn, Ethereum uses 
-[LevelDB](https://github.com/google/leveldb), a fast key-value database.
+> Fun fact: blockchain can use MySQL! Nothing prevents this besides performance. In its turn, Ethereum uses
+> [LevelDB](https://github.com/google/leveldb), a fast key-value database.
 
 Every Ethereum node also runs EVM, Ethereum Virtual Machine. A virtual machine is a program that can run other programs,
 and EVM is a program that executes smart contracts. Users interact with contracts through transactions: besides simply
@@ -72,23 +73,18 @@ full list of available endpoints.
 
 ## Local Development Environment
 
-We're going to build smart contracts and run them on Ethereum, which means we need a node. Until recently, for both
-testing and running contracts locally you needed a node. This used to make smart contracts development somewhat tedious
-because running dozens (if not hundreds) tests in a real node is slow. Nowadays, luckily, we have a faster solution.
+We’re going to build smart contracts and run them on Ethereum, which means we need a node. Before deploying to a node on a live network, such as a testnet or mainnet, we'll use a node on our local machine. This lets us develop more quickly, since we don't have to wait for transactions to mine, and gives us more flexibility with additional developer functionality, such as state snapshots.
 
-Another problems with solutions like [Truffle](https://trufflesuite.com) and [Hardhat](https://hardhat.org) is that we
-we have to use JavaScript to write tests and program interactions with the blockchain. This need comes from the fact that
-Truffle and Hardhat run a local node and use JavaScript Web3 libraries to interact with it.
-
-Instead of using Truffle or Hardhat, we'll use Foundry.
+There are a few popular local nodes, such as [Truffle Ganache](https://trufflesuite.com/docs/ganache/) and [HardHat Network](https://hardhat.org/hardhat-network/docs/overview), but in our case we'll be using Foundry's suite of tools, namely Anvil as our local node because of its speed.
 
 ### Foundry
 
 [Foundry](https://github.com/foundry-rs/foundry) is a set of tools for Ethereum applications development. Specifically,
 we're going to use:
+
 1. [Forge](https://github.com/foundry-rs/foundry/tree/master/forge), a testing framework for Solidity.
 1. [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil), a local Ethereum node designed for development with
-Forge. We'll use it to deploy our contracts to a local node and connect to it through the front-end app.
+   Forge. We'll use it to deploy our contracts to a local node and connect to it through the front-end app.
 1. [Cast](https://github.com/foundry-rs/foundry/tree/master/cast), a CLI tool with a ton of helpful features.
 
 Forge makes smart contracts developer's life so much easier. With Forge, we don't need to run a local node to test
@@ -123,6 +119,7 @@ know React, I'll provide a template application.
 ## Setting Up the Project
 
 To set up the project, create a new folder and run `forge init` in it:
+
 ```shell
 $ mkdir uniswapv3clone
 $ cd uniswapv3clone
@@ -130,11 +127,12 @@ $ forge init
 ```
 
 > If you're using Visual Studio Code, add `--vscode` flag to `forge init`: `forge init --vscode`. Forge will initialize
-the project with VSCode specific settings.
+> the project with VSCode specific settings.
 
 Forge will create sample contracts in `src`, `test`, and `script` folders–these can be removed.
 
 To set up the front-end application:
+
 ```shell
 $ npx create-react-app ui
 ```
