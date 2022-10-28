@@ -9,8 +9,6 @@ weight: 8
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # User Interface
 
 We're now ready to update the UI with the changes we made in this milestone. We'll add two new features:
@@ -93,3 +91,6 @@ const limitPrice = priceAfter.mul((100 - parseFloat(slippage)) * 100).div(10000)
 ```
 
 And that's it!
+
+
+{{< katex display >}} {{</ katex >}}

@@ -9,8 +9,6 @@ weight: 2
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Calculating liquidity
 
 Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.
@@ -233,6 +231,10 @@ Of these two, we'll pick the smaller one.
 >     if pa > pb:
 >         pa, pb = pb, pa
 >     return amount * q96 / (pb - pa)
+>
+> eth = 10**18
+> amount_eth = 1 * eth
+> amount_usdc = 5000 * eth
 > 
 > liq0 = liquidity0(amount_eth, sqrtp_cur, sqrtp_upp)
 > liq1 = liquidity1(amount_usdc, sqrtp_cur, sqrtp_low)
@@ -274,3 +276,5 @@ $$\Delta y = L(\sqrt{P_c} - \sqrt{P_a})$$
 
 > **Hint**: use `cast --from-wei AMOUNT` to convert from wei to ether, e.g.:  
 > `cast --from-wei 998976618347425280` will give you `0.998976618347425280`.
+
+{{< katex display >}} {{</ katex >}}

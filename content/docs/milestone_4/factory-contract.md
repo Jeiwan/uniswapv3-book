@@ -15,7 +15,7 @@ Uniswap is designed in a way that assumes many discrete Pool contracts, with eac
 This looks problematic when we want to swap between two tokens that don't have a pool–is there's no pool, no swaps are
 possible. However, we can still do intermediate swaps: first swap to a token that has pairs with either of the tokens
 and then swap this token to the target token. This can also go deeper and have more intermediate tokens. However,
-doing this manually is cumbersome, and, luckily, we make can the process easier by implementing it in our smart contracts.
+doing this manually is cumbersome, and, luckily, we can make the process easier by implementing it in our smart contracts.
 
 *Factory* contract is a contract that serves multiple purposes:
 1. It acts as a centralized registry of Pool contracts. Using a factory, you can find all deployed pools, their tokens,

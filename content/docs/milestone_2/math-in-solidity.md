@@ -9,8 +9,6 @@ weight: 3
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Math in Solidity
 
 Due to Solidity not supporting numbers with th fractional part, math in Solidity is somewhat complicated. Solidity
@@ -52,3 +50,5 @@ you'll see that they're quite complex: there're a lot of magic numbers (like `0x
 multiplication, and bitwise operations. At this point, we're not going to analyze the code or re-implement it since this
 is a very advanced and somewhat different topic. We'll use the contract as is. And, in a later milestone, we'll break
 down the computations.
+
+{{< katex display >}} {{</ katex >}}

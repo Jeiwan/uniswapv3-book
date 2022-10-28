@@ -9,8 +9,6 @@ weight: 6
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Tick Rounding
 
 Let's review some other changes we need to make to support different tick spacings.
@@ -116,3 +114,6 @@ function nearestUsableTick(int24 tick_, uint24 tickSpacing)
 ```
 
 That's it!
+
+{{< katex display >}} {{</ katex >}}
+

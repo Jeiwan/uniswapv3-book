@@ -9,8 +9,6 @@ weight: 4
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # First Swap
 
 Now that we have liquidity, we can make our first swap!
@@ -272,3 +270,5 @@ Notice that swapping doesn't change the current liquidity–in a later chapter, 
 ## Homework
 
 Write a test that fails with `InsufficientInputAmount` error. Keep in mind that there's a hidden bug 🙂
+
+{{< katex display >}} {{</ katex >}}

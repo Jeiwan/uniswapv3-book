@@ -9,8 +9,6 @@ weight: 5
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Price Oracle
 
 The final mechanism we're going to add to our DEX is a *price oracle*. Even though it's not essential to a DEX (there
@@ -622,3 +620,5 @@ This results in prices: 4581.03, 4581.03, 4747.6, 5008.91, which are the average
 > secs = [0, 5, 10, 15, 18]
 > [1.0001**((vals[i] - vals[i+1]) / (secs[i+1] - secs[i])) for i in range(len(vals)-1)]
 > ```
+
+{{< katex display >}} {{</ katex >}}

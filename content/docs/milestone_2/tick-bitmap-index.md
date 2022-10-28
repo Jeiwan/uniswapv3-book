@@ -9,8 +9,6 @@ weight: 4
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Tick Bitmap Index
 
 As the first step towards dynamic swaps, we need to implement an index of ticks. In the previous milestone, we used to
@@ -218,3 +216,5 @@ And that's it!
 
 As you can see, `nextInitializedTickWithinOneWord` doesn't find the exact tick if it's far away–it's scope of search is
 current or next tick's word. Indeed, we don't want to iterate over the infinite bitmap index.
+
+{{< katex display >}} {{</ katex >}}

@@ -8,7 +8,6 @@ weight: 3
 # bookComments: false
 # bookSearchExclude: false
 ---
-{{< katex display >}} {{</ katex >}}
 
 # Introduction to Uniswap V3
 
@@ -119,6 +118,8 @@ $$L = \frac{\Delta y}{\Delta\sqrt{P}}$$
 $$\sqrt{xy} = \frac{y_1 - y_0}{\sqrt{P_1} - \sqrt{P_0}}$$
 $$\sqrt{xy} (\sqrt{P_1} - \sqrt{P_0}) = y_1 - y_0$$
 $$\sqrt{xy} (\sqrt{\frac{y_1}{x_1}} - \sqrt{\frac{y_0}{x_0}}) = y_1 - y_0$$
+$$\textrm{Since } \sqrt{x_1y_1} = \sqrt{x_0y_0} = \sqrt{xy} = L,$$
+$$\sqrt{\frac{x_1y_1y_1}{x_1}} - \sqrt{\frac{x_0y_0y_0}{x_0}} = y_1 - y_0$$
 $$\sqrt{y_1^2} - \sqrt{y_0^2} = y_1 - y_0$$
 $$y_1 - y_0 = y_1 - y_0$$
 
@@ -173,3 +174,5 @@ $$[log_{1.0001}2^{-128}, log_{1.0001}{2^{128}}] = [-887272, 887272]$$
 
 > For deeper dive into the math of Uniswap V3, I cannot but recommend [this technical note](https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf)
 by [Atis Elsts](https://twitter.com/atiselsts).
+
+{{< katex display >}} {{</ katex >}}

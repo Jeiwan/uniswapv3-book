@@ -9,8 +9,6 @@ weight: 2
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Swap Fees
 
 As I mentioned in the introduction, swap fees is a core mechanism of Uniswap. Liquidity providers need to get paid for
@@ -568,3 +566,5 @@ There's also a way to collect fees only without burning liquidity: burn 0 amount
 During burning, the position will be updated and token amounts it owes will be updated as well.
 
 And, that's it! Our pool implementation is complete now!
+
+{{< katex display >}} {{</ katex >}}

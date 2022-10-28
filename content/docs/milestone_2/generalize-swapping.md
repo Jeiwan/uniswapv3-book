@@ -9,8 +9,6 @@ weight: 6
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # Generalize Swapping
 
 This will be the hardest chapter of this milestone. Before updating the code, we need to understand how the algorithm of
@@ -361,3 +359,5 @@ will change insignificantly though, because it's now calculated in Solidity.
 We can now test swapping in the opposite direction! I'll leave this for you, as a homework (just be sure to choose a
 small input amount so the whole swap can be handled by our single price range). Don't hesitate peeking at [my tests](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_2/test/UniswapV3Pool.t.sol)
 if this feels difficult!
+
+{{< katex display >}} {{</ katex >}}

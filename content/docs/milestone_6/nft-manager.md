@@ -9,8 +9,6 @@ weight: 3
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # NFT Manager Contract
 
 Obviously, we're not going to add NFT-related functionality to the pool contract–we need a separate contract that will
@@ -295,3 +293,5 @@ function burn(uint256 tokenId) public isApprovedOrOwner(tokenId) {
 ```
 
 That's it!
+
+{{< katex display >}} {{</ katex >}}

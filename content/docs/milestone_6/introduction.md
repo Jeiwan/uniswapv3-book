@@ -9,8 +9,6 @@ weight: 1
 # bookSearchExclude: false
 ---
 
-{{< katex display >}} {{</ katex >}}
-
 # NFT Positions
 
 This is the cherry on the cake of this book. In this milestone, we're going to learn how Uniswap contract can be extended
@@ -37,3 +35,5 @@ Let's go!
 > This milestone introduces a lot of code changes in existing contracts. [Here you can see all changes since the last milestone](https://github.com/Jeiwan/uniswapv3-code/compare/milestone_5...milestone_6)
 
 > If you have any questions feel free asking them in [the GitHub Discussion of this milestone](https://github.com/Jeiwan/uniswapv3-book/discussions/categories/milestone-6-nft-positions)!
+
+{{< katex display >}} {{</ katex >}}
