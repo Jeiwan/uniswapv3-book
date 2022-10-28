@@ -66,7 +66,7 @@ function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external overrid
 As you can see, it's allowed to set protocol fees separate for each of the tokens. The values are two `uint8` that are
 packed to be stored in one `uint8`: `feeProtocol1` is shifted to the left by 4 bits (this is identical to multiplying it
 by 16) and added to `feeProtocol0`. To unpack `feeProtocol0`, a remainder of division `slot0.feeProtocol` by 16 is taken;
-`feeProtocol1` is simply integer division of `slot0.feeProtocol`  by 4. Such packing works because neither `feeProtocol0`,
+`feeProtocol1` is simply shifting `slot0.feeProtocol` to the right by 4 bits. Such packing works because neither `feeProtocol0`,
 nor `feeProtocol1` can be greater than 10.
 
 Before beginning a swap, we need to choose one of the protocol fees depending on swap direction (swap and protocol fees
