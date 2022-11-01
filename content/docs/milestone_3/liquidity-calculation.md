@@ -120,8 +120,8 @@ if (slot0_.tick < lowerTick) {
 ```
 
 It turns out, we also need to follow this logic when calculating liquidity:
-1. if we're calculating liquidity for a range that's below current price, we use the $\Delta x$ version on the formula;
-1. when calculation liquidity for a range that's above current price, we use the $\Delta y$ one;
+1. if we're calculating liquidity for a range that's below current price, we use the $\Delta y$ version on the formula;
+1. when calculation liquidity for a range that's above current price, we use the $\Delta x$ one;
 1. when a price range includes the current price, we calculate **both** and pick the smaller of them.
 
 > Again, we discussed these ideas in [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation).
@@ -177,4 +177,6 @@ And finally:
 
 Done.
 
+
 {{< katex display >}} {{</ katex >}}
+

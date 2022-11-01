@@ -199,7 +199,7 @@ if (liquidity_ != state.liquidity) liquidity = state.liquidity;
 ```
 
 Within the loop, we update `state.liquidity` multiple times when entering/leaving price ranges. After a swap, we need
-to update the global $L$ for it to reflect the liquidity available at the new current price.
+to update the global $L$ for it to reflect the liquidity available at the new current price. Also, the reason why we only update the global variable when finishing the swap is also gas consumption optimization, since writing global variable is really an expensive operation!
 
 ## Liquidity Tracking and Ticks Crossing
 
@@ -309,7 +309,7 @@ correctly.
     }
     ```
 
-In both of these scenario we buy a small amount of EHT or USDC–it needs to be small enough for the price to not leave
+In both of these scenario we buy a small amount of ETH or USDC–it needs to be small enough for the price to not leave
 the only price range we created. Key values after swapping is done:
 1. `sqrtPriceX96` is slightly above or below the initial price and stays within the price rage;
 1. `currentLiquidity` remains unchanged.
@@ -506,3 +506,4 @@ Also notice that, in both swaps, we got more tokens than in the "Consecutive Pri
 to deeper liquidity in the overlapping ranges.
 
 {{< katex display >}} {{</ katex >}}
+

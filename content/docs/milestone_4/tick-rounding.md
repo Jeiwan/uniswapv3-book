@@ -65,7 +65,7 @@ implements it.
 
 ## `nearestUsableTick` in Solidity
 
-In our smart contract tests, we need a way to round ticks and convert rounded prices to sqrtP. In a previous chapter, we
+In our smart contract tests, we need a way to round ticks and convert rounded prices to $\sqrt{P}$. In a previous chapter, we
 chose to use [ABDKMath64x64](https://github.com/abdk-consulting/abdk-libraries-solidity) to handle fixed-point numbers
 math in tests. The library, however, doesn't implement the rounding function we need to port `nearestUsableTick`, so
 we'll need to implement it ourselves:
@@ -116,3 +116,4 @@ function nearestUsableTick(int24 tick_, uint24 tickSpacing)
 That's it!
 
 {{< katex display >}} {{</ katex >}}
+

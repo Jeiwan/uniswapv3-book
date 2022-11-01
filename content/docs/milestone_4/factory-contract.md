@@ -51,7 +51,7 @@ computes a hash using these pool parameters:
 keccak256(abi.encodePacked(token0, token1, tickSpacing))
 ```
 
-`token0` and `token` are the addresses of pool tokens, and `tickSpacing` is something we're going to learn about next.
+`token0` and `token1` are the addresses of pool tokens, and `tickSpacing` is something we're going to learn about next.
 
 ## Tick Spacing
 
@@ -273,7 +273,7 @@ pool = address(
 );
 ```
 
-This is what `CREATE2` does under the hood to calculate new token address. Let's unwind it:
+This is what `CREATE2` does under the hood to calculate new contract address. Let's unwind it:
 
 1. first, we calculate salt (`abi.encodePacked(token0, token1, tickSpacing)`) and hash it;
 1. then, we obtain Pool contract code (`type(UniswapV3Pool).creationCode`) and also hash it;
