@@ -134,7 +134,7 @@ IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.fee);
 ```
 
 `_addLiquidity` is identical to the body of `mint` function in the `UniswapV3Manager` contract: it converts ticks to
-$sqrt(P)$, computes liquidity amount, and calls `pool.mint()`.
+$\sqrt(P)$, computes liquidity amount, and calls `pool.mint()`.
 
 Next, we mint an NFT:
 
@@ -165,7 +165,7 @@ This will later help us find liquidity position by token ID.
 
 Next, we'll implement a function to add liquidity to an existing position, in the case when we want more liquidity to
 a position that already has some. In such cases, we don't want to mint an NFT, but only to increase the amount of liquidity
-in an existing. position. For that, we'll only need to provide a token ID and token amounts:
+in an existing position. For that, we'll only need to provide a token ID and token amounts:
 
 ```solidity
 function addLiquidity(AddLiquidityParams calldata params)
