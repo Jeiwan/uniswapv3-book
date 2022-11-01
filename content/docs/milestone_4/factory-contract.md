@@ -12,7 +12,7 @@ weight: 2
 # Factory Contract
 
 Uniswap is designed in a way that assumes many discrete Pool contracts, with each pool handling swaps of one token pair.
-This looks problematic when we want to swap between two tokens that don't have a pool–is there's no pool, no swaps are
+This looks problematic when we want to swap between two tokens that don't have a pool–if there's no pool, no swaps are
 possible. However, we can still do intermediate swaps: first swap to a token that has pairs with either of the tokens
 and then swap this token to the target token. This can also go deeper and have more intermediate tokens. However,
 doing this manually is cumbersome, and, luckily, we can make the process easier by implementing it in our smart contracts.

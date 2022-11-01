@@ -117,7 +117,7 @@ We first define a few constants:
 1. `TICKSPACING_SIZE` is the size of a tick spacing, 3 bytes (`uint24`);
 1. `NEXT_OFFSET` is the offset of a next token address–to get it, we skip an address and a tick spacing;
 1. `POP_OFFSET` is the offset of a pool key (token address + tick spacing + token address);
-1. `MULTIPLE_POOLS_MIN_LENGTH` is the length of a path that contains 2 or more pools (one set of pool parameters + tick
+1. `MULTIPLE_POOLS_MIN_LENGTH` is the minimum length of a path that contains 2 or more pools (one set of pool parameters + tick
 spacing + token address).
 
 To count the number of pools in a path, we subtract the size of an address (first or last token in a path) and divide

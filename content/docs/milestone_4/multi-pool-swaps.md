@@ -286,7 +286,7 @@ former first.
 We need to make only a couple of changes in our current `quote` implementation:
 1. rename it to `quoteSingle`;
 1. extract parameters into a struct (this is mostly a cosmetic change);
-1. instead of a pool address, take a token address and a tick spacing in the parameters.
+1. instead of a pool address, take a two token addresses and a tick spacing in the parameters.
 
 ```solidity
 // src/UniswapV3Quoter.sol
@@ -309,7 +309,7 @@ function quoteSingle(QuoteSingleParams memory params)
     ...
 ```
 
-And the only change we have in the body of the function is usage of `getPool` to find pool address:
+And the only change we have in the body of the function is usage of `getPool` to find the pool address:
 ```solidity
     ...
     IUniswapV3Pool pool = getPool(

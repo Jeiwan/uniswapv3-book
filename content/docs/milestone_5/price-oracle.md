@@ -227,7 +227,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
 }
 ```
 
-Notice that the tick that's observed here is `slot0_.tick` (not `state.stick`), i.e. the price before the swap! It's
+Notice that the tick that's observed here is `slot0_.tick` (not `state.tick`), i.e. the price before the swap! It's
 updated with a new price in the next statement. This is the price manipulation mitigation we discussed earlier: Uniswap
 tracks prices **before** the first trade in the block and **after** the last trade in the previous block.
 

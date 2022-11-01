@@ -125,7 +125,7 @@ Next step is finding ticks with liquidity using the bitmap index.
 
 During swapping, we need to find a tick with liquidity that's before or after the current tick (that is: to the left or
 to the right of it). In the previous milestone, we used to [calculate and hard code it](https://github.com/Jeiwan/uniswapv3-code/blob/85b8605c37a9065c141a234ee2c18d9507eeba22/src/UniswapV3Pool.sol#L142),
-but now we need to find such tick using the bitmap index. We'll do this in the `TickMath.nextInitializedTickWithinOneWord`
+but now we need to find such tick using the bitmap index. We'll do this in the `TickBitmap.nextInitializedTickWithinOneWord`
 function. In this function, we'll need to implement two scenarios:
 
 1. When selling token $x$ (ETH in our case), find next initialized tick in the current tick's word and **to the right** of the current tick.
