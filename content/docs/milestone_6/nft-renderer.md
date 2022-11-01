@@ -244,7 +244,7 @@ function renderBottom(int24 lowerTick, int24 upperTick)
 }
 ```
 
-Since ticks can be positive and negative, we nee to render them properly (with or without the minus sign):
+Since ticks can be positive and negative, we need to render them properly (with or without the minus sign):
 ```solidity
 function tickToText(int24 tick)
     internal
