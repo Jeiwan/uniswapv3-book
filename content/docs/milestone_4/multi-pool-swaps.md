@@ -286,7 +286,7 @@ former first.
 We need to make only a couple of changes in our current `quote` implementation:
 1. rename it to `quoteSingle`;
 1. extract parameters into a struct (this is mostly a cosmetic change);
-1. instead of a pool address, take a two token addresses and a tick spacing in the parameters.
+1. instead of a pool address, take two token addresses and a tick spacing in the parameters.
 
 ```solidity
 // src/UniswapV3Quoter.sol
