@@ -72,15 +72,24 @@ full list of available endpoints.
 
 ## Local Development Environment
 
-We're going to build smart contracts and run them on Ethereum, which means we need a node. Until recently, for both
-testing and running contracts locally you needed a node. This used to make smart contracts development somewhat tedious
-because running dozens (if not hundreds) tests in a real node is slow. Nowadays, luckily, we have a faster solution.
+There are multiple smart contract development environments that are used today:
+1. [Truffle](https://trufflesuite.com)
+1. [Hardhat](https://hardhat.org)
+1. [Foundry](https://github.com/foundry-rs/foundry)
 
-Another problems with solutions like [Truffle](https://trufflesuite.com) and [Hardhat](https://hardhat.org) is that we
-we have to use JavaScript to write tests and program interactions with the blockchain. This need comes from the fact that
-Truffle and Hardhat run a local node and use JavaScript Web3 libraries to interact with it.
+Truffle is the oldest of the three and is the less popular of them. Hardhat is its improved descendant and is the most
+widely used tool. Foundry is the new kid on the block, which brings a different view on testing.
 
-Instead of using Truffle or Hardhat, we'll use Foundry.
+While HardHat is still a popular solution, more and more projects are switching to Foundry. And there are multiple reasons
+for that:
+1. With Foundry, we can write tests in Solidity. This is much more convenient because we don't need to jump between
+JavaScript (Truffle and HardHat use JS for tests and automation) and Solidity during development. Writing tests in Solidity
+is much more convenient because you have all the native features (e.g. you don't need a special type for big numbers and
+you don't need to convert between strings and [BigNumber](https://docs.ethers.io/v5/api/utils/bignumber/)).
+1. Foundry doesn't run a node during testing. This makes testing and iterating on features much faster! Truffle and HardHat
+start a node whenever you run tests; Foundry executes tests on an internal EVM.
+
+That being said, we'll use Foundry as our main smart contract development and testing tool.
 
 ### Foundry
 
