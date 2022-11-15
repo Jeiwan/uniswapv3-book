@@ -34,7 +34,7 @@ the ability to change owner and fees.
 implementation of [SwapRouter](https://github.com/Uniswap/v3-periphery/blob/main/contracts/SwapRouter.sol). Again, as you
 can see, I don't distinguish "exact input" and "exact output" swaps and implement only the former ones.
 1. `UniswapV3Quoter` is a cool contract that allows calculating swap prices on-chain. This is a minimal copy of both [Quoter](https://github.com/Uniswap/v3-periphery/blob/main/contracts/lens/Quoter.sol)
-and [QuoterV2](https://github.com/Uniswap/v3-periphery/blob/main/contracts/lens/QuoterV2.sol). Again. only "exact input"
+and [QuoterV2](https://github.com/Uniswap/v3-periphery/blob/main/contracts/lens/QuoterV2.sol). Again, only "exact input"
 swaps are supported.
 1. `UniswapV3NFTManager` allows turning liquidity positions into NFTs. This is a simplified implementation of [NonfungiblePositionManager](https://github.com/Uniswap/v3-periphery/blob/main/contracts/NonfungiblePositionManager.sol).
 
