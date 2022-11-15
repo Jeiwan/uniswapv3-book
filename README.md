@@ -44,6 +44,7 @@ Don't hesitate to ask questions about anything that's not clear in the book!
   1. Constant Function Market Makers
   1. Uniswap V3
   1. Development Environment
+  1. What We'll Build
 - Milestone 1. First Swap
   1. Introduction
   1. Calculating Liquidity
