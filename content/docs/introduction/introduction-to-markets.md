@@ -1,5 +1,5 @@
 ---
-title: "Introduction to markets"
+title: "Introduction to Markets"
 weight: 1
 # bookFlatSection: false
 # bookToc: false
