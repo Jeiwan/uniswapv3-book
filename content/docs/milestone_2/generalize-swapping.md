@@ -130,7 +130,7 @@ will result in.
 }
 ```
 
-Final steps in the loop is updating the SwapState. `step.amountIn` is the amount of tokens the price range can buy
+The final step in the loop is updating the SwapState. `step.amountIn` is the amount of tokens the price range can buy
 from user; `step.amountOut` is the related number of the other token the pool can sell to user. `state.sqrtPriceX96` is
 the current price that will be set after the swap (recall that trading changes current price).
 
