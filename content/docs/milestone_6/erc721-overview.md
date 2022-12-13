@@ -20,7 +20,7 @@ the counter at which a token was minted. ERC721 tokens also have an extended con
 is tracked and stored in the contract. This means that only distinct tokens, identified by token IDs, can be transferred
 (or approved for transfer).
 
-What Uniswap V3 liquidity positions and NFTs have in common is this non-fungibility: NFTS and liquidity positions are not
+What Uniswap V3 liquidity positions and NFTs have in common is this non-fungibility: NFTs and liquidity positions are not
 interchangeable and are identified by unique IDs. It's this similarity that will allow us to merge the two concepts.
 
 The biggest difference between ERC20 and ERC721 is the `tokenURI` function in the latter. NFT tokens, which are

@@ -41,7 +41,7 @@ To make fees accounting simpler, Uniswap V3 tracks **the global fees generated b
 fees are then calculated based on the global ones: fees accumulated outside of a price range are subtracted from the
 global fees. Fees accumulated outside of a price range are tracked when a tick is crossed (and ticks are crossed when
 swaps move the price; fees are collected during swaps). With this approach, we don't need to update fees accumulated
-by each position on very swap–this allows to save a lot of gas and make interaction with pools cheaper.
+by each position on every swap–this allows to save a lot of gas and make interaction with pools cheaper.
 
 Let's recap so we have a clear picture before moving on:
 1. Fees are paid by users who swap tokens. A small amount is subtracted from input token and accumulated on pool's
@@ -95,7 +95,7 @@ Now, when current price is above the lower tick (i.e. the position is engaged), 
 below the lower tick and can simply take them from the lower tick. The same is true for fees collected outside of the
 upper tick when current price is below upper tick. In the two other cases, we need to consider updated fees:
 1. when taking fees collected below the lower tick and current price is also below the tick (the lower tick hasn't been
-crossed recently);
+crossed recently).
 1. when taking fees above the upper tick and current price is also above the tick (the upper tick hasn't been crossed
 recently).
 
@@ -354,7 +354,7 @@ function getFeeGrowthInside(
             feeGrowthGlobal0X128 -
             lowerTick.feeGrowthOutside0X128;
         feeGrowthBelow1X128 =
-            feeGrowthGlobal0X128 -
+            feeGrowthGlobal1X128 -
             lowerTick.feeGrowthOutside1X128;
     }
 
@@ -368,7 +368,7 @@ function getFeeGrowthInside(
             feeGrowthGlobal0X128 -
             upperTick.feeGrowthOutside0X128;
         feeGrowthAbove1X128 =
-            feeGrowthGlobal0X128 -
+            feeGrowthGlobal1X128 -
             upperTick.feeGrowthOutside1X128;
     }
 
@@ -525,7 +525,7 @@ function collect(
     uint128 amount0Requested,
     uint128 amount1Requested
 ) public returns (uint128 amount0, uint128 amount1) {
-    Position.Info memory position = positions.get(
+    Position.Info storage position = positions.get(
         msg.sender,
         lowerTick,
         upperTick
