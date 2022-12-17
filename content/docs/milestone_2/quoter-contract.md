@@ -124,7 +124,7 @@ I hope this is clear!
 This design has one significant limitation: since `quote` calls `swap` function of Pool contract, and `swap` function is
 not a pure or view function (because it modifies contract state), `quote` cannot also be pure or view. `swap` modifies
 state and so does `quote`, even if not in Quoter contract. But we treat `quote` as a getter, a function that only reads
-contract data. This inconsistency means that EVM will use [CALL](https://www.evm.codes/#f1) opcode instead of [CALLSTATIC](https://www.evm.codes/#fa)
+contract data. This inconsistency means that EVM will use [CALL](https://www.evm.codes/#f1) opcode instead of [STATICCALL](https://www.evm.codes/#fa)
 when `quote` is called. This is not a big problem since Quoter reverts in the swap callback, and reverting resets the state
 modified during a call–this guarantees that `quote` won't modify the state of Pool contract (no actual trade will happen).
 
