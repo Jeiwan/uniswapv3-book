@@ -205,13 +205,13 @@ $$L = \frac{\Delta y}{\sqrt{P_c} - \sqrt{P_a}}$$
 
 Now, let's plug the prices we calculated earlier into them:
 
-$$L = \Delta x \frac{\sqrt{P_b}\sqrt{P_c}}{\sqrt{P_b}-\sqrt{P_c}} = 1 ETH * \frac{67.42 * 70.71}{70.71 - 67.42}$$
+$$L = \Delta x \frac{\sqrt{P_b}\sqrt{P_c}}{\sqrt{P_b}-\sqrt{P_c}} = 1 ETH * \frac{5875... * 5602...}{5875... - 5602...}$$
 After converting to Q64.96, we get:
 
 $$L = 1519437308014769733632$$
 
 And for the other $L$:
-$$L = \frac{\Delta y}{\sqrt{P_c}-\sqrt{P_a}} = \frac{5000USDC}{74.16-70.71}$$
+$$L = \frac{\Delta y}{\sqrt{P_c}-\sqrt{P_a}} = \frac{5000USDC}{5602... - 5314...}$$
 $$L = 1517882343751509868544$$
 
 Of these two, we'll pick the smaller one.
