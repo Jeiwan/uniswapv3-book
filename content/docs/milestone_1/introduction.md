@@ -30,7 +30,7 @@ Visually, this model looks like this:
 Before getting to code, let's figure out the math and calculate all the parameters of the model. To keep things simple,
 I'll do math calculations in Python before implementing them in Solidity. This will allow us to focus on the math
 without diving into the nuances of math in Solidity. This also means that, in smart contracts, we'll hardcode all the
-amounts. This will allows us to start with a simple minimal viable product.
+amounts. This will allow us to start with a simple minimal viable product.
 
 For your convenience, I put all the Python calculations in [unimath.py](https://github.com/Jeiwan/uniswapv3-code/blob/main/unimath.py).
 
