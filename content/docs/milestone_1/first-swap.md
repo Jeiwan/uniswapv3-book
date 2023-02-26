@@ -87,7 +87,8 @@ Luckily, we already know all the values, so we can plug them in right away (this
 
 $$\Delta \frac{1}{\sqrt{P}} = \frac{1}{5604469350942327889444743441197} - \frac{1}{5602277097478614198912276234240}$$
 
-$$\Delta \frac{1}{\sqrt{P}} = -0.00000553186106731426$$
+$$= -6.982190286589445\text{e-}35 * 2^{96} $$
+$$= -0.00000553186106731426$$
 
 Now, let's find $\Delta x$:
 
