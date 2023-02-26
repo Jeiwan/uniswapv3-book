@@ -76,10 +76,10 @@ Let's find the ticks:
 
 That's it for price range calculation!
 
-Last thing to note here is that Uniswap uses Q64.96 number to store $\sqrt{P}$. This is a fixed point number that has
+Last thing to note here is that Uniswap uses [Q64.96 number](https://en.wikipedia.org/wiki/Q_%28number_format%29) to store $\sqrt{P}$. This is a fixed point number that has
 64 bits for the integer part and 96 bits for the fractional part. In our above calculations, prices are floating point
 numbers: `70.71`, `67.42`, `74.16`. We need to convert them to Q64.96. Luckily, this is simple: we need to multiply the
-numbers by the maximum value of the fractional part of Q64.96, which is $2^{96}$. We'll get:
+numbers by $2^{96}$ (Q-number is a binary fixed point number, so we need to multiply our decimals numbers by the base of Q64.96, which is $2^{96}$). We'll get:
 
 $$\sqrt{P_c} = 5602277097478614198912276234240$$
 
