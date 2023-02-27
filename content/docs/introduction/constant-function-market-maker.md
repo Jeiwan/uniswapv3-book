@@ -42,7 +42,7 @@ $$(x + r\Delta x)(y - \Delta y) = k\$$
 1. There's a pool with some amount of token 0 ($x$) and some amount of token 1 ($y$) 
 1. When we buy token 1 for token 0, we give some amount of token 0 to the pool ($\Delta x$).
 1. The pool gives us some amount of token 1 in exchange ($\Delta y$).
-1. The pool also takes a small fee ($r$) from the amount of token 0 we gave.
+1. The pool also takes a small fee ($r = 1 - \text{swap fee}$) from the amount of token 0 we gave.
 1. The reserve of token 0 changes ($x + r \Delta x$), and the reserve of token 1 changes as well ($y - \Delta y$).
 1. The product of updated reserves must still equal $k$.
 
