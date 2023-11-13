@@ -93,7 +93,8 @@ function flipTick(
 }
 ```
 
-> Until later in the book, `tickSpacing` is always 1.
+> Until later in the book, `tickSpacing` is always 1. Please keep in mind that this value affects which ticks can be initialized: when it
+equals 1, all ticks can be flipped; when it's set to a different value, only ticks divisible by the value can be flipped.
 
 After finding word and bit positions, we need to make a mask. A mask is a number that has a single 1 flag set at the
 bit position of the tick. To find the mask, we simply calculate `2**bit_pos` (equivalent of `1 << bit_pos`):

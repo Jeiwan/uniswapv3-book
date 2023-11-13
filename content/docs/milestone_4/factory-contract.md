@@ -94,7 +94,9 @@ Thus, each pool is uniquely identified by this set of parameters:
 Factory contract uses this set of parameters as a unique identifier of a pool and passes it as a salt to generate a new
 pool contract address.
 
-> From now on, we'll assume the tick spacing of 60 for all our pools, and we'll use 10 for stablecoin pairs.
+> From now on, we'll assume the tick spacing of 60 for all our pools, and we'll use 10 for stablecoin pairs. Please notice
+that only ticks divisible by these values can be flagged as initialized in the ticks bitmap. For example, only ticks -120,
+-60, 0, 60, 120, etc. can be initialized and used in liquidity ranges when tick spacing is 60.
 
 ## Factory Implementation
 
