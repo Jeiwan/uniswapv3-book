@@ -196,10 +196,10 @@ leftmost bit in the next word–this will allow to search for initialized ticks 
 ```
 
 Similarly, when selling $y$, we're:
-1. taking next tick's word and bit positions;
-1. making a different mask, where all bits to the left of next tick bit position are ones and all the bits to the right
+1. taking the current tick's word and bit positions;
+1. making a different mask, where all bits to the left of the current tick bit position are ones and all the bits to the right
 are zeros;
-1. applying the mask to the next tick's word.
+1. applying the mask to the current tick's word.
 
 Again, if there's no initialized ticks to the left, the rightmost bit of the previous word is returned:
 ```solidity
