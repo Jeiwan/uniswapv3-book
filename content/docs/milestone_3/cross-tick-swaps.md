@@ -157,19 +157,34 @@ Now, in `swap` function, we need to handle the case we introduced in the previou
 of a price range. When this happens, we want to deactivate the price range we're leaving and active the next price range.
 We also want to start another iteration of the loop and try to find another tick with liquidity.
 
-Here's what we need to add to the end of the loop:
+Before updating the loop, let's save the second value returned by the `tickBitmap.nextInitializedTickWithinOneWord()` call into `step.initialized`:
+```solidity
+(step.nextTick, step.initialized) = tickBitmap.nextInitializedTickWithinOneWord(
+    state.tick,
+    1,
+    zeroForOne
+);
+```
+
+(In the previous milestone we stored only `step.nextTick`.)
+
+Knowing if the next tick is initialized or not will help us save some gas in situations when there's no initialized tick in the current word in the ticks bitmap.
+
+Now, here's what we need to add to the end of the loop:
 ```solidity
 if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
-    int128 liquidityDelta = ticks.cross(step.nextTick);
+    if (step.initialized) {
+        int128 liquidityDelta = ticks.cross(step.nextTick);
 
-    if (zeroForOne) liquidityDelta = -liquidityDelta;
+        if (zeroForOne) liquidityDelta = -liquidityDelta;
 
-    state.liquidity = LiquidityMath.addLiquidity(
-        state.liquidity,
-        liquidityDelta
-    );
+        state.liquidity = LiquidityMath.addLiquidity(
+            state.liquidity,
+            liquidityDelta
+        );
 
-    if (state.liquidity == 0) revert NotEnoughLiquidity();
+        if (state.liquidity == 0) revert NotEnoughLiquidity();
+    }
 
     state.tick = zeroForOne ? step.nextTick - 1 : step.nextTick;
 } else {
@@ -179,6 +194,8 @@ if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
 
 The second branch is what we had before–it handles the case when current price stays within the range. So let's focus on
 the first one.
+
+Here, we're updating the current liquidity, but only if the next tick is initialized (if it's not, we skip adding 0 to the liquidity to save gas).
 
 `state.sqrtPriceX96` is the new current price, i.e. the price that will be set after the current swap; `step.sqrtPriceNextX96`
 is the price at the next initialized tick. If these are equal, we have reached a price range boundary. As explained above,
