@@ -4,7 +4,7 @@
 <img src="/static/images/cover.png" alt="Uniswap V3 Development Book cover" width="360"/>
 </p>
 
-This book will teach how to develop an advanced decentralized application! Specifically, we'll be building a clone of 
+This book will teach how to develop an advanced decentralized application! Specifically, we'll be building a clone of
 [Uniswap V3](https://uniswap.org/), which is a decentralized exchange.
 
 ## Why Uniswap?
@@ -96,9 +96,9 @@ Don't hesitate to ask questions about anything that's not clear in the book!
 
 To run the book locally:
 1. Install [Hugo](https://gohugo.io/).
-1. Clone the repo:
+1. Clone the repo and the theme submodule:
     ```shell
-    $ git clone https://github.com/Jeiwan/uniswapv3-book
+    $ git clone https://github.com/Jeiwan/uniswapv3-book --recurse-submodules
     $ cd uniswapv3-book
     ```
 1. Run:
