@@ -46,7 +46,7 @@ write deployment scripts in Solidity.
 Anvil doesn't require configuration, we can run it with a single command and it'll do:
 
 ```shell
-$ anvil
+$ anvil --code-size-limit 50000
                              _   _
                             (_) | |
       __ _   _ __   __   __  _  | |
@@ -59,6 +59,9 @@ $ anvil
 ...
 Listening on 127.0.0.1:8545
 ```
+
+> We're going to write big contracts that don't fit into the Ethereum contract size limit (which is `24576` bytes), thus
+we need to tell Anvil to allow bigger smart contracts.
 
 Anvil runs a single Ethereum node, so this is not really a network, but that's ok. By default, it creates 10 accounts
 with 10,000 ETH in each of them. It prints the addresses and related private keys when it starts–we'll be using one of
@@ -184,8 +187,10 @@ console.log("Manager address", address(manager));
 
 Alright, let's run the script (ensure Anvil is running in another terminal window):
 ```shell
-$ forge script scripts/DeployDevelopment.s.sol --broadcast --fork-url http://localhost:8545 --private-key $PRIVATE_KEY
+$ forge script scripts/DeployDevelopment.s.sol --broadcast --fork-url http://localhost:8545 --private-key $PRIVATE_KEY  --code-size-limit 50000
 ```
+
+> We're increasing the smart contract code size again so that the compiler doesn't fail.
 
 `--broadcast` enables broadcasting of transactions. It's not enabled by default because not every script sends
 transactions. `--fork-url` sets the address of the node to send transactions to. `--private-key` sets the sender wallet:
