@@ -25,7 +25,7 @@ want to buy a wardrobe but no one is selling one, there's no liquidity. If you w
 to buy it, there's liquidity but no buyers. If there's no liquidity, there's nothing to buy or sell.
 
 On centralized exchanges, the order book is where liquidity is accumulated. If someone places a sell order, they provide
-liquidity to the market. If someone places a buy order, they expected the market to have liquidity, otherwise, no trade
+liquidity to the market. If someone places a buy order, they expect the market to have liquidity, otherwise, no trade
 is possible.
 
 When there's no liquidity, but markets are still interested in trades, *market makers* come into play. A market maker is
@@ -54,8 +54,8 @@ way. Moreover, it's decentralized and permissionless, that is:
 An AMM is a set of smart contracts that define how liquidity is managed. Each trading pair (e.g. ETH/USDC) is a separate
 contract that stores both ETH and USDC and that's programmed to mediate trades: exchanging ETH for USDC and vice versa.
 
-The core idea is **pooling**: each contract is a *pool* that stores liquidity let's different users (including other
-smart contract) to trade in a permissioned way. There are two roles, *liquidity providers* and traders, and these roles
+The core idea is **pooling**: each contract is a *pool* that stores liquidity lets different users (including other
+smart contracts) to trade in a permissioned way. There are two roles, *liquidity providers* and traders, and these roles
 interact with each other through pools of liquidity, and the way they can interact with pools is programmed and immutable.
 
 ![Automated Market Maker simplified](/images/milestone_0/amm_simplified.png)
