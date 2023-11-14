@@ -228,7 +228,7 @@ struct Info {
     bool initialized;
     // total liquidity at tick
     uint128 liquidityGross;
-    // amount of liqudiity added or subtracted when tick is crossed
+    // amount of liquidity added or subtracted when tick is crossed
     int128 liquidityNet;
 }
 ```
