@@ -375,12 +375,12 @@ Let's now actually test minting.
 
 To test minting we need tokens. This is not a problem because we can deploy any contract in tests! Moreover, Forge can
 install open-source contracts as dependencies. Specifically, we need an ERC20 contract with minting functionality. We'll
-use the ERC20 contract from [Solmate](https://github.com/Rari-Capital/solmate), a collection of gas-optimized contracts,
+use the ERC20 contract from [Solmate](https://github.com/transmissions11/solmate), a collection of gas-optimized contracts,
 and make an ERC20 contract that inherits from the Solmate contract and exposes minting (it's public by default).
 
 Let's install `solmate`:
 ```shell
-$ forge install rari-capital/solmate
+$ forge install transmissions11/solmate
 ```
 
 Then, let's create `ERC20Mintable.sol` contract in `test` folder (we'll use the contract only in tests):
