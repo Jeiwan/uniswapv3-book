@@ -100,14 +100,19 @@ Don't hesitate to ask questions about anything that's not clear in the book!
 ## Running locally
 
 To run the book locally:
-1. Install [Hugo](https://gohugo.io/).
-1. Clone the repo and the theme submodule:
+1. Install [Rust](https://www.rust-lang.org/).
+1. Install [mdBook](https://github.com/rust-lang/mdBook):
     ```shell
-    $ git clone https://github.com/Jeiwan/uniswapv3-book --recurse-submodules
+    $ cargo install mdbook
+    $ cargo install mdbook-katex
+    ```
+1. Clone the repo:
+    ```shell
+    $ git clone https://github.com/Jeiwan/uniswapv3-book
     $ cd uniswapv3-book
     ```
 1. Run:
     ```shell
-    $ hugo server -D
+    $ mdbook serve --open
     ```
-1. Visit http://localhost:1313/ (or whatever URL the previous command outputs!)
+1. Visit http://localhost:3000/ (or whatever URL the previous command outputs!)
