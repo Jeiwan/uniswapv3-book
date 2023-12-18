@@ -1,12 +1,12 @@
 # Swap Path
 
-Let's imagine that we have only these pools: WETH/USDC, USDC/USDT, WBTC/USDT. If we want to swap WETH for WBTC, we'll need to make multiple swaps (WETH→USDC→USDT→WBTC) since there's no WETH/WBTC pool. We can do this manually or we can improve our contracts to handle such chained, or multi-pool, swaps. Of course, we'll do the latter!
+Let's imagine that we have only these pools: WETH/USDC, USDC/USDT, and WBTC/USDT. If we want to swap WETH for WBTC, we'll need to make multiple swaps (WETH→USDC→USDT→WBTC) since there's no WETH/WBTC pool. We can do this manually or we can improve our contracts to handle such chained, or multi-pool, swaps. Of course, we'll do the latter!
 
-When doing multi-pool swaps, we're sending output of a previous swap to the input of the next one. For example:
+When doing multi-pool swaps, we send the output of the previous swap to the input of the next one. For example:
 
-1. in WETH/USDC pool, we're selling WETH and buying USDC;
-1. in USDC/USDT pool, we're selling USDC from the previous swap and buying USDT;
-1. in WBTC/USDT pool, we're selling USDT from the previous pool and buying WBTC.
+1. in the WETH/USDC pool, we're selling WETH and buying USDC;
+1. in the USDC/USDT pool, we're selling USDC from the previous swap and buying USDT;
+1. in the WBTC/USDT pool, we're selling USDT from the previous pool and buying WBTC.
 
 We can turn this series into a path:
 
@@ -14,13 +14,13 @@ We can turn this series into a path:
 WETH/USDC,USDC/USDT,WBTC/USDT
 ```
 
-And iterate over such path in our contracts to perform multiple swaps in one transaction. However, recall from the previous chapter that we don't need to know pool addresses and, instead, we can derive them from pool parameters. Thus, the above path can be turned into a series of tokens:
+And iterate over such a path in our contracts to perform multiple swaps in one transaction. However, recall from the previous chapter that we don't need to know pool addresses and, instead, we can derive them from pool parameters. Thus, the above path can be turned into a series of tokens:
 
 ```
 WETH, USDC, USDT, WBTC
 ```
 
-And recall that tick spacing is another parameter (besides tokens) that identifies a pool. Thus, the above path becomes:
+Recall that tick spacing is another parameter (besides tokens) that identifies a pool. Thus, the above path becomes:
 
 ```
 WETH, 60, USDC, 10, USDT, 60, WBTC
@@ -28,7 +28,7 @@ WETH, 60, USDC, 10, USDT, 60, WBTC
 
 Where 60 and 10 are tick spacings. We're using 60 in volatile pairs (e.g. ETH/USDC, WBTC/USDT) and 10 in stablecoin pairs (USDC/USDT).
 
-Now, having such path, we can iterate over it to build pool parameters for each of the pool:
+Now, having such a path, we can iterate over it to build pool parameters for each of the pools:
 
 1. `WETH, 60, USDC`;
 1. `USDC, 10, USDT`;
@@ -36,13 +36,13 @@ Now, having such path, we can iterate over it to build pool parameters for each 
 
 Knowing these parameters, we can derive pool addresses using `PoolAddress.computeAddress`, which we implemented in the previous chapter.
 
-> We also can use this concept when doing swaps within one pool: the path would simple contain the parameters of one pool. And, thus, we can use swap paths in all swaps, universally.
+> We also can use this concept when doing swaps within one pool: the path would simply contain the parameters of one pool. And, thus, we can use swap paths in all swaps, universally.
 
 Let's build a library to work with swap paths.
 
 ## Path Library
 
-In code, a swap path is a sequence of bytes. In Solidity, a path can be built like that:
+In code, a swap path is a sequence of bytes. In Solidity, a path can be built like this:
 ```solidity
 bytes.concat(
     bytes20(address(weth)),
@@ -55,7 +55,7 @@ bytes.concat(
 );
 ```
 
-And it looks like that:
+It looks like this:
 ```shell
 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 # weth address
   00003c                                   # 60
@@ -146,7 +146,7 @@ The function simply returns the first "token address + tick spacing + token addr
 ### Proceeding to a Next Pair in a Path
 
 
-We'll use the next function when iterating over a path and throwing away processed pools. Notice that we're removing "token address + tick spacing", not full pool parameters, because we need the other token address to calculate next pool address.
+We'll use the next function when iterating over a path and throwing away processed pools. Notice that we're removing "token address + tick spacing", not full pool parameters, because we need the other token address to calculate the next pool address.
 
 ```solidity
 function skipToken(bytes memory path) internal pure returns (bytes memory) {
@@ -174,7 +174,7 @@ function decodeFirstPool(bytes memory path)
 }
 ```
 
-Unfortunately, `BytesLib` doesn't implement `toUint24` function but we can implement it ourselves! `BytesLib` has multiple `toUintXX` functions, so we can take one of them and convert to a `uint24` one:
+Unfortunately, `BytesLib` doesn't implement `toUint24` function but we can implement it ourselves! `BytesLib` has multiple `toUintXX` functions, so we can take one of them and convert it to a `uint24` one:
 ```solidity
 library BytesLibExt {
     function toUint24(bytes memory _bytes, uint256 _start)

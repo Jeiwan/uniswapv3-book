@@ -2,7 +2,7 @@
 
 Let's review some other changes we need to make to support different tick spacings.
 
-Tick spacing greater than 1 won't allow users to select arbitrary price ranges: tick indexes must be multiples of a tick spacing. For example, for tick spacing 60 we can have ticks: 0, 60, 120, 180, etc. Thus, when user picks a range, we need to "round" it so its boundaries are multiples of pool's tick spacing.
+Tick spacing greater than 1 won't allow users to select arbitrary price ranges: tick indexes must be multiples of a tick spacing. For example, for tick spacing 60 we can have ticks: 0, 60, 120, 180, etc. Thus, when the user picks a range, we need to "round" it so its boundaries are multiples of the pool's tick spacing.
 
 ## `nearestUsableTick` in JavaScript
 
@@ -43,7 +43,7 @@ const mintParams = {
 }
 ```
 
-> In reality, it should be called whenever user adjusts a price range because we want the user to see the actual price that will be created. In our simplified app, we do it less user-friendly.
+> In reality, it should be called whenever the user adjusts a price range because we want the user to see the actual price that will be created. In our simplified app, we make it less user-friendly.
 
 However, we also want to have a similar function in Solidity tests, but neither of the math libraries we're using implements it.
 

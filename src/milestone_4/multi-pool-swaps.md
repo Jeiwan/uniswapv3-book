@@ -1,11 +1,11 @@
 # Multi-Pool Swaps
 
-We're now proceeding to the core of this milestone–implementing multi-pool swaps in our contracts. We won't touch Pool contract in this milestone because it's a core contract that should implement only core features. Multi-pool swaps is a utility feature, and we'll implement it in Manager and Quoter contracts.
+We're now proceeding to the core of this milestone–implementing multi-pool swaps in our contracts. We won't touch the Pool contract in this milestone because it's a core contract that should implement only core features. Multi-pool swaps are a utility feature, and we'll implement it in the Manager and Quoter contracts.
 
 ## Updating the Manager Contract
 
 ### Single-Pool and Multi-Pool Swaps
-In our current implementation, `swap` function in Manager contract supports only single-pool swaps and takes pool address in parameters:
+In our current implementation, the `swap` function in the Manager contract supports only single-pool swaps and takes pool address in parameters:
 
 ```solidity
 function swap(
@@ -37,7 +37,7 @@ struct SwapParams {
 ```
 
 1. `SwapSingleParams` takes pool parameters, input amount, and a limiting price–this is pretty much identical to what we had before. Notice, that `data` is no longer required.
-1. `SwapParams` takes path, output amount recipient, input amount, and minimal output amount. The latter parameter replaces `sqrtPriceLimitX96` because, when doing multi-pool swaps, we cannot use the slippage protection from Pool contract (which uses a limiting price). We need to implement another slippage protection, which checks the final output amount and compares it with `minAmountOut`: the slippage protection fails when the final output amount is smaller than `minAmountOut`.
+1. `SwapParams` takes path, output amount recipient, input amount, and minimal output amount. The latter parameter replaces `sqrtPriceLimitX96` because, when doing multi-pool swaps, we cannot use the slippage protection from the Pool contract (which uses a limiting price). We need to implement another slippage protection, which checks the final output amount and compares it with `minAmountOut`: the slippage protection fails when the final output amount is smaller than `minAmountOut`.
 
 ### Core Swapping Logic
 
@@ -63,7 +63,7 @@ struct SwapCallbackData {
 
 `path` is a swap path and `payer` is the address that provides input tokens in swaps–we'll have different payers during multi-pool swaps. 
 
-First thing we do in `_swap`, is extracting pool parameters using `Path` library:
+The first thing we do in `_swap`, is to extract pool parameters using the `Path` library:
 
 ```solidity
 // function _swap(...) {
@@ -123,7 +123,7 @@ After making a swap, we need to figure out which of the amounts is the output on
 amountOut = uint256(-(zeroForOne ? amount1 : amount0));
 ```
 
-And that's it. Let's now look at how single-pool swap works.
+And that's it. Let's now look at how a single-pool swap works.
 
 ### Single-Pool Swapping
 
@@ -163,7 +163,7 @@ function swap(SwapParams memory params) public returns (uint256 amountOut) {
     ...
 ```
 
-First swap is paid by user because it's user who provides input tokens.
+The first swap is paid by the user because it's the user who provides input tokens.
 
 Then, we start iterating over pools in the path:
 
@@ -185,12 +185,12 @@ while (true) {
 ```
 
 In each iteration, we're calling `_swap` with these parameters:
-1. `params.amountIn` tracks input amounts. During the first swap it's the amount provided by user. During next swaps its the amounts returned from previous swaps.
-1. `hasMultiplePools ? address(this) : params.recipient`–if there are multiple pools in the path, recipient is the manager contract, it'll store tokens between swaps. If there's only one pool (last one) in the path, recipient is the one specified in the parameters (usually the same user that initiates the swap).
+1. `params.amountIn` tracks input amounts. During the first swap, it's the amount provided by the user. During the next swaps, it's the amounts returned from previous swaps.
+1. `hasMultiplePools ? address(this) : params.recipient`–if there are multiple pools in the path, the recipient is the Manager contract, it'll store tokens between swaps. If there's only one pool (the last one) in the path, the recipient is the one specified in the parameters (usually the same user that initiates the swap).
 1. `sqrtPriceLimitX96` is set to 0 to disable slippage protection in the Pool contract.
-1. Last parameter is what we pass to `uniswapV3SwapCallback`–we'll look at it shortly.
+1. The last parameter is what we pass to `uniswapV3SwapCallback`–we'll look at it shortly.
 
-After making one swap, we need to proceed to next pool in a path or return:
+After making one swap, we need to proceed to the next pool in a path or return:
 ```solidity
     ...
 
@@ -242,13 +242,13 @@ function uniswapV3SwapCallback(
 }
 ```
 
-The callback expects encoded `SwapCallbackData` with path and payer address. It extracts pool tokens from the path, figures out swap direction (`zeroForOne`), and the amount the contract needs to transfer out. Then, it acts differently depending on payer address:
-1. If payer is the current contract (this is so when making consecutive swaps), it transfers tokens to the next pool (the one that called this callback) from current contract's balance.
-1. If payer is a different address (the user that initiated the swap), it transfers tokens from user's balance.
+The callback expects encoded `SwapCallbackData` with path and payer address. It extracts pool tokens from the path, figures out the swap direction (`zeroForOne`), and the amount the contract needs to transfer out. Then, it acts differently depending on the payer address:
+1. If the payer is the current contract (this is so when making consecutive swaps), it transfers tokens to the next pool (the one that called this callback) from the current contract's balance.
+1. If the payer is a different address (the user that initiated the swap), it transfers tokens from the user's balance.
 
-## Updating Quoter Contract
+## Updating the Quoter Contract
 
-Quoter is another contract that needs to be updated because we want to use it to also find output amounts in multi-pool swaps.  Similarly to Manager, we'll have two variants of `quote` function: single-pool and multi-pool one. Let's look at the former first.
+Quoter is another contract that needs to be updated because we want to use it to also find output amounts in multi-pool swaps.  Similarly to Manager, we'll have two variants of the `quote` function: single-pool and multi-pool one. Let's look at the former first.
 
 ### Single-pool Quoting
 We need to make only a couple of changes in our current `quote` implementation:
@@ -277,7 +277,7 @@ function quoteSingle(QuoteSingleParams memory params)
     ...
 ```
 
-And the only change we have in the body of the function is usage of `getPool` to find the pool address:
+The only change we have in the body of the function is the usage of `getPool` to find the pool address:
 ```solidity
     ...
     IUniswapV3Pool pool = getPool(
@@ -308,7 +308,7 @@ function quote(bytes memory path, uint256 amountIn)
     ...
 ```
 
-As parameters, we only need input amount and swap path. The function returns similar values as `quoteSingle`, but "price after" and "tick after" are collected after each swap, thus we need to returns arrays.
+As parameters, we only need an input amount and a swap path. The function returns similar values as `quoteSingle`, but "price after" and "tick after" are collected after each swap, thus we need to return arrays.
 
 ```solidity
 uint256 i = 0;
@@ -345,7 +345,7 @@ while (true) {
 ```
 
 The logic of the loop is identical to the one in the updated `swap` function:
-1. get current pool's parameters;
-1. call `quoteSingle` on current pool;
+1. get the current pool's parameters;
+1. call `quoteSingle` on the current pool;
 1. save returned values;
-1. repeat if there're more pools in the path, or return otherwise.
+1. repeat if there are more pools in the path, or return otherwise.
