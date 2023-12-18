@@ -27,3 +27,13 @@
 - [Generalized Swapping](milestone_2/generalize-swapping.md)
 - [Quoter Contract](milestone_2/quoter-contract.md)
 - [User Interface](milestone_2/user-interface.md)
+
+# Milestone 3. Cross-Tick Swaps
+- [Introduction](milestone_3/introduction.md)
+- [Different Price Ranges](milestone_3/different-ranges.md)
+- [Cross-Tick Swaps](milestone_3/cross-tick-swaps.md)
+- [Slippage Protection](milestone_3/slippage-protection.md)
+- [Liquidity Calculation](milestone_3/liquidity-calculation.md)
+- [A Little Bit More on Fixed-Point Numbers](milestone_3/more-on-fixed-point-numbers.md)
+- [Flash Loans](milestone_3/flash-loans.md)
+- [User Interface](milestone_3/user-interface.md)
