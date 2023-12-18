@@ -1,5 +1,5 @@
 /*!
-  Highlight.js v11.9.0 (git: b7ec4bfafc) + Solidity + Yul
+  Highlight.js v11.9.0 (git: b7ec4bfafc)
   (c) 2006-2023 undefined and other contributors
   License: BSD-3-Clause
  */
@@ -385,7 +385,13 @@
     relevance:0},{match:[/\bconstructor(?=\s*\()/],className:{1:"title.function"},
     contains:[R]},x,{relevance:0,match:/\b[A-Z][A-Z_0-9]+\b/,
     className:"variable.constant"},O,M,{match:/\$[(.]/}]}}})()
-    ;hljs.registerLanguage("javascript",e)})();/*! `python` grammar compiled for Highlight.js 11.9.0 */
+    ;hljs.registerLanguage("javascript",e)})();/*! `json` grammar compiled for Highlight.js 11.9.0 */
+    (()=>{var e=(()=>{"use strict";return e=>{const a=["true","false","null"],n={
+    scope:"literal",beginKeywords:a.join(" ")};return{name:"JSON",keywords:{
+    literal:a},contains:[{className:"attr",begin:/"(\\.|[^\\"\r\n])*"(?=\s*:)/,
+    relevance:1.01},{match:/[{}[\],:]/,className:"punctuation",relevance:0
+    },e.QUOTE_STRING_MODE,n,e.C_NUMBER_MODE,e.C_LINE_COMMENT_MODE,e.C_BLOCK_COMMENT_MODE],
+    illegal:"\\S"}}})();hljs.registerLanguage("json",e)})();/*! `python` grammar compiled for Highlight.js 11.9.0 */
     (()=>{var e=(()=>{"use strict";return e=>{
     const n=e.regex,a=/[\p{XID_Start}_]\p{XID_Continue}*/u,s=["and","as","assert","async","await","break","case","class","continue","def","del","elif","else","except","finally","for","from","global","if","import","in","is","lambda","match","nonlocal|10","not","or","pass","raise","return","try","while","with","yield"],i={
     $pattern:/[A-Za-z]\w+|__\w+__/,keyword:s,
