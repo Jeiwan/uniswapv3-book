@@ -16,13 +16,13 @@ jobs:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Set up Hugo
-        uses: peaceiris/actions-hugo@v2
+      - name: Set up mdBook
+        uses: peaceiris/actions-mdbook@v1
         with:
-          hugo-version: '0.97.3'
+          mdbook-version: '0.4.36'
 
       - name: Build
-        run: hugo --minify
+        run: mdbook build --dest-dir public
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
