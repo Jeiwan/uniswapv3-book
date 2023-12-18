@@ -86,7 +86,7 @@ const computePoolAddress = (factory, tokenA, tokenB, fee) => {
 
 However, the pool's codehash has to be hard coded because we don't want to store its code on the front end to calculate the hash. So, we'll use Forge to get the hash:
 
-```bash
+```shell
 $ forge inspect UniswapV3Pool bytecode| xargs cast keccak 
 0x...
 ```
