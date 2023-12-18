@@ -1,0 +1,407 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Calculating Liquidity - Uniswap V3 Development Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="A book that teaches how to build a clone of Uniswap V3 in Solidity from scratch.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Uniswap V3 Development Book</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 0. Background</li><li class="chapter-item expanded "><a href="../milestone_0/introduction-to-markets.html"><strong aria-hidden="true">1.</strong> Introduction to Markets</a></li><li class="chapter-item expanded "><a href="../milestone_0/constant-function-market-maker.html"><strong aria-hidden="true">2.</strong> Constant Function Market Maker</a></li><li class="chapter-item expanded "><a href="../milestone_0/uniswap-v3.html"><strong aria-hidden="true">3.</strong> Uniswap V3</a></li><li class="chapter-item expanded "><a href="../milestone_0/dev-environment.html"><strong aria-hidden="true">4.</strong> Development Environment</a></li><li class="chapter-item expanded "><a href="../milestone_0/what-we-will-build.html"><strong aria-hidden="true">5.</strong> What We Will Build</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 1. First Swap</li><li class="chapter-item expanded "><a href="../milestone_1/introduction.html"><strong aria-hidden="true">6.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_1/calculating-liquidity.html" class="active"><strong aria-hidden="true">7.</strong> Calculating Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/providing-liquidity.html"><strong aria-hidden="true">8.</strong> Providing Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/first-swap.html"><strong aria-hidden="true">9.</strong> First Swap</a></li><li class="chapter-item expanded "><a href="../milestone_1/manager-contract.html"><strong aria-hidden="true">10.</strong> Manager Contract</a></li><li class="chapter-item expanded "><a href="../milestone_1/deployment.html"><strong aria-hidden="true">11.</strong> Deployment</a></li><li class="chapter-item expanded "><a href="../milestone_1/user-interface.html"><strong aria-hidden="true">12.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 2. Second Swap</li><li class="chapter-item expanded "><a href="../milestone_2/introduction.html"><strong aria-hidden="true">13.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_2/output-amount-calculation.html"><strong aria-hidden="true">14.</strong> Output Amount Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_2/math-in-solidity.html"><strong aria-hidden="true">15.</strong> Math in Solidity</a></li><li class="chapter-item expanded "><a href="../milestone_2/tick-bitmap-index.html"><strong aria-hidden="true">16.</strong> Tick Bitmap Index</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-minting.html"><strong aria-hidden="true">17.</strong> Generalized Minting</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-swapping.html"><strong aria-hidden="true">18.</strong> Generalized Swapping</a></li><li class="chapter-item expanded "><a href="../milestone_2/quoter-contract.html"><strong aria-hidden="true">19.</strong> Quoter Contract</a></li><li class="chapter-item expanded "><a href="../milestone_2/user-interface.html"><strong aria-hidden="true">20.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 3. Cross-Tick Swaps</li><li class="chapter-item expanded "><a href="../milestone_3/introduction.html"><strong aria-hidden="true">21.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_3/different-ranges.html"><strong aria-hidden="true">22.</strong> Different Price Ranges</a></li><li class="chapter-item expanded "><a href="../milestone_3/cross-tick-swaps.html"><strong aria-hidden="true">23.</strong> Cross-Tick Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_3/slippage-protection.html"><strong aria-hidden="true">24.</strong> Slippage Protection</a></li><li class="chapter-item expanded "><a href="../milestone_3/liquidity-calculation.html"><strong aria-hidden="true">25.</strong> Liquidity Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_3/more-on-fixed-point-numbers.html"><strong aria-hidden="true">26.</strong> A Little Bit More on Fixed-Point Numbers</a></li><li class="chapter-item expanded "><a href="../milestone_3/flash-loans.html"><strong aria-hidden="true">27.</strong> Flash Loans</a></li><li class="chapter-item expanded "><a href="../milestone_3/user-interface.html"><strong aria-hidden="true">28.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 4. Multi-pool Swaps</li><li class="chapter-item expanded "><a href="../milestone_4/introduction.html"><strong aria-hidden="true">29.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_4/factory-contract.html"><strong aria-hidden="true">30.</strong> Factory Contract</a></li><li class="chapter-item expanded "><a href="../milestone_4/path.html"><strong aria-hidden="true">31.</strong> Swap Path</a></li><li class="chapter-item expanded "><a href="../milestone_4/multi-pool-swaps.html"><strong aria-hidden="true">32.</strong> Multi-Pool Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_4/user-interface.html"><strong aria-hidden="true">33.</strong> User Interface</a></li><li class="chapter-item expanded "><a href="../milestone_4/tick-rounding.html"><strong aria-hidden="true">34.</strong> Tick Rounding</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 5. Fees and Price Oracle</li><li class="chapter-item expanded "><a href="../milestone_5/introduction.html"><strong aria-hidden="true">35.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_5/swap-fees.html"><strong aria-hidden="true">36.</strong> Swap Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/flash-loan-fees.html"><strong aria-hidden="true">37.</strong> Flash Loan Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/protocol-fees.html"><strong aria-hidden="true">38.</strong> Protocol Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/price-oracle.html"><strong aria-hidden="true">39.</strong> Price Oracle</a></li><li class="chapter-item expanded "><a href="../milestone_5/user-interface.html"><strong aria-hidden="true">40.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 6: NFT Positions</li><li class="chapter-item expanded "><a href="../milestone_6/introduction.html"><strong aria-hidden="true">41.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_6/erc721-overview.html"><strong aria-hidden="true">42.</strong> Overview of ERC721</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-manager.html"><strong aria-hidden="true">43.</strong> NFT Manager</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-renderer.html"><strong aria-hidden="true">44.</strong> NFT Renderer</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Uniswap V3 Development Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book/edit/main/src/milestone_1/calculating-liquidity.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="calculating-liquidity"><a class="header" href="#calculating-liquidity">Calculating liquidity</a></h1>
+<p>Trading is not possible without liquidity, and to make our first swap we need to put some liquidity into the pool contract.  Here’s what we need to know to add liquidity to the pool contract:</p>
+<ol>
+<li>A price range. As a liquidity provider, we want to provide liquidity at a specific price range, and it’ll only be used in this range.</li>
+<li>Amount of liquidity, which is the amounts of two tokens. We’ll need to transfer these amounts to the pool contract.</li>
+</ol>
+<p>Here, we’re going to calculate these manually, but, in a later chapter, a contract will do this for us. Let’s begin with a price range.</p>
+<h2 id="price-range-calculation"><a class="header" href="#price-range-calculation">Price Range Calculation</a></h2>
+<p>Recall that, in Uniswap V3, the entire price range is demarcated into ticks: each tick corresponds to a price and has an index. In our first pool implementation, we’re going to buy ETH for USDC at the price of $5000 per 1 ETH. Buying ETH will remove some amount of it from the pool and will push the price slightly above $5000.  We want to provide liquidity at a range that includes this price. And we want to be sure that the final price will stay <strong>within this range</strong> (we’ll do multi-range swaps in a later milestone).</p>
+<p>We’ll need to find three ticks:</p>
+<ol>
+<li>The current tick will correspond to the current price (5000 USDC for 1 ETH).</li>
+<li>The lower and upper bounds of the price range we’re providing liquidity into. Let the lower price be $4545 and the upper price be $5500.</li>
+</ol>
+<p>From the theoretical introduction, we know that:</p>
+<p>$$\sqrt{P} = \sqrt{\frac{y}{x}}$$</p>
+<p>Since we’ve agreed to use ETH as the $x$ reserve and USDC as the $y$ reserve, the prices at each of the ticks are:</p>
+<p>$$\sqrt{P_c} = \sqrt{\frac{5000}{1}} = \sqrt{5000} \approx 70.71$$</p>
+<p>$$\sqrt{P_l} = \sqrt{\frac{4545}{1}} \approx 67.42$$</p>
+<p>$$\sqrt{P_u} = \sqrt{\frac{5500}{1}} \approx 74.16$$</p>
+<p>Where $P_c$ is the current price, $P_l$ is the lower bound of the range, and $P_u$ is the upper bound of the range.</p>
+<p>Now, we can find corresponding ticks. We know that prices and ticks are connected via this formula:</p>
+<p>$$\sqrt{P(i)}=1.0001^{\frac{i}{2}}$$</p>
+<p>Thus, we can find tick $i$ via:</p>
+<p>$$i = log_{\sqrt{1.0001}} \sqrt{P(i)}$$</p>
+<blockquote>
+<p>The square roots in this formula cancel out, but since we’re working with $\sqrt{p}$ we need to preserve them.</p>
+</blockquote>
+<p>Let’s find the ticks:</p>
+<ol>
+<li>Current tick: $i_c = log_{\sqrt{1.0001}} 70.71 = 85176$</li>
+<li>Lower tick: $i_l = log_{\sqrt{1.0001}} 67.42 = 84222$</li>
+<li>Upper tick: $i_u = log_{\sqrt{1.0001}} 74.16 = 86129$</li>
+</ol>
+<blockquote>
+<p>To calculate these, I used Python:</p>
+<pre><code class="language-python">import math
+
+def price_to_tick(p):
+    return math.floor(math.log(p, 1.0001))
+
+price_to_tick(5000)
+&gt; 85176
+</code></pre>
+</blockquote>
+<p>That’s it for price range calculation!</p>
+<p>Last thing to note here is that Uniswap uses <a href="https://en.wikipedia.org/wiki/Q_%28number_format%29">Q64.96 number</a> to store $\sqrt{P}$. This is a fixed-point number that has 64 bits for the integer part and 96 bits for the fractional part. In our above calculations, prices are floating point numbers: <code>70.71</code>, <code>67.42</code>, and <code>74.16</code>. We need to convert them to Q64.96. Luckily, this is simple: we need to multiply the numbers by $2^{96}$ (Q-number is a binary fixed-point number, so we need to multiply our decimals numbers by the base of Q64.96, which is $2^{96}$). We’ll get:</p>
+<p>$$\sqrt{P_c} = 5602277097478614198912276234240$$</p>
+<p>$$\sqrt{P_l} = 5314786713428871004159001755648$$</p>
+<p>$$\sqrt{P_u} = 5875717789736564987741329162240$$</p>
+<blockquote>
+<p>In Python:</p>
+<pre><code class="language-python">q96 = 2**96
+def price_to_sqrtp(p):
+    return int(math.sqrt(p) * q96)
+
+price_to_sqrtp(5000)
+&gt; 5602277097478614198912276234240
+</code></pre>
+<p>Notice that we’re multiplying before converting to an integer. Otherwise, we’ll lose precision.</p>
+</blockquote>
+<h2 id="token-amounts-calculation"><a class="header" href="#token-amounts-calculation">Token Amounts Calculation</a></h2>
+<p>The next step is to decide how many tokens we want to deposit into the pool. The answer is as many as we want. The amounts are not strictly defined, we can deposit as much as it is enough to buy a small amount of ETH without making the current price leave the price range we put liquidity into. During development and testing we’ll be able to mint any amount of tokens, so getting the amounts we want is not a problem.</p>
+<p>For our first swap, let’s deposit 1 ETH and 5000 USDC.</p>
+<blockquote>
+<p>Recall that the proportion of current pool reserves tells the current spot price. So if we want to put more tokens into the pool and keep the same price, the amounts must be proportional, e.g.: 2 ETH and 10,000 USDC; 10 ETH and 50,000 USDC, etc.</p>
+</blockquote>
+<h2 id="liquidity-amount-calculation"><a class="header" href="#liquidity-amount-calculation">Liquidity Amount Calculation</a></h2>
+<p>Next, we need to calculate $L$ based on the amounts we’ll deposit. This is a tricky part, so hold tight!</p>
+<p>From the theoretical introduction, you remember that:
+$$L = \sqrt{xy}$$</p>
+<p>However, this formula is for the infinite curve 🙂 But we want to put liquidity into a limited price range, which is just a segment of that infinite curve. We need to calculate $L$ specifically for the price range we’re going to deposit liquidity into. We need some more advanced calculations.</p>
+<p>To calculate $L$ for a price range, let’s look at one interesting fact we have discussed earlier: price ranges can be depleted. It’s possible to buy the entire amount of one token from a price range and leave the pool with only the other token.</p>
+<p><img src="images/range_depleted.png" alt="Range depletion example" /></p>
+<p>At the points $a$ and $b$, there’s only one token in the range: ETH at the point $a$ and USDC at the point $b$.</p>
+<p>That being said, we want to find an $L$ that will allow the price to move to either of the points. We want enough liquidity for the price to reach either of the boundaries of a price range. Thus, we want $L$ to be calculated based on the maximum amounts of $\Delta x$ and $\Delta y$.</p>
+<p>Now, let’s see what the prices are at the edges. When ETH is bought from a pool, the price is growing; when USDC is bought, the price is falling. Recall that the price is $\frac{y}{x}$. So, at point $a$, the price is the lowest of the range; at point $b$, the price is the highest.</p>
+<blockquote>
+<p>In fact, prices are not defined at these points because there’s only one reserve in the pool, but what we need to understand here is that the price around the point $b$ is higher than the start price, and the price at the point $a$ is lower than the start price.</p>
+</blockquote>
+<p>Now, break the curve from the image above into two segments: one to the left of the start point and one to the right of the start point. We’re going to calculate <strong>two</strong> $L$’s, one for each of the segments. Why? Because each of the two tokens of a pool contributes to <strong>either of the segments</strong>: the left segment is made entirely of token $x$, and the right segment is made entirely of token $y$. This comes from the fact that, during swapping, the price moves in either direction: it’s either growing or falling. For the price to move, only either of the tokens is needed:</p>
+<ol>
+<li>when the price is growing, only token $x$ is needed for the swap (we’re buying token $x$, so we want to take only token $x$ from the pool);</li>
+<li>when the price is falling, only token $y$ is needed for the swap.</li>
+</ol>
+<p>Thus, the liquidity in the segment of the curve to the left of the current price consists only of token $x$ and is calculated only from the amount of token $x$ provided. Similarly, the liquidity in the segment of the curve to the right of the current price consists only of token $y$ and is calculated only from the amount of token $y$ provided.</p>
+<p><img src="images/curve_liquidity.png" alt="Liquidity on the curve" /></p>
+<p>This is why, when providing liquidity, we calculate two $L$’s and pick one of them. Which one? The smaller one. Why?  Because the bigger one already includes the smaller one! We want the new liquidity to be distributed <strong>evenly</strong> along the curve, thus we want to add the same $L$ to the left and to the right of the current price. If we pick the bigger one, the user would need to provide more liquidity to compensate for the shortage in the smaller one. This is doable, of course, but this would make the smart contract more complex.</p>
+<blockquote>
+<p>What happens with the remainder of the bigger $L$? Well, nothing. After picking the smaller $L$ we can simply convert it to a smaller amount of the token that resulted in the bigger $L$–this will adjust it down. After that, we’ll have token amounts that will result in the same $L$.</p>
+</blockquote>
+<p>The final detail I need to focus your attention on here is: <strong>new liquidity must not change the current price</strong>. That is, it must be proportional to the current proportion of the reserves. And this is why the two $L$’s can be different–when the proportion is not preserved. And we pick the small $L$ to reestablish the proportion.</p>
+<p>I hope this will make more sense after we implement this in code! Now, let’s look at the formulas.</p>
+<p>Let’s recall how $\Delta x$ and $\Delta y$ are calculated:</p>
+<p>$$\Delta x = \Delta \frac{1}{\sqrt{P}} L$$
+$$\Delta y = \Delta \sqrt{P} L$$</p>
+<p>We can expand these formulas by replacing the delta P’s with actual prices (we know them from the above):</p>
+<p>$$\Delta x = (\frac{1}{\sqrt{P_c}} - \frac{1}{\sqrt{P_b}}) L$$
+$$\Delta y = (\sqrt{P_c} - \sqrt{P_a}) L$$</p>
+<p>$P_a$ is the price at the point $a$, $P_b$ is the price at the point $b$, and $P_c$ is the current price (see the above chart). Notice that, since the price is calculated as $\frac{y}{x}$ (i.e. it’s the price of $x$ in terms of $y$), the price at point $b$ is higher than the current price and the price at $a$. The price at $a$ is the lowest of the three.</p>
+<p>Let’s find the $L$ from the first formula:</p>
+<p>$$\Delta x = (\frac{1}{\sqrt{P_c}} - \frac{1}{\sqrt{P_b}}) L$$
+$$\Delta x = \frac{L}{\sqrt{P_c}} - \frac{L}{\sqrt{P_b}}$$
+$$\Delta x = \frac{L(\sqrt{P_b} - \sqrt{P_c})}{\sqrt{P_b} \sqrt{P_c}}$$
+$$L = \Delta x \frac{\sqrt{P_b} \sqrt{P_c}}{\sqrt{P_b} - \sqrt{P_c}}$$</p>
+<p>And from the second formula:
+$$\Delta y = (\sqrt{P_c} - \sqrt{P_a}) L$$
+$$L = \frac{\Delta y}{\sqrt{P_c} - \sqrt{P_a}}$$</p>
+<p>So, these are our two $L$’s, one for each of the segments:</p>
+<p>$$L = \Delta x \frac{\sqrt{P_b} \sqrt{P_c}}{\sqrt{P_b} - \sqrt{P_c}}$$
+$$L = \frac{\Delta y}{\sqrt{P_c} - \sqrt{P_a}}$$</p>
+<p>Now, let’s plug the prices we calculated earlier into them:</p>
+<p>$$L = \Delta x \frac{\sqrt{P_b}\sqrt{P_c}}{\sqrt{P_b}-\sqrt{P_c}} = 1 ETH * \frac{5875… * 5602…}{5875… - 5602…}$$</p>
+<p>After converting to Q64.96, we get:</p>
+<p>$$L = 1519437308014769733632$$</p>
+<p>And for the other $L$:
+$$L = \frac{\Delta y}{\sqrt{P_c}-\sqrt{P_a}} = \frac{5000USDC}{5602… - 5314…}$$
+$$L = 1517882343751509868544$$</p>
+<p>Of these two, we’ll pick the smaller one.</p>
+<blockquote>
+<p>In Python:</p>
+<pre><code class="language-python">sqrtp_low = price_to_sqrtp(4545)
+sqrtp_cur = price_to_sqrtp(5000)
+sqrtp_upp = price_to_sqrtp(5500)
+
+def liquidity0(amount, pa, pb):
+    if pa &gt; pb:
+        pa, pb = pb, pa
+    return (amount * (pa * pb) / q96) / (pb - pa)
+
+def liquidity1(amount, pa, pb):
+    if pa &gt; pb:
+        pa, pb = pb, pa
+    return amount * q96 / (pb - pa)
+
+eth = 10**18
+amount_eth = 1 * eth
+amount_usdc = 5000 * eth
+
+liq0 = liquidity0(amount_eth, sqrtp_cur, sqrtp_upp)
+liq1 = liquidity1(amount_usdc, sqrtp_cur, sqrtp_low)
+liq = int(min(liq0, liq1))
+&gt; 1517882343751509868544
+</code></pre>
+</blockquote>
+<h2 id="token-amounts-calculation-again"><a class="header" href="#token-amounts-calculation-again">Token Amounts Calculation, Again</a></h2>
+<p>Since we choose the amounts we’re going to deposit, the amounts can be wrong. We cannot deposit any amounts at any price range; the liquidity amount needs to be distributed evenly along the curve of the price range we’re depositing into. Thus, even though users choose amounts, the contract needs to re-calculate them, and actual amounts will be slightly different (at least because of rounding).</p>
+<p>Luckily, we already know the formulas:</p>
+<p>$$\Delta x = \frac{L(\sqrt{P_b} - \sqrt{P_c})}{\sqrt{P_b} \sqrt{P_c}}$$
+$$\Delta y = L(\sqrt{P_c} - \sqrt{P_a})$$</p>
+<blockquote>
+<p>In Python:</p>
+<pre><code class="language-python">def calc_amount0(liq, pa, pb):
+    if pa &gt; pb:
+        pa, pb = pb, pa
+    return int(liq * q96 * (pb - pa) / pa / pb)
+
+
+def calc_amount1(liq, pa, pb):
+    if pa &gt; pb:
+        pa, pb = pb, pa
+    return int(liq * (pb - pa) / q96)
+
+amount0 = calc_amount0(liq, sqrtp_upp, sqrtp_cur)
+amount1 = calc_amount1(liq, sqrtp_low, sqrtp_cur)
+(amount0, amount1)
+&gt; (998976618347425408, 5000000000000000000000)
+</code></pre>
+<p>As you can see, the numbers are close to the amounts we want to provide, but ETH is slightly smaller.</p>
+</blockquote>
+<blockquote>
+<p><strong>Hint</strong>: use <code>cast --from-wei AMOUNT</code> to convert from wei to ether, e.g.:<br />
+<code>cast --from-wei 998976618347425280</code> will give you <code>0.998976618347425280</code>.</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../milestone_1/introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../milestone_1/providing-liquidity.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../milestone_1/introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../milestone_1/providing-liquidity.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Constant Function Market Maker - Uniswap V3 Development Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="A book that teaches how to build a clone of Uniswap V3 in Solidity from scratch.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Uniswap V3 Development Book</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 0. Background</li><li class="chapter-item expanded "><a href="../milestone_0/introduction-to-markets.html"><strong aria-hidden="true">1.</strong> Introduction to Markets</a></li><li class="chapter-item expanded "><a href="../milestone_0/constant-function-market-maker.html" class="active"><strong aria-hidden="true">2.</strong> Constant Function Market Maker</a></li><li class="chapter-item expanded "><a href="../milestone_0/uniswap-v3.html"><strong aria-hidden="true">3.</strong> Uniswap V3</a></li><li class="chapter-item expanded "><a href="../milestone_0/dev-environment.html"><strong aria-hidden="true">4.</strong> Development Environment</a></li><li class="chapter-item expanded "><a href="../milestone_0/what-we-will-build.html"><strong aria-hidden="true">5.</strong> What We Will Build</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 1. First Swap</li><li class="chapter-item expanded "><a href="../milestone_1/introduction.html"><strong aria-hidden="true">6.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_1/calculating-liquidity.html"><strong aria-hidden="true">7.</strong> Calculating Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/providing-liquidity.html"><strong aria-hidden="true">8.</strong> Providing Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/first-swap.html"><strong aria-hidden="true">9.</strong> First Swap</a></li><li class="chapter-item expanded "><a href="../milestone_1/manager-contract.html"><strong aria-hidden="true">10.</strong> Manager Contract</a></li><li class="chapter-item expanded "><a href="../milestone_1/deployment.html"><strong aria-hidden="true">11.</strong> Deployment</a></li><li class="chapter-item expanded "><a href="../milestone_1/user-interface.html"><strong aria-hidden="true">12.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 2. Second Swap</li><li class="chapter-item expanded "><a href="../milestone_2/introduction.html"><strong aria-hidden="true">13.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_2/output-amount-calculation.html"><strong aria-hidden="true">14.</strong> Output Amount Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_2/math-in-solidity.html"><strong aria-hidden="true">15.</strong> Math in Solidity</a></li><li class="chapter-item expanded "><a href="../milestone_2/tick-bitmap-index.html"><strong aria-hidden="true">16.</strong> Tick Bitmap Index</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-minting.html"><strong aria-hidden="true">17.</strong> Generalized Minting</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-swapping.html"><strong aria-hidden="true">18.</strong> Generalized Swapping</a></li><li class="chapter-item expanded "><a href="../milestone_2/quoter-contract.html"><strong aria-hidden="true">19.</strong> Quoter Contract</a></li><li class="chapter-item expanded "><a href="../milestone_2/user-interface.html"><strong aria-hidden="true">20.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 3. Cross-Tick Swaps</li><li class="chapter-item expanded "><a href="../milestone_3/introduction.html"><strong aria-hidden="true">21.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_3/different-ranges.html"><strong aria-hidden="true">22.</strong> Different Price Ranges</a></li><li class="chapter-item expanded "><a href="../milestone_3/cross-tick-swaps.html"><strong aria-hidden="true">23.</strong> Cross-Tick Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_3/slippage-protection.html"><strong aria-hidden="true">24.</strong> Slippage Protection</a></li><li class="chapter-item expanded "><a href="../milestone_3/liquidity-calculation.html"><strong aria-hidden="true">25.</strong> Liquidity Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_3/more-on-fixed-point-numbers.html"><strong aria-hidden="true">26.</strong> A Little Bit More on Fixed-Point Numbers</a></li><li class="chapter-item expanded "><a href="../milestone_3/flash-loans.html"><strong aria-hidden="true">27.</strong> Flash Loans</a></li><li class="chapter-item expanded "><a href="../milestone_3/user-interface.html"><strong aria-hidden="true">28.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 4. Multi-pool Swaps</li><li class="chapter-item expanded "><a href="../milestone_4/introduction.html"><strong aria-hidden="true">29.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_4/factory-contract.html"><strong aria-hidden="true">30.</strong> Factory Contract</a></li><li class="chapter-item expanded "><a href="../milestone_4/path.html"><strong aria-hidden="true">31.</strong> Swap Path</a></li><li class="chapter-item expanded "><a href="../milestone_4/multi-pool-swaps.html"><strong aria-hidden="true">32.</strong> Multi-Pool Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_4/user-interface.html"><strong aria-hidden="true">33.</strong> User Interface</a></li><li class="chapter-item expanded "><a href="../milestone_4/tick-rounding.html"><strong aria-hidden="true">34.</strong> Tick Rounding</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 5. Fees and Price Oracle</li><li class="chapter-item expanded "><a href="../milestone_5/introduction.html"><strong aria-hidden="true">35.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_5/swap-fees.html"><strong aria-hidden="true">36.</strong> Swap Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/flash-loan-fees.html"><strong aria-hidden="true">37.</strong> Flash Loan Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/protocol-fees.html"><strong aria-hidden="true">38.</strong> Protocol Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/price-oracle.html"><strong aria-hidden="true">39.</strong> Price Oracle</a></li><li class="chapter-item expanded "><a href="../milestone_5/user-interface.html"><strong aria-hidden="true">40.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 6: NFT Positions</li><li class="chapter-item expanded "><a href="../milestone_6/introduction.html"><strong aria-hidden="true">41.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_6/erc721-overview.html"><strong aria-hidden="true">42.</strong> Overview of ERC721</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-manager.html"><strong aria-hidden="true">43.</strong> NFT Manager</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-renderer.html"><strong aria-hidden="true">44.</strong> NFT Renderer</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Uniswap V3 Development Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book/edit/main/src/milestone_0/constant-function-market-maker.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="constant-function-market-makers"><a class="header" href="#constant-function-market-makers">Constant Function Market Makers</a></h1>
+<blockquote>
+<p>This chapter retells <a href="https://uniswap.org/whitepaper.pdf">the whitepaper of Uniswap V2</a>. Understanding this math is crucial to build a Uniswap-like DEX, but it’s totally fine if you don’t understand everything at this stage.</p>
+</blockquote>
+<p>As I mentioned in the previous section, there are different approaches to building AMM. We’ll be focusing on and building one specific type of AMM–Constant Function Market Maker. Don’t be scared by the long name! At its core is a very simple mathematical formula:</p>
+<p>$$x * y = k$$</p>
+<p>That’s it, this is the AMM.</p>
+<p>$x$ and $y$ are pool contract reserves–the amounts of tokens it currently holds. <em>k</em> is just their product, actual value doesn’t matter.</p>
+<blockquote>
+<p><strong>Why are there only two reserves, <em>x</em> and <em>y</em>?</strong><br />
+Each Uniswap pool can hold only two tokens. We use <em>x</em> and <em>y</em> to refer to reserves of one pool, where <em>x</em> is the reserve of the first token and <em>y</em> is the reserve of the other token, and the order doesn’t matter.</p>
+</blockquote>
+<p>The constant function formula says: <strong>after each trade, <em>k</em> must remain unchanged</strong>. When traders make trades, they put some amount of one token into a pool (the token they want to sell) and remove some amount of the other token from the pool (the token they want to buy). This changes the reserves of the pool, and the constant function formula says that <strong>the product</strong> of reserves must not change. As we will see many times in this book, this simple requirement is the core algorithm of how Uniswap works.</p>
+<h2 id="the-trade-function"><a class="header" href="#the-trade-function">The Trade Function</a></h2>
+<p>Now that we know what pools are, let’s write the formula of how trading happens in a pool:</p>
+<p>$$(x + r\Delta x)(y - \Delta y) = k$$</p>
+<ol>
+<li>There’s a pool with some amount of token 0 ($x$) and some amount of token 1 ($y$) </li>
+<li>When we buy token 1 for token 0, we give some amount of token 0 to the pool ($\Delta x$).</li>
+<li>The pool gives us some amount of token 1 in exchange ($\Delta y$).</li>
+<li>The pool also takes a small fee ($r = 1 - \text{swap fee}$) from the amount of token 0 we gave.</li>
+<li>The reserve of token 0 changes ($x + r \Delta x$), and the reserve of token 1 changes as well ($y - \Delta y$).</li>
+<li>The product of updated reserves must still equal $k$.</li>
+</ol>
+<blockquote>
+<p>We’ll use token 0 and token 1 notation for the tokens because this is how they’re referenced in the code. At this point, it doesn’t matter which of them is 0 and which is 1.</p>
+</blockquote>
+<p>We’re basically giving a pool some amount of token 0 and getting some amount of token 1. The job of the pool is to give us a correct amount of token 1 calculated at a fair price. This leads us to the following conclusion: <strong>pools decide what trade prices are</strong>.</p>
+<h2 id="pricing"><a class="header" href="#pricing">Pricing</a></h2>
+<p>How do we calculate the prices of tokens in a pool?</p>
+<p>Since Uniswap pools are separate smart contracts, <strong>tokens in a pool are priced in terms of each other</strong>. For example: in a ETH/USDC pool, ETH is priced in terms of USDC, and USDC is priced in terms of ETH. If 1 ETH costs 1000 USDC, then 1 USDC costs 0.001 ETH. The same is true for any other pool, whether it’s a stablecoin pair or not (e.g. ETH/BTC).</p>
+<p>In the real world, everything is priced based on <a href="https://www.investopedia.com/terms/l/law-of-supply-demand.asp">the law of supply and demand</a>.  This also holds true for AMMs. We’ll put the demand part aside for now and focus on supply.</p>
+<p>The prices of tokens in a pool are determined by the supply of the tokens, that is by <strong>the amounts of reserves of the tokens</strong> that the pool is holding. Token prices are simply relations of reserves:</p>
+<p>$$P_x = \frac{y}{x}, \quad P_y=\frac{x}{y}$$</p>
+<p>Where $P_x$ and $P_y$ are prices of tokens in terms of the other token.</p>
+<p>Such prices are called <em>spot prices</em> and they only reflect current market prices. However, the actual price of a trade is calculated differently. And this is where we need to bring the demand part back.</p>
+<p>Concluding from the law of supply and demand, <strong>high demand increases the price</strong>–and this is a property we need to have in a permissionless system. We want the price to be high when demand is high, and we can use pool reserves to measure the demand: the more tokens you want to remove from a pool (relative to the pool’s reserves), the higher the impact of demand is.</p>
+<p>Let’s return to the trade formula and look at it closer:</p>
+<p>$$(x + r\Delta x)(y - \Delta y) = xy$$</p>
+<p>As you can see, we can derive $\Delta_x$ and $\Delta y$ from it, which means we can calculate the output amount of a trade based on the input amount and vice versa:</p>
+<p>$$\Delta y = \frac{yr\Delta x}{x + r\Delta x}$$
+$$\Delta x = \frac{x \Delta y}{r(y - \Delta y)}$$</p>
+<p>In fact, these formulas free us from calculating prices! We can always find the output amount using the $\Delta y$ formula (when we want to sell a known amount of tokens) and we can always find the input amount using the $\Delta x$ formula (when we want to buy a known amount of tokens). Notice that each of these formulas is a relation of reserves ($x/y$ or $y/x$) and they also take the trade amount ($\Delta x$ in the former and $\Delta y$ in the latter) into consideration. <strong>These are the pricing functions that respect both supply and demand</strong>. And we don’t even need to calculate the prices!</p>
+<blockquote>
+<p>Here’s how you can derive the above formulas from the trade function:
+$$(x + r\Delta x)(y - \Delta y) = xy$$
+$$y - \Delta y = \frac{xy}{x + r\Delta x}$$
+$$-\Delta y = \frac{xy}{x + r\Delta x} - y$$
+$$-\Delta y = \frac{xy - y({x + r\Delta x})}{x + r\Delta x}$$
+$$-\Delta y = \frac{xy - xy - y r \Delta x}{x + r\Delta x}$$
+$$-\Delta y = \frac{- y r \Delta x}{x + r\Delta x}$$
+$$\Delta y = \frac{y r \Delta x}{x + r\Delta x}$$
+And:
+$$(x + r\Delta x)(y - \Delta y) = xy$$
+$$x + r\Delta x = \frac{xy}{y - \Delta y}$$
+$$r\Delta x = \frac{xy}{y - \Delta y} - x$$
+$$r\Delta x = \frac{xy - x(y - \Delta y)}{y - \Delta y}$$
+$$r\Delta x = \frac{xy - xy + x \Delta y}{y - \Delta y}$$
+$$r\Delta x = \frac{x \Delta y}{y - \Delta y}$$
+$$\Delta x = \frac{x \Delta y}{r(y - \Delta y)}$$</p>
+</blockquote>
+<h2 id="the-curve"><a class="header" href="#the-curve">The Curve</a></h2>
+<p>The above calculations might seem too abstract and dry. Let’s visualize the constant product function to better understand how it works.</p>
+<p>When plotted, the constant product function is a quadratic hyperbola:</p>
+<p><img src="images/the_curve.png" alt="The shape of the constant product formula curve" /></p>
+<p>Where axes are the pool reserves. Every trade starts at the point on the curve that corresponds to the current ratio of reserves. To calculate the output amount, we need to find a new point on the curve, which has the $x$ coordinate of $x+\Delta x$, i.e. current reserve of token 0 + the amount we’re selling. The change in $y$ is the amount of token 1 we’ll get.</p>
+<p>Let’s look at a concrete example:</p>
+<p><img src="images/desmos.png" alt="Desmos chart example" /></p>
+<ol>
+<li>The purple line is the curve, and the axes are the reserves of a pool (notice that they’re equal at the start price).</li>
+<li>The start price is 1.</li>
+<li>We’re selling 200 of token 0. If we use only the start price, we expect to get 200 of token 1.</li>
+<li>However, the execution price is 0.666, so we get only 133.333 of token 1!</li>
+</ol>
+<p>This example is from <a href="https://www.desmos.com/calculator/7wbvkts2jf">the Desmos chart</a> made by <a href="https://twitter.com/danrobinson">Dan Robinson</a>, one of the creators of Uniswap. To build a better intuition of how it works, try making up different scenarios and plotting them on the graph. Try different reserves, and see how the output amount changes when $\Delta x$ is small relative to $x$.</p>
+<blockquote>
+<p>As the legend goes, Uniswap was invented in Desmos.</p>
+</blockquote>
+<p>I bet you’re wondering why using such a curve. It might seem like it punishes you for trading big amounts. This is true, and this is a desirable property! The law of supply and demand tells us that when demand is high (and supply is constant) the price is also high. And when demand is low, the price is also lower. This is how markets work. And, magically, the constant product function implements this mechanism! Demand is defined by the amount you want to buy, and supply is the pool reserves. When you want to buy a big amount relative to pool reserves the price is higher than when you want to buy a smaller amount. Such a simple formula guarantees such a powerful mechanism!</p>
+<p>Even though Uniswap doesn’t calculate trade prices, we can still see them on the curve. Surprisingly, there are multiple prices when making a trade:</p>
+<ol>
+<li>Before a trade, there’s <em>a spot price</em>. It’s equal to the relation of reserves, $\frac{y}{x}$ or $\frac{x}{y}$ depending on the direction of the trade. This price is also <em>the slope of the tangent line</em> at the starting point.</li>
+<li>After a trade, there’s a new spot price, at a different point on the curve. And it’s the slope of the tangent line at this new point.</li>
+<li>The actual price of the trade is the slope of the line connecting the two points!</li>
+</ol>
+<p><strong>And that’s the whole math of Uniswap! Phew!</strong></p>
+<p>Well, this is the math of Uniswap V2, and we’re studying Uniswap V3. So in the next part, we’ll see how the mathematics of Uniswap V3 is different.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../milestone_0/introduction-to-markets.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../milestone_0/uniswap-v3.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../milestone_0/introduction-to-markets.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../milestone_0/uniswap-v3.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

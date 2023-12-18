@@ -1,0 +1,376 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Tick Bitmap Index - Uniswap V3 Development Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="A book that teaches how to build a clone of Uniswap V3 in Solidity from scratch.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Uniswap V3 Development Book</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 0. Background</li><li class="chapter-item expanded "><a href="../milestone_0/introduction-to-markets.html"><strong aria-hidden="true">1.</strong> Introduction to Markets</a></li><li class="chapter-item expanded "><a href="../milestone_0/constant-function-market-maker.html"><strong aria-hidden="true">2.</strong> Constant Function Market Maker</a></li><li class="chapter-item expanded "><a href="../milestone_0/uniswap-v3.html"><strong aria-hidden="true">3.</strong> Uniswap V3</a></li><li class="chapter-item expanded "><a href="../milestone_0/dev-environment.html"><strong aria-hidden="true">4.</strong> Development Environment</a></li><li class="chapter-item expanded "><a href="../milestone_0/what-we-will-build.html"><strong aria-hidden="true">5.</strong> What We Will Build</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 1. First Swap</li><li class="chapter-item expanded "><a href="../milestone_1/introduction.html"><strong aria-hidden="true">6.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_1/calculating-liquidity.html"><strong aria-hidden="true">7.</strong> Calculating Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/providing-liquidity.html"><strong aria-hidden="true">8.</strong> Providing Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/first-swap.html"><strong aria-hidden="true">9.</strong> First Swap</a></li><li class="chapter-item expanded "><a href="../milestone_1/manager-contract.html"><strong aria-hidden="true">10.</strong> Manager Contract</a></li><li class="chapter-item expanded "><a href="../milestone_1/deployment.html"><strong aria-hidden="true">11.</strong> Deployment</a></li><li class="chapter-item expanded "><a href="../milestone_1/user-interface.html"><strong aria-hidden="true">12.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 2. Second Swap</li><li class="chapter-item expanded "><a href="../milestone_2/introduction.html"><strong aria-hidden="true">13.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_2/output-amount-calculation.html"><strong aria-hidden="true">14.</strong> Output Amount Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_2/math-in-solidity.html"><strong aria-hidden="true">15.</strong> Math in Solidity</a></li><li class="chapter-item expanded "><a href="../milestone_2/tick-bitmap-index.html" class="active"><strong aria-hidden="true">16.</strong> Tick Bitmap Index</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-minting.html"><strong aria-hidden="true">17.</strong> Generalized Minting</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-swapping.html"><strong aria-hidden="true">18.</strong> Generalized Swapping</a></li><li class="chapter-item expanded "><a href="../milestone_2/quoter-contract.html"><strong aria-hidden="true">19.</strong> Quoter Contract</a></li><li class="chapter-item expanded "><a href="../milestone_2/user-interface.html"><strong aria-hidden="true">20.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 3. Cross-Tick Swaps</li><li class="chapter-item expanded "><a href="../milestone_3/introduction.html"><strong aria-hidden="true">21.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_3/different-ranges.html"><strong aria-hidden="true">22.</strong> Different Price Ranges</a></li><li class="chapter-item expanded "><a href="../milestone_3/cross-tick-swaps.html"><strong aria-hidden="true">23.</strong> Cross-Tick Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_3/slippage-protection.html"><strong aria-hidden="true">24.</strong> Slippage Protection</a></li><li class="chapter-item expanded "><a href="../milestone_3/liquidity-calculation.html"><strong aria-hidden="true">25.</strong> Liquidity Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_3/more-on-fixed-point-numbers.html"><strong aria-hidden="true">26.</strong> A Little Bit More on Fixed-Point Numbers</a></li><li class="chapter-item expanded "><a href="../milestone_3/flash-loans.html"><strong aria-hidden="true">27.</strong> Flash Loans</a></li><li class="chapter-item expanded "><a href="../milestone_3/user-interface.html"><strong aria-hidden="true">28.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 4. Multi-pool Swaps</li><li class="chapter-item expanded "><a href="../milestone_4/introduction.html"><strong aria-hidden="true">29.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_4/factory-contract.html"><strong aria-hidden="true">30.</strong> Factory Contract</a></li><li class="chapter-item expanded "><a href="../milestone_4/path.html"><strong aria-hidden="true">31.</strong> Swap Path</a></li><li class="chapter-item expanded "><a href="../milestone_4/multi-pool-swaps.html"><strong aria-hidden="true">32.</strong> Multi-Pool Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_4/user-interface.html"><strong aria-hidden="true">33.</strong> User Interface</a></li><li class="chapter-item expanded "><a href="../milestone_4/tick-rounding.html"><strong aria-hidden="true">34.</strong> Tick Rounding</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 5. Fees and Price Oracle</li><li class="chapter-item expanded "><a href="../milestone_5/introduction.html"><strong aria-hidden="true">35.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_5/swap-fees.html"><strong aria-hidden="true">36.</strong> Swap Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/flash-loan-fees.html"><strong aria-hidden="true">37.</strong> Flash Loan Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/protocol-fees.html"><strong aria-hidden="true">38.</strong> Protocol Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/price-oracle.html"><strong aria-hidden="true">39.</strong> Price Oracle</a></li><li class="chapter-item expanded "><a href="../milestone_5/user-interface.html"><strong aria-hidden="true">40.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 6: NFT Positions</li><li class="chapter-item expanded "><a href="../milestone_6/introduction.html"><strong aria-hidden="true">41.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_6/erc721-overview.html"><strong aria-hidden="true">42.</strong> Overview of ERC721</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-manager.html"><strong aria-hidden="true">43.</strong> NFT Manager</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-renderer.html"><strong aria-hidden="true">44.</strong> NFT Renderer</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Uniswap V3 Development Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book/edit/main/src/milestone_2/tick-bitmap-index.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="tick-bitmap-index"><a class="header" href="#tick-bitmap-index">Tick Bitmap Index</a></h1>
+<p>As the first step towards dynamic swaps, we need to implement an index of ticks. In the previous milestone, we used to calculate the target tick when making a swap:</p>
+<pre><code class="language-solidity">function swap(address recipient, bytes calldata data)
+    public
+    returns (int256 amount0, int256 amount1)
+{
+  int24 nextTick = 85184;
+  ...
+}
+</code></pre>
+<p>When there’s liquidity provided in different price ranges, we cannot simply calculate the target tick. We need to <strong>find it</strong>. Thus, we need to index all ticks that have liquidity and then use the index to find ticks to “inject” enough liquidity for a swap. In this step, we’re going to implement such an index.</p>
+<h2 id="bitmap"><a class="header" href="#bitmap">Bitmap</a></h2>
+<p>Bitmap is a popular technique of indexing data in a compact way. A bitmap is simply a number represented in the binary system, e.g. 31337 is <code>111101001101001</code>. We can look at it as an array of zeros and ones, with each digit having an index.  We then say that 0 means a flag is not set and 1 means it’s set. So what we get is a very compact array of indexed flags: each byte can fit 8 flags. In Solidity, we can have integers up to 256 bits, which means one <code>uint256</code> can hold 256 flags.</p>
+<p>Uniswap V3 uses this technique to store the information about initialized ticks, that is ticks with some liquidity. When a flag is set (1), the tick has liquidity; when a flag is not set (0), the tick is not initialized. Let’s look at the implementation.</p>
+<h2 id="tickbitmap-contract"><a class="header" href="#tickbitmap-contract">TickBitmap Contract</a></h2>
+<p>In the pool contract, the tick index is stored in a state variable:</p>
+<pre><code class="language-solidity">contract UniswapV3Pool {
+    using TickBitmap for mapping(int16 =&gt; uint256);
+    mapping(int16 =&gt; uint256) public tickBitmap;
+    ...
+}
+</code></pre>
+<p>This is mapping where keys are <code>int16</code>’s and values are words (<code>uint256</code>). Imagine an infinite continuous array of ones and zeros:</p>
+<p><img src="images/tick_bitmap.png" alt="Tick indexes in tick bitmap" /></p>
+<p>Each element in this array corresponds to a tick. To navigate in this array, we break it into words: sub-arrays of length 256 bits. To find the tick’s position in this array, we do:</p>
+<pre><code class="language-solidity">function position(int24 tick) private pure returns (int16 wordPos, uint8 bitPos) {
+    wordPos = int16(tick &gt;&gt; 8);
+    bitPos = uint8(uint24(tick % 256));
+}
+</code></pre>
+<p>That is: we find its word position and then its bit in this word. <code>&gt;&gt; 8</code> is identical to integer division by 256. So, word position is the integer part of a tick index divided by 256, and bit position is the remainder.</p>
+<p>As an example, let’s calculate word and bit positions for one of our ticks:</p>
+<pre><code class="language-python">tick = 85176
+word_pos = tick &gt;&gt; 8 # or tick // 2**8
+bit_pos = tick % 256
+print(f&quot;Word {word_pos}, bit {bit_pos}&quot;)
+# Word 332, bit 184
+</code></pre>
+<h3 id="flipping-flags"><a class="header" href="#flipping-flags">Flipping Flags</a></h3>
+<p>When adding liquidity into a pool, we need to set a couple of tick flags in the bitmap: one for the lower tick and one for the upper tick. We do this in the <code>flipTick</code> method of the bitmap mapping:</p>
+<pre><code class="language-solidity">function flipTick(
+    mapping(int16 =&gt; uint256) storage self,
+    int24 tick,
+    int24 tickSpacing
+) internal {
+    require(tick % tickSpacing == 0); // ensure that the tick is spaced
+    (int16 wordPos, uint8 bitPos) = position(tick / tickSpacing);
+    uint256 mask = 1 &lt;&lt; bitPos;
+    self[wordPos] ^= mask;
+}
+</code></pre>
+<blockquote>
+<p>Until later in the book, <code>tickSpacing</code> is always 1. Please keep in mind that this value affects which ticks can be initialized: when it equals 1, all ticks can be flipped; when it’s set to a different value, only ticks divisible by the value can be flipped.</p>
+</blockquote>
+<p>After finding word and bit positions, we need to make a mask. A mask is a number that has a single 1 flag set at the bit position of the tick. To find the mask, we simply calculate <code>2**bit_pos</code> (equivalent of <code>1 &lt;&lt; bit_pos</code>):</p>
+<pre><code class="language-python">mask = 2**bit_pos # or 1 &lt;&lt; bit_pos
+print(format(mask, '#0258b'))                                             ↓ here
+#0b0000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+</code></pre>
+<p>Next, to flip a flag, we apply the mask to the tick’s word via bitwise XOR:</p>
+<pre><code class="language-python">word = (2**256) - 1 # set word to all ones
+print(format(word ^ mask, '#0258b'))                                      ↓ here
+#0b1111111111111111111111111111111111111111111111111111111111111111111111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+</code></pre>
+<p>You’ll see that the 184th bit (counting from the right starting at 0) has flipped to 0.</p>
+<p>If a bit is zero, it’ll set it to 1:</p>
+<pre><code class="language-python">word = 0
+print(format(word ^ mask, '#0258b'))                                      ↓ here
+#0b0000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+</code></pre>
+<h3 id="finding-next-tick"><a class="header" href="#finding-next-tick">Finding Next Tick</a></h3>
+<p>The next step is finding ticks with liquidity using the bitmap index.</p>
+<p>During swapping, we need to find a tick with liquidity that’s before or after the current tick (that is: to the left or the right of it). In the previous milestone, we used to <a href="https://github.com/Jeiwan/uniswapv3-code/blob/85b8605c37a9065c141a234ee2c18d9507eeba22/src/UniswapV3Pool.sol#L142">calculate and hard code it</a>, but now we need to find such tick using the bitmap index. We’ll do this in the <code>TickBitmap.nextInitializedTickWithinOneWord</code> function. In this function, we’ll need to implement two scenarios:</p>
+<ol>
+<li>When selling token $x$ (ETH in our case), find the next initialized tick in the current tick’s word and <strong>to the right</strong> of the current tick.</li>
+<li>When selling token $y$ (USDC in our case), find the next initialized tick in the next (current + 1) tick’s word and <strong>to the left</strong> of the current tick.</li>
+</ol>
+<p>This corresponds to the price movement when making swaps in either direction:</p>
+<p><img src="images/find_next_tick.png" alt="Finding next initialized tick during a swap" /></p>
+<blockquote>
+<p>Be aware that, in the code, the direction is flipped: when buying token $x$, we search for initialized ticks <strong>to the left</strong> of the current; when selling token $x$, we search ticks <strong>to the right</strong>. But this is only true within a word; words are ordered from left to right.</p>
+</blockquote>
+<p>When there’s no initialized tick in the current word, we’ll continue searching in an adjacent word in the next loop cycle.</p>
+<p>Now, let’s look at the implementation:</p>
+<pre><code class="language-solidity">function nextInitializedTickWithinOneWord(
+    mapping(int16 =&gt; uint256) storage self,
+    int24 tick,
+    int24 tickSpacing,
+    bool lte
+) internal view returns (int24 next, bool initialized) {
+    int24 compressed = tick / tickSpacing;
+    ...
+</code></pre>
+<ol>
+<li>The first argument makes this function a method of <code>mapping(int16 =&gt; uint256)</code>.</li>
+<li><code>tick</code> is the current tick.</li>
+<li><code>tickSpacing</code> is always 1 until we start using it in Milestone 4.</li>
+<li><code>lte</code> is the flag that sets the direction. When <code>true</code>, we’re selling token $x$ and searching for the next initialized tick to the right of the current one. When <code>false,</code> it’s the other way around. <code>lte</code> equals the swap direction: <code>true</code> when selling token $x$, <code>false</code> otherwise.</li>
+</ol>
+<pre><code class="language-solidity">if (lte) {
+    (int16 wordPos, uint8 bitPos) = position(compressed);
+    uint256 mask = (1 &lt;&lt; bitPos) - 1 + (1 &lt;&lt; bitPos);
+    uint256 masked = self[wordPos] &amp; mask;
+    ...
+</code></pre>
+<p>When selling $x$, we’re:</p>
+<ol>
+<li>taking the current tick’s word and bit positions;</li>
+<li>making a mask where all bits to the right of the current bit position, including it, are ones (<code>mask</code> is all ones, its length = <code>bitPos</code>);</li>
+<li>applying the mask to the current tick’s word.</li>
+</ol>
+<pre><code class="language-solidity">    ...
+    initialized = masked != 0;
+    next = initialized
+        ? (compressed - int24(uint24(bitPos - BitMath.mostSignificantBit(masked)))) * tickSpacing
+        : (compressed - int24(uint24(bitPos))) * tickSpacing;
+    ...
+</code></pre>
+<p>Next, <code>masked</code> won’t equal 0 if at least one bit of it is set to 1. If so, there’s an initialized tick; if not, there isn’t (not in the current word). Depending on the result, we either return the index of the next initialized tick or the leftmost bit in the next word–this will allow us to search for initialized ticks in the word during another loop cycle.</p>
+<pre><code class="language-solidity">    ...
+} else {
+    (int16 wordPos, uint8 bitPos) = position(compressed + 1);
+    uint256 mask = ~((1 &lt;&lt; bitPos) - 1);
+    uint256 masked = self[wordPos] &amp; mask;
+    ...
+</code></pre>
+<p>Similarly, when selling $y$, we:</p>
+<ol>
+<li>take the current tick’s word and bit positions;</li>
+<li>make a different mask, where all bits to the left of the current tick bit position are ones and all the bits to the right are zeros;</li>
+<li>apply the mask to the current tick’s word.</li>
+</ol>
+<p>Again, if there are no initialized ticks to the left, the rightmost bit of the previous word is returned:</p>
+<pre><code class="language-solidity">    ...
+    initialized = masked != 0;
+    // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
+    next = initialized
+        ? (compressed + 1 + int24(uint24((BitMath.leastSignificantBit(masked) - bitPos)))) * tickSpacing
+        : (compressed + 1 + int24(uint24((type(uint8).max - bitPos)))) * tickSpacing;
+}
+</code></pre>
+<p>And that’s it!</p>
+<p>As you can see, <code>nextInitializedTickWithinOneWord</code> doesn’t find the exact tick if it’s far away–its scope of search is current or next tick’s word. Indeed, we don’t want to iterate over the infinite bitmap index.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../milestone_2/math-in-solidity.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../milestone_2/generalize-minting.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../milestone_2/math-in-solidity.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../milestone_2/generalize-minting.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

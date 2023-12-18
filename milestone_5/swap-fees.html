@@ -1,0 +1,641 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Swap Fees - Uniswap V3 Development Book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="A book that teaches how to build a clone of Uniswap V3 in Solidity from scratch.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Uniswap V3 Development Book</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 0. Background</li><li class="chapter-item expanded "><a href="../milestone_0/introduction-to-markets.html"><strong aria-hidden="true">1.</strong> Introduction to Markets</a></li><li class="chapter-item expanded "><a href="../milestone_0/constant-function-market-maker.html"><strong aria-hidden="true">2.</strong> Constant Function Market Maker</a></li><li class="chapter-item expanded "><a href="../milestone_0/uniswap-v3.html"><strong aria-hidden="true">3.</strong> Uniswap V3</a></li><li class="chapter-item expanded "><a href="../milestone_0/dev-environment.html"><strong aria-hidden="true">4.</strong> Development Environment</a></li><li class="chapter-item expanded "><a href="../milestone_0/what-we-will-build.html"><strong aria-hidden="true">5.</strong> What We Will Build</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 1. First Swap</li><li class="chapter-item expanded "><a href="../milestone_1/introduction.html"><strong aria-hidden="true">6.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_1/calculating-liquidity.html"><strong aria-hidden="true">7.</strong> Calculating Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/providing-liquidity.html"><strong aria-hidden="true">8.</strong> Providing Liquidity</a></li><li class="chapter-item expanded "><a href="../milestone_1/first-swap.html"><strong aria-hidden="true">9.</strong> First Swap</a></li><li class="chapter-item expanded "><a href="../milestone_1/manager-contract.html"><strong aria-hidden="true">10.</strong> Manager Contract</a></li><li class="chapter-item expanded "><a href="../milestone_1/deployment.html"><strong aria-hidden="true">11.</strong> Deployment</a></li><li class="chapter-item expanded "><a href="../milestone_1/user-interface.html"><strong aria-hidden="true">12.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 2. Second Swap</li><li class="chapter-item expanded "><a href="../milestone_2/introduction.html"><strong aria-hidden="true">13.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_2/output-amount-calculation.html"><strong aria-hidden="true">14.</strong> Output Amount Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_2/math-in-solidity.html"><strong aria-hidden="true">15.</strong> Math in Solidity</a></li><li class="chapter-item expanded "><a href="../milestone_2/tick-bitmap-index.html"><strong aria-hidden="true">16.</strong> Tick Bitmap Index</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-minting.html"><strong aria-hidden="true">17.</strong> Generalized Minting</a></li><li class="chapter-item expanded "><a href="../milestone_2/generalize-swapping.html"><strong aria-hidden="true">18.</strong> Generalized Swapping</a></li><li class="chapter-item expanded "><a href="../milestone_2/quoter-contract.html"><strong aria-hidden="true">19.</strong> Quoter Contract</a></li><li class="chapter-item expanded "><a href="../milestone_2/user-interface.html"><strong aria-hidden="true">20.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 3. Cross-Tick Swaps</li><li class="chapter-item expanded "><a href="../milestone_3/introduction.html"><strong aria-hidden="true">21.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_3/different-ranges.html"><strong aria-hidden="true">22.</strong> Different Price Ranges</a></li><li class="chapter-item expanded "><a href="../milestone_3/cross-tick-swaps.html"><strong aria-hidden="true">23.</strong> Cross-Tick Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_3/slippage-protection.html"><strong aria-hidden="true">24.</strong> Slippage Protection</a></li><li class="chapter-item expanded "><a href="../milestone_3/liquidity-calculation.html"><strong aria-hidden="true">25.</strong> Liquidity Calculation</a></li><li class="chapter-item expanded "><a href="../milestone_3/more-on-fixed-point-numbers.html"><strong aria-hidden="true">26.</strong> A Little Bit More on Fixed-Point Numbers</a></li><li class="chapter-item expanded "><a href="../milestone_3/flash-loans.html"><strong aria-hidden="true">27.</strong> Flash Loans</a></li><li class="chapter-item expanded "><a href="../milestone_3/user-interface.html"><strong aria-hidden="true">28.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 4. Multi-pool Swaps</li><li class="chapter-item expanded "><a href="../milestone_4/introduction.html"><strong aria-hidden="true">29.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_4/factory-contract.html"><strong aria-hidden="true">30.</strong> Factory Contract</a></li><li class="chapter-item expanded "><a href="../milestone_4/path.html"><strong aria-hidden="true">31.</strong> Swap Path</a></li><li class="chapter-item expanded "><a href="../milestone_4/multi-pool-swaps.html"><strong aria-hidden="true">32.</strong> Multi-Pool Swaps</a></li><li class="chapter-item expanded "><a href="../milestone_4/user-interface.html"><strong aria-hidden="true">33.</strong> User Interface</a></li><li class="chapter-item expanded "><a href="../milestone_4/tick-rounding.html"><strong aria-hidden="true">34.</strong> Tick Rounding</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 5. Fees and Price Oracle</li><li class="chapter-item expanded "><a href="../milestone_5/introduction.html"><strong aria-hidden="true">35.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_5/swap-fees.html" class="active"><strong aria-hidden="true">36.</strong> Swap Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/flash-loan-fees.html"><strong aria-hidden="true">37.</strong> Flash Loan Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/protocol-fees.html"><strong aria-hidden="true">38.</strong> Protocol Fees</a></li><li class="chapter-item expanded "><a href="../milestone_5/price-oracle.html"><strong aria-hidden="true">39.</strong> Price Oracle</a></li><li class="chapter-item expanded "><a href="../milestone_5/user-interface.html"><strong aria-hidden="true">40.</strong> User Interface</a></li><li class="chapter-item expanded affix "><li class="part-title">Milestone 6: NFT Positions</li><li class="chapter-item expanded "><a href="../milestone_6/introduction.html"><strong aria-hidden="true">41.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../milestone_6/erc721-overview.html"><strong aria-hidden="true">42.</strong> Overview of ERC721</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-manager.html"><strong aria-hidden="true">43.</strong> NFT Manager</a></li><li class="chapter-item expanded "><a href="../milestone_6/nft-renderer.html"><strong aria-hidden="true">44.</strong> NFT Renderer</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Uniswap V3 Development Book</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/Jeiwan/uniswapv3-book/edit/main/src/milestone_5/swap-fees.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="swap-fees"><a class="header" href="#swap-fees">Swap Fees</a></h1>
+<p>As I mentioned in the introduction, swap fees are a core mechanism of Uniswap. Liquidity providers need to get paid for the liquidity they provide, otherwise they’ll just use it somewhere else. To incentivize them trades pay a small fee during each swap. These fees are then distributed among all liquidity providers pro rata (proportionally to their share in total pool liquidity).</p>
+<p>To better understand the mechanism of fee collection and distribution, let’s see how they work.</p>
+<h2 id="how-swap-fees-are-collected"><a class="header" href="#how-swap-fees-are-collected">How Swap Fees are Collected</a></h2>
+<p><img src="images/liquidity_ranges_fees.png" alt="Liquidity ranges and fees" /></p>
+<p>Swap fees are collected only when a price range is engaged (used in trades). So we need to track the moments when price range boundaries get crossed. This is when a price range gets engaged and this is when we want to start collecting fees for it:</p>
+<ol>
+<li>when the price is increasing and a tick is crossed from left to right;</li>
+<li>when the price is decreasing and a tick is crossed from right to left.</li>
+</ol>
+<p>This is when a price range gets disengaged:</p>
+<ol>
+<li>when the price is increasing and a tick is crossed from right to left;</li>
+<li>when the price is decreasing and a tick is crossed from left to right.</li>
+</ol>
+<p><img src="images/liquidity_range_engaged.png" alt="Liquidity range engaged/disengaged" /></p>
+<p>Besides knowing when a price range gets engaged/disengaged, we also want to keep track of how much fees each price range accumulated.</p>
+<p>To make fee accounting simpler, Uniswap V3 tracks <strong>the global fees generated by 1 unit of liquidity</strong>. Price range fees are then calculated based on the global ones: fees accumulated outside of a price range are subtracted from the global fees. Fees accumulated outside of a price range are tracked when a tick is crossed (and ticks are crossed when swaps move the price; fees are collected during swaps). With this approach, we don’t need to update fees accumulated by each position on every swap–this allows us to save a lot of gas and make interaction with pools cheaper.</p>
+<p>Let’s recap so we have a clear picture before moving on:</p>
+<ol>
+<li>Fees are paid by users who swap tokens. A small amount is subtracted from the input token and accumulated on the pool’s balance.</li>
+<li>Each pool has <code>feeGrowthGlobal0X128</code> and <code>feeGrowthGlobal1X128</code> state variables that track total accumulated fees per unit of liquidity (that is, fee amount divided by the pool’s liquidity).</li>
+<li>Notice that at this point actual positions are not updated to optimize gas usage.</li>
+<li>Ticks keep a record of fees accumulated outside of them. When adding a new position and activating a tick (adding liquidity to a previously empty tick), the tick records how much fees were accumulated outside of it (by convention, we assume all fees were accumulated <strong>below the tick</strong>).</li>
+<li>Whenever a tick is activated, fees accumulated outside of the tick are updated as the difference between global fees accumulated outside of the tick and the fees accumulated outside of the tick since the last time it was crossed.</li>
+<li>Having ticks that know how much fees were accumulated outside of them will allow us to calculate how much fees were accumulated inside of a position (position is a range between two ticks).</li>
+<li>Knowing how much fees were accumulated inside a position will allow us to calculate the shares of fees liquidity providers are eligible for. If a position wasn’t involved in swapping, it’ll have zero fees accumulated inside of it and the liquidity providers who provided liquidity into this range will have no profits from it.</li>
+</ol>
+<p>Now, let’s see how to calculate fees accumulated by a position (step 6).</p>
+<h2 id="calculating-position-accumulated-fees"><a class="header" href="#calculating-position-accumulated-fees">Calculating Position Accumulated Fees</a></h2>
+<p>To calculate total fees accumulated by a position, we need to consider two cases: when the current price is inside the position and when it’s outside of the position. In both cases, we subtract fees collected outside of the lower and the upper ticks of the position from fees collected globally. However, we calculate those fees differently depending on the current price.</p>
+<p>When the current price is inside the position, we subtract the fees that have been collected outside of ticks by this moment:</p>
+<p><img src="images/fees_inside_and_outside_price_range.png" alt="Fees accrued inside and outside of a price range" /></p>
+<p>When the current price is outside of the position, we need to update fees collected by either upper or lower ticks before subtracting them from fees collected globally. We update them only for the calculations and don’t overwrite them in ticks because the ticks don’t get crossed.</p>
+<p>This is how we update fees collected outside of a tick:</p>
+<p>$$f_{o}(i) = f_{g} - f_{o}(i)$$</p>
+<p>Fees collected outside of a tick ($f_{o}(i)$) is the difference between fees collected globally ($f_{g}$) and fees collected outside of the tick when it crossed last time. We kind of reset the counter when a tick is crossed.</p>
+<p>To calculate fees collected inside a position:</p>
+<p>$$f_{r} = f_{g} - f_{b}(i_{l}) - f_{a}(i_{u})$$</p>
+<p>We subtract fees collected below its lower tick ($f_{b}(i_{l})$) and above its upper tick ($f_{a}(i_{u})$) from fees collected globally from all price ranges ($f_{g}$). This is what we saw in the illustration above.</p>
+<p>Now, when the current price is above the lower tick (i.e. the position is engaged), we don’t need to update fees accumulated below the lower tick and can simply take them from the lower tick. The same is true for fees collected outside of the upper tick when the current price is below the upper tick. In the two other cases, we need to consider updated fees:</p>
+<ol>
+<li>when taking fees collected below the lower tick and the current price is also below the tick (the lower tick hasn’t been crossed recently).</li>
+<li>when taking fees above the upper tick and the current price is also above the tick (the upper tick hasn’t been crossed recently).</li>
+</ol>
+<p>I hope this is not too confusing. Luckily, we now know everything to start coding!</p>
+<h2 id="accruing-swap-fees"><a class="header" href="#accruing-swap-fees">Accruing Swap Fees</a></h2>
+<p>To keep it simple, we’ll add fees to our codebase step by step. And we’ll begin with accruing swap fees.</p>
+<h3 id="adding-required-state-variables"><a class="header" href="#adding-required-state-variables">Adding Required State Variables</a></h3>
+<p>The first thing we need to do is to add the fee amount parameter to Pool–every pool will have a fixed and immutable fee configured during deployment. In the previous chapter, we added the Factory contract that unified and simplified pool deployment. One of the required pool parameters was tick spacing. Now, we’re going to replace it with fee amount and we’ll tie fee amounts to tick spacing: the bigger the fee amount, the larger the tick spacing. This is so that low-volatility pools (stablecoin ones) have lower fees.</p>
+<p>Let’s update Factory:</p>
+<pre><code class="language-solidity">// src/UniswapV3Factory.sol
+contract UniswapV3Factory is IUniswapV3PoolDeployer {
+    ...
+    mapping(uint24 =&gt; uint24) public fees; // `tickSpacings` replaced by `fees`
+
+    constructor() {
+        fees[500] = 10;
+        fees[3000] = 60;
+    }
+
+    function createPool(
+        address tokenX,
+        address tokenY,
+        uint24 fee
+    ) public returns (address pool) {
+        ...
+        parameters = PoolParameters({
+            factory: address(this),
+            token0: tokenX,
+            token1: tokenY,
+            tickSpacing: fees[fee],
+            fee: fee
+        });
+        ...
+    }
+}
+</code></pre>
+<p>Fee amounts are hundredths of the basis point. That is, 1 fee unit is 0.0001%, 500 is 0.05%, and 3000 is 0.3%.</p>
+<p>The next step is to start accumulating fees in Pool. For that, we’ll add two global fee accumulator variables:</p>
+<pre><code class="language-solidity">// src/UniswapV3Pool.sol
+contract UniswapV3Pool is IUniswapV3Pool {
+    ...
+    uint24 public immutable fee;
+    uint256 public feeGrowthGlobal0X128;
+    uint256 public feeGrowthGlobal1X128;
+}
+</code></pre>
+<p>The one with index 0 tracks fees accumulated in <code>token0</code>, and the one with index 1 tracks fees accumulated in <code>token1</code>.</p>
+<h3 id="collecting-fees"><a class="header" href="#collecting-fees">Collecting Fees</a></h3>
+<p>Now we need to update <code>SwapMath.computeSwapStep</code>–this is where we calculate swap amounts and this is also where we’ll calculate and subtract swap fees. In the function, we replace all occurrences of <code>amountRemaining</code> with
+<code>amountRemainingLessFee</code>:</p>
+<pre><code class="language-solidity">uint256 amountRemainingLessFee = PRBMath.mulDiv(
+    amountRemaining,
+    1e6 - fee,
+    1e6
+);
+</code></pre>
+<p>Thus, we subtract the fee from the input token amount and calculate the output amount from a smaller input amount.</p>
+<p>The function now also returns the fee amount collected during the step–it’s calculated differently depending on whether the upper limit of the range was reached or not:</p>
+<pre><code class="language-solidity">bool max = sqrtPriceNextX96 == sqrtPriceTargetX96;
+if (!max) {
+    feeAmount = amountRemaining - amountIn;
+} else {
+    feeAmount = Math.mulDivRoundingUp(amountIn, fee, 1e6 - fee);
+}
+</code></pre>
+<p>When it’s not reached, the current price range has enough liquidity to fulfill the swap, thus we simply return the difference between the amount we needed to fulfill and the actual amount fulfilled. Notice that <code>amountRemainingLessFee</code> is not involved here since the actual final amount was calculated in <code>amountIn</code> (it’s calculated based on available liquidity).</p>
+<p>When the target price is reached, we cannot subtract fees from the entire <code>amountRemaining</code> because the current price range doesn’t have enough liquidity to fulfill the swap. Thus, the fee amount is subtracted from the amount the current price range has fulfilled (<code>amountIn</code>).</p>
+<p>After <code>SwapMath.computeSwapStep</code> has returned, we need to update the fees accumulated by the swap. Notice that there’s only one variable to track them because, when starting a swap, we already know the input token (during a swap, fees are collected in either <code>token0</code> or <code>token1</code>, not both of them):</p>
+<pre><code class="language-solidity">SwapState memory state = SwapState({
+    ...
+    feeGrowthGlobalX128: zeroForOne
+        ? feeGrowthGlobal0X128
+        : feeGrowthGlobal1X128
+});
+
+(...) = SwapMath.computeSwapStep(...);
+
+state.feeGrowthGlobalX128 += PRBMath.mulDiv(
+    step.feeAmount,
+    FixedPoint128.Q128,
+    state.liquidity
+);
+</code></pre>
+<p>This is where we adjust accrued fees by the amount of liquidity to later distribute fees among liquidity providers in a fair way.</p>
+<h3 id="updating-fee-trackers-in-ticks"><a class="header" href="#updating-fee-trackers-in-ticks">Updating Fee Trackers in Ticks</a></h3>
+<p>Next, we need to update the fee trackers in a tick, if it was crossed during a swap (crossing a tick means we’re entering a new price range):</p>
+<pre><code class="language-solidity">if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
+    int128 liquidityDelta = ticks.cross(
+        step.nextTick,
+        (
+            zeroForOne
+                ? state.feeGrowthGlobalX128
+                : feeGrowthGlobal0X128
+        ),
+        (
+            zeroForOne
+                ? feeGrowthGlobal1X128
+                : state.feeGrowthGlobalX128
+        )
+    );
+    ...
+}
+</code></pre>
+<p>Since we haven’t yet updated the <code>feeGrowthGlobal0X128/feeGrowthGlobal1X128</code> state variables at this moment, we pass <code>state.feeGrowthGlobalX128</code> as either of the fee parameters depending on the swap direction. The <code>cross</code> function updates the fee trackers as we discussed above:</p>
+<pre><code class="language-solidity">// src/lib/Tick.sol
+function cross(
+    mapping(int24 =&gt; Tick.Info) storage self,
+    int24 tick,
+    uint256 feeGrowthGlobal0X128,
+    uint256 feeGrowthGlobal1X128
+) internal returns (int128 liquidityDelta) {
+    Tick.Info storage info = self[tick];
+    info.feeGrowthOutside0X128 =
+        feeGrowthGlobal0X128 -
+        info.feeGrowthOutside0X128;
+    info.feeGrowthOutside1X128 =
+        feeGrowthGlobal1X128 -
+        info.feeGrowthOutside1X128;
+    liquidityDelta = info.liquidityNet;
+}
+</code></pre>
+<blockquote>
+<p>We haven’t added the initialization of the <code>feeGrowthOutside0X128/feeGrowthOutside1X128</code> variables–we’ll do this in a later step.</p>
+</blockquote>
+<h3 id="updating-global-fee-trackers"><a class="header" href="#updating-global-fee-trackers">Updating Global Fee Trackers</a></h3>
+<p>And, finally, after the swap is fulfilled, we can update the global fee trackers:</p>
+<pre><code class="language-solidity">if (zeroForOne) {
+    feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
+} else {
+    feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
+}
+</code></pre>
+<p>Again, during a swap, only one of them is updated because fees are taken from the input token, which is either of <code>token0</code> or <code>token1</code> depending on the swap direction.</p>
+<p>That’s it for swapping! Let’s now see what happens to fees when liquidity is added.</p>
+<h2 id="fee-tracking-in-positions-management"><a class="header" href="#fee-tracking-in-positions-management">Fee Tracking in Positions Management</a></h2>
+<p>When adding or removing liquidity (we haven’t implemented the latter yet), we also need to initialize or update fees.  Fees need to be tracked both in ticks (fees accumulated outside of ticks–the <code>feeGrowthOutside</code> variables we added just now) and positions (fees accumulated inside of positions). In the case of positions, we also need to keep track of and update the amounts of tokens collected as fees–or in other words, we convert fees per liquidity to token amounts. The latter is needed so that when a liquidity provider removes liquidity, they get extra tokens collected as swap fees.</p>
+<p>Let’s do it step by step again.</p>
+<h3 id="initialization-of-fee-trackers-in-ticks"><a class="header" href="#initialization-of-fee-trackers-in-ticks">Initialization of Fee Trackers in Ticks</a></h3>
+<p>In the <code>Tick.update</code> function, whenever a tick is initialized (adding liquidity to a previously empty tick), we initialize its fee trackers. However, we’re only doing so when the tick is below the current price, i.e. when it’s inside of the current price range:</p>
+<pre><code class="language-solidity">// src/lib/Tick.sol
+function update(
+    mapping(int24 =&gt; Tick.Info) storage self,
+    int24 tick,
+    int24 currentTick,
+    int128 liquidityDelta,
+    uint256 feeGrowthGlobal0X128,
+    uint256 feeGrowthGlobal1X128,
+    bool upper
+) internal returns (bool flipped) {
+    ...
+    if (liquidityBefore == 0) {
+        // by convention, assume that all previous fees were collected below
+        // the tick
+        if (tick &lt;= currentTick) {
+            tickInfo.feeGrowthOutside0X128 = feeGrowthGlobal0X128;
+            tickInfo.feeGrowthOutside1X128 = feeGrowthGlobal1X128;
+        }
+
+        tickInfo.initialized = true;
+    }
+    ...
+}
+</code></pre>
+<p>If it’s not inside of the current price range, its fee trackers will be 0 and they’ll be updated when the tick is crossed next time (see the <code>cross</code> function we updated above).</p>
+<h3 id="updating-position-fees-and-token-amounts"><a class="header" href="#updating-position-fees-and-token-amounts">Updating Position Fees and Token Amounts</a></h3>
+<p>The next step is to calculate the fees and tokens accumulated by a position. Since a position is a range between two ticks, we’ll calculate these values using the fee trackers we added to ticks in the previous step. The next function might look messy, but it implements the exact price range fee formulas we saw earlier:</p>
+<pre><code class="language-solidity">// src/lib/Tick.sol
+function getFeeGrowthInside(
+    mapping(int24 =&gt; Tick.Info) storage self,
+    int24 lowerTick_,
+    int24 upperTick_,
+    int24 currentTick,
+    uint256 feeGrowthGlobal0X128,
+    uint256 feeGrowthGlobal1X128
+)
+    internal
+    view
+    returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+{
+    Tick.Info storage lowerTick = self[lowerTick_];
+    Tick.Info storage upperTick = self[upperTick_];
+
+    uint256 feeGrowthBelow0X128;
+    uint256 feeGrowthBelow1X128;
+    if (currentTick &gt;= lowerTick_) {
+        feeGrowthBelow0X128 = lowerTick.feeGrowthOutside0X128;
+        feeGrowthBelow1X128 = lowerTick.feeGrowthOutside1X128;
+    } else {
+        feeGrowthBelow0X128 =
+            feeGrowthGlobal0X128 -
+            lowerTick.feeGrowthOutside0X128;
+        feeGrowthBelow1X128 =
+            feeGrowthGlobal1X128 -
+            lowerTick.feeGrowthOutside1X128;
+    }
+
+    uint256 feeGrowthAbove0X128;
+    uint256 feeGrowthAbove1X128;
+    if (currentTick &lt; upperTick_) {
+        feeGrowthAbove0X128 = upperTick.feeGrowthOutside0X128;
+        feeGrowthAbove1X128 = upperTick.feeGrowthOutside1X128;
+    } else {
+        feeGrowthAbove0X128 =
+            feeGrowthGlobal0X128 -
+            upperTick.feeGrowthOutside0X128;
+        feeGrowthAbove1X128 =
+            feeGrowthGlobal1X128 -
+            upperTick.feeGrowthOutside1X128;
+    }
+
+    feeGrowthInside0X128 =
+        feeGrowthGlobal0X128 -
+        feeGrowthBelow0X128 -
+        feeGrowthAbove0X128;
+    feeGrowthInside1X128 =
+        feeGrowthGlobal1X128 -
+        feeGrowthBelow1X128 -
+        feeGrowthAbove1X128;
+}
+</code></pre>
+<p>Here, we’re calculating fees accumulated between two ticks (inside a price range). For this, we first calculate fees accumulated below the lower tick and then fees calculated above the upper tick. In the end, we subtract those fees from the globally accumulated ones. This is the formula we saw earlier:</p>
+<p>$$f_{r} = f_{g} - f_{b}(i_{l}) - f_{a}(i_{u})$$</p>
+<p>When calculating fees collected above and below a tick, we do it differently depending on whether the price range is engaged or not (whether the current price is between the boundary ticks of the price range). When it’s engaged we simply use the current fee trackers of a tick; when it’s not engaged we need to take updated fee trackers of a tick–you can see these calculations in the two <code>else</code> branches in the code above.</p>
+<p>After finding the fees accumulated inside of a position, we’re ready to update the fee and the token amount trackers of the position:</p>
+<pre><code class="language-solidity">// src/lib/Position.sol
+function update(
+    Info storage self,
+    int128 liquidityDelta,
+    uint256 feeGrowthInside0X128,
+    uint256 feeGrowthInside1X128
+) internal {
+    uint128 tokensOwed0 = uint128(
+        PRBMath.mulDiv(
+            feeGrowthInside0X128 - self.feeGrowthInside0LastX128,
+            self.liquidity,
+            FixedPoint128.Q128
+        )
+    );
+    uint128 tokensOwed1 = uint128(
+        PRBMath.mulDiv(
+            feeGrowthInside1X128 - self.feeGrowthInside1LastX128,
+            self.liquidity,
+            FixedPoint128.Q128
+        )
+    );
+
+    self.liquidity = LiquidityMath.addLiquidity(
+        self.liquidity,
+        liquidityDelta
+    );
+    self.feeGrowthInside0LastX128 = feeGrowthInside0X128;
+    self.feeGrowthInside1LastX128 = feeGrowthInside1X128;
+
+    if (tokensOwed0 &gt; 0 || tokensOwed1 &gt; 0) {
+        self.tokensOwed0 += tokensOwed0;
+        self.tokensOwed1 += tokensOwed1;
+    }
+}
+</code></pre>
+<p>When calculating owed tokens, we multiply fees accumulated by the position by liquidity–the reverse of what we did during swapping. In the end, we update the fee trackers and add the token amounts to the previously tracked ones.</p>
+<p>Now, whenever a position is modified (during the addition or removal of liquidity), we calculate fees collected by a position and update the position:</p>
+<pre><code class="language-solidity">// src/UniswapV3Pool.sol
+function mint(...) {
+    ...
+    bool flippedLower = ticks.update(params.lowerTick, ...);
+    bool flippedUpper = ticks.update(params.upperTick, ...);
+    ...
+    (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) = ticks
+        .getFeeGrowthInside(
+            params.lowerTick,
+            params.upperTick,
+            slot0_.tick,
+            feeGrowthGlobal0X128_,
+            feeGrowthGlobal1X128_
+        );
+
+    position.update(
+        params.liquidityDelta,
+        feeGrowthInside0X128,
+        feeGrowthInside1X128
+    );
+    ...
+}
+</code></pre>
+<h2 id="removing-liquidity"><a class="header" href="#removing-liquidity">Removing Liquidity</a></h2>
+<p>We’re now ready to add the only core feature we haven’t implemented yet–the removal of liquidity. As opposed to minting, we’ll call this function <code>burn</code>. This is the function that will let liquidity providers remove a fraction or whole liquidity from a position they previously added liquidity to. In addition to that, it’ll also calculate the fee tokens liquidity providers are eligible for. However, the actual transferring of tokens will be done in a separate function–<code>collect</code>.</p>
+<h3 id="burning-liquidity"><a class="header" href="#burning-liquidity">Burning Liquidity</a></h3>
+<p>Burning liquidity is opposed to minting. Our current design and implementation make it a hassle-free task: burning liquidity is simply minting with the negative sign. It’s like adding a negative amount of liquidity.</p>
+<blockquote>
+<p>To implement <code>burn</code>,  I needed to refactor the code and extract everything related to position management (updating ticks and position, and token amounts calculation) into the <code>_modifyPosition</code> function, which is used by both <code>mint</code> and <code>burn</code> functions.</p>
+</blockquote>
+<pre><code class="language-solidity">function burn(
+    int24 lowerTick,
+    int24 upperTick,
+    uint128 amount
+) public returns (uint256 amount0, uint256 amount1) {
+    (
+        Position.Info storage position,
+        int256 amount0Int,
+        int256 amount1Int
+    ) = _modifyPosition(
+            ModifyPositionParams({
+                owner: msg.sender,
+                lowerTick: lowerTick,
+                upperTick: upperTick,
+                liquidityDelta: -(int128(amount))
+            })
+        );
+
+    amount0 = uint256(-amount0Int);
+    amount1 = uint256(-amount1Int);
+
+    if (amount0 &gt; 0 || amount1 &gt; 0) {
+        (position.tokensOwed0, position.tokensOwed1) = (
+            position.tokensOwed0 + uint128(amount0),
+            position.tokensOwed1 + uint128(amount1)
+        );
+    }
+
+    emit Burn(msg.sender, lowerTick, upperTick, amount, amount0, amount1);
+}
+</code></pre>
+<p>In the <code>burn</code> function, we first update a position and remove some amount of liquidity from it. Then, we update the token amount owed by the position–they now include amounts accumulated via fees as well as amounts that were previously provided as liquidity. We can also see this as the conversion of position liquidity into token amounts owed by the position– these amounts won’t be used as liquidity anymore and can be freely redeemed by calling the <code>collect</code> function:</p>
+<pre><code class="language-solidity">function collect(
+    address recipient,
+    int24 lowerTick,
+    int24 upperTick,
+    uint128 amount0Requested,
+    uint128 amount1Requested
+) public returns (uint128 amount0, uint128 amount1) {
+    Position.Info storage position = positions.get(
+        msg.sender,
+        lowerTick,
+        upperTick
+    );
+
+    amount0 = amount0Requested &gt; position.tokensOwed0
+        ? position.tokensOwed0
+        : amount0Requested;
+    amount1 = amount1Requested &gt; position.tokensOwed1
+        ? position.tokensOwed1
+        : amount1Requested;
+
+    if (amount0 &gt; 0) {
+        position.tokensOwed0 -= amount0;
+        IERC20(token0).transfer(recipient, amount0);
+    }
+
+    if (amount1 &gt; 0) {
+        position.tokensOwed1 -= amount1;
+        IERC20(token1).transfer(recipient, amount1);
+    }
+
+    emit Collect(
+        msg.sender,
+        recipient,
+        lowerTick,
+        upperTick,
+        amount0,
+        amount1
+    );
+}
+</code></pre>
+<p>This function simply transfers tokens from a pool and ensures that only valid amounts can be transferred (one cannot transfer out more than they burned + fees they earned).</p>
+<p>There’s also a way to collect fees only without burning liquidity: burn 0 amount of liquidity and then call <code>collect</code>.  During burning, the position will be updated and the token amounts it owes will be updated as well.</p>
+<p>And, that’s it! Our pool implementation is complete now!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../milestone_5/introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../milestone_5/flash-loan-fees.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../milestone_5/introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../milestone_5/flash-loan-fees.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
