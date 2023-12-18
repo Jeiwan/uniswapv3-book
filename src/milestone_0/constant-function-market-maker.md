@@ -108,7 +108,7 @@ how it works.
 
 When plotted, the constant product function is a quadratic hyperbola:
 
-![The shape of the constant product formula curve](/images/milestone_0/the_curve.png)
+![The shape of the constant product formula curve](images/the_curve.png)
 
 Where axes are the pool reserves. Every trade starts at the point on the curve that corresponds to the current ratio of
 reserves. To calculate the output amount, we need to find a new point on the curve, which has the \\(x\\) coordinate of \\(x+\Delta x\\), i.e.
@@ -116,7 +116,7 @@ current reserve of token 0 + the amount we're selling. The change in \\(y\\) is 
 
 Let's look at a concrete example:
 
-![Desmos chart example](/images/milestone_0/desmos.png)
+![Desmos chart example](images/desmos.png)
 
 1. The purple line is the curve, the axes are the reserves of a pool (notice that they're equal at the start price).
 1. Start price is 1.

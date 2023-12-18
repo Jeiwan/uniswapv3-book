@@ -6,7 +6,7 @@ exchange can be designed. All centralized exchanges have *an order book* at thei
 stores all sell and buy orders that traders want to make. Each order in this book contains a price the order must be
 executed at and the amount that must be bought or sold.
 
-![Order book example](/images/milestone_0/orderbook.png)
+![Order book example](images/orderbook.png)
 
 For trading to happen, there must exist *liquidity*, which is simply the availability of assets on a market. If you
 want to buy a wardrobe but no one is selling one, there's no liquidity. If you want to sell a wardrobe but no one wants
@@ -46,7 +46,7 @@ The core idea is **pooling**: each contract is a *pool* that stores liquidity le
 smart contracts) to trade in a permissioned way. There are two roles, *liquidity providers* and traders, and these roles
 interact with each other through pools of liquidity, and the way they can interact with pools is programmed and immutable.
 
-![Automated Market Maker simplified](/images/milestone_0/amm_simplified.png)
+![Automated Market Maker simplified](images/amm_simplified.png)
 
 What makes this approach different from centralized exchanges is that **the smart contracts are fully automated and not
 managed by anyone**. There are no managers, admins, privileged users, etc. There are only liquidity providers and traders

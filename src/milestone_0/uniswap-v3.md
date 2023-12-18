@@ -22,7 +22,7 @@ were more popular for stablecoin trading.
 What caused this problem is that liquidity in Uniswap V2 pools is distributed infinitely–pool liquidity allows trades at
 any price, from 0 to infinity:
 
-![The curve is infinite](/images/milestone_0/curve_infinite.png)
+![The curve is infinite](images/curve_infinite.png)
 
 This might not seem like a bad thing, but this makes capital inefficient. Historical prices of an asset stay within
 some defined range, whether it's narrow or wide. For example, the historical price range of ETH is from $0.75
@@ -49,7 +49,7 @@ Now, let's try to visualize it. What we're saying is that we don't want the curv
 \\(a\\) and \\(b\\) and say that these are the boundaries of the curve. Moreover, we shift the curve so the boundaries lay on
 the axes. This is what we get:
 
-![Uniswap V3 price range](/images/milestone_0/curve_finite.png)
+![Uniswap V3 price range](images/curve_finite.png)
 
 > It looks lonely, doesn't it? This is why there are many price ranges in Uniswap V3–so they don't feel lonely 🙂
 
@@ -68,7 +68,7 @@ next price range doesn't exist, the trade ends up fulfilled partially-we'll see 
 
 This is how liquidity is spread in [the USDC/ETH pool in production](https://info.uniswap.org/#/pools/0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8):
 
-![Liquidity in the real USDC/ETH pool](/images/milestone_0/usdceth_liquidity.png)
+![Liquidity in the real USDC/ETH pool](images/usdceth_liquidity.png)
 
 You can see that there's a lot of liquidity around the current price but the further away from it the less liquidity
 there is–this is because liquidity providers strive to have higher efficiency of their capital. Also, the whole range is
@@ -136,7 +136,7 @@ As we learned in this chapter, the infinite price range of V2 is split into shor
 shorter price ranges is limited by boundaries–upper and lower points. To track the coordinates of these boundaries,
 Uniswap V3 uses *ticks*.
 
-![Price ranges and ticks](/images/milestone_0/ticks_and_ranges.png)
+![Price ranges and ticks](images/ticks_and_ranges.png)
 
 In V3, the entire price range is demarcated by evenly distributed discrete ticks. Each tick has an index and corresponds
 to a certain price:
