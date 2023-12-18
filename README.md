@@ -1,7 +1,12 @@
 # Uniswap V3 Development Book
 
 <p align="center">
-<img src="/static/images/cover.png" alt="Uniswap V3 Development Book cover" width="360"/>
+<img src="/src/images/cover.png" alt="Uniswap V3 Development Book cover" width="360"/>
+</p>
+
+
+<p align="center">
+<a href="https://uniswapv3book.com/">READ ONLINE</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://uniswapv3book.com/print.html">PRINT OR SAVE AS PDF</a>
 </p>
 
 This book will teach how to develop an advanced decentralized application! Specifically, we'll be building a clone of
@@ -106,15 +111,3 @@ To run the book locally:
     $ hugo server -D
     ```
 1. Visit http://localhost:1313/ (or whatever URL the previous command outputs!)
-
-
-### TODO
-1. Milestone 2, Tick Bitmap Index: what happens when there are no ticks? Will it keep looping until it reaches max/min tick?
-1. Milestone 3: liquidity management
-1. Somewhere: clarify that sqrtP has better precision than ticks and that current price is never computed from current tick.
-1. Add dark mode (with images)
-1. Make a PDF
-1. Add Next/Back buttons to the bottom of pages.
-1. Ideas for Extras:
-    1. Tick math implementation. Explanation of the math in [TickMath](https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol) contract.
-    1. Breakdown of the alpha-router: https://github.com/Uniswap/swap-router-contracts
