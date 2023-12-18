@@ -37,3 +37,11 @@
 - [A Little Bit More on Fixed-Point Numbers](milestone_3/more-on-fixed-point-numbers.md)
 - [Flash Loans](milestone_3/flash-loans.md)
 - [User Interface](milestone_3/user-interface.md)
+
+# Milestone 4. Multi-pool Swaps
+- [Introduction](milestone_4/introduction.md)
+- [Factory Contract](milestone_4/factory-contract.md)
+- [Swap Path](milestone_4/path.md)
+- [Multi-Pool Swaps](milestone_4/multi-pool-swaps.md)
+- [User Interface](milestone_4/user-interface.md)
+- [Tick Rounding](milestone_4/tick-rounding.md)
