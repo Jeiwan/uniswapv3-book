@@ -1,8 +1,8 @@
 # Summary
 
-[Introduction](README.md)
+[Uniswap V3 Development Book](README.md)
 
-# Milestone 0. Introduction
+# Milestone 0. Background
 - [Introduction to Markets](milestone_0/introduction-to-markets.md)
 - [Constant Function Market Maker](milestone_0/constant-function-market-maker.md)
 - [Uniswap V3](milestone_0/uniswap-v3.md)
