@@ -45,3 +45,11 @@
 - [Multi-Pool Swaps](milestone_4/multi-pool-swaps.md)
 - [User Interface](milestone_4/user-interface.md)
 - [Tick Rounding](milestone_4/tick-rounding.md)
+
+# Milestone 5. Fees and Price Oracle
+- [Introduction](milestone_5/introduction.md)
+- [Swap Fees](milestone_5/swap-fees.md)
+- [Flash Loan Fees](milestone_5/flash-loan-fees.md)
+- [Protocol Fees](milestone_5/protocol-fees.md)
+- [Price Oracle](milestone_5/price-oracle.md)
+- [User Interface](milestone_5/user-interface.md)
