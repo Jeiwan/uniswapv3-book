@@ -53,3 +53,9 @@
 - [Protocol Fees](milestone_5/protocol-fees.md)
 - [Price Oracle](milestone_5/price-oracle.md)
 - [User Interface](milestone_5/user-interface.md)
+
+# Milestone 6: NFT Positions
+- [Introduction](milestone_6/introduction.md)
+- [Overview of ERC721](milestone_6/erc721-overview.md)
+- [NFT Manager](milestone_6/nft-manager.md)
+- [NFT Renderer](milestone_6/nft-renderer.md)
