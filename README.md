@@ -6,7 +6,7 @@
 
 
 <p align="center">
-<a href="https://uniswapv3book.com/">READ ONLINE</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://uniswapv3book.com/print.html">PRINT OR SAVE AS PDF</a>
+👉&nbsp;<a href="https://uniswapv3book.com/">READ ONLINE</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://uniswapv3book.com/print.html">PRINT OR SAVE AS PDF</a>&nbsp;👈
 </p>
 
 This book will teach how to develop an advanced decentralized application! Specifically, we'll be building a clone of
