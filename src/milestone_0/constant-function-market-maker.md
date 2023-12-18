@@ -24,7 +24,7 @@ put some amount of one token into a pool (the token they want to sell) and remov
 of reserves must not change. As we will see many times in this book, this simple requirement is the core algorithm of how
 Uniswap works.
 
-## The trade function
+## The Trade Function
 Now that we know what pools are, let's write the formula of how trading happens in a pool:
 
 \\[(x + r\Delta x)(y - \Delta y) = k\\]

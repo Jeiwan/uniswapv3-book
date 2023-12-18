@@ -14,20 +14,22 @@ This book will guide you through the development of a decentralized application,
 - design and mathematics of a decentralized exchange;
 - development of a front-end application for the exchange ([React](https://reactjs.org/) and [MetaMask](https://metamask.io/)).
 
-### This book is not for complete beginners
+**This book is not for complete beginners.**
+
 I expect you to be an experienced developer, who has ever programmed in any programming language. It'll also be helpful
 if you know [the syntax of Solidity](https://docs.soliditylang.org/en/v0.8.17/introduction-to-smart-contracts.html),
 the main programming language of this book. If not, it's not a big problem: we'll learn a lot about Solidity and
 Ethereum Virtual Machine during our journey.
 
-### However, this book is for blockchain beginners
+**However, this book is for blockchain beginners.**
+
 If you only heard about blockchains and were interested but haven't had a chance to dive deeper, this book is for you!
 Yes, for you personally! You'll learn how to develop for blockchains (specifically, Ethereum), how blockchains work, how
 to program and deploy smart contracts, and how to run and test them on your computer.
 
 Alright, let's get started!
 
-## Useful links
+## Useful Links
 
 1. This book is available at: <https://uniswapv3book.com/>
 1. This book is hosted on GitHub: <https://github.com/Jeiwan/uniswapv3-book>
@@ -42,7 +44,7 @@ Don't hesitate to ask questions about anything that's not clear in the book!
 
 ---
 
-## Where to start for a complete beginner?
+## Where to Start for a Complete Beginner?
 
 This book will be easy for those who know something about constant-function market makers and Uniswap. If you're a complete
 beginner in decentralized exchanges, here's how I'd recommend starting:

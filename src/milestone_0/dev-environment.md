@@ -1,4 +1,4 @@
-# Development environment
+# Development Environment
 
 We're going to build two applications:
 
@@ -118,7 +118,7 @@ to sign transactions that we'll send to our local node.
 [React](https://reactjs.org/) is a well-known JavaScript library for building front-end applications. You don't need to
 know React, I'll provide a template application.
 
-## Setting Up the Project
+## Setting up the Project
 
 To set up the project, create a new folder and run `forge init` in it:
 ```shell

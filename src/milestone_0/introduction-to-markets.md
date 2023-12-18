@@ -1,6 +1,6 @@
-# Introduction to markets
+# Introduction to Markets
 
-## How centralized exchanges work
+## How Centralized Exchanges Work
 In this book, we'll build a decentralized exchange (DEX) that will run on Ethereum. There're multiple approaches to how an
 exchange can be designed. All centralized exchanges have *an order book* at their core. An order book is just a journal that
 stores all sell and buy orders that traders want to make. Each order in this book contains a price the order must be
@@ -21,7 +21,7 @@ a firm or an individual who provides liquidity to markets, that is someone who h
 assets to sell them on exchanges. For this job market makers are paid by exchanges. **Market makers make money on
 providing liquidity to exchanges**.
 
-## How decentralized exchanges work
+## How Decentralized Exchanges Work
 
 Don't be surprised, decentralized exchanges also need liquidity. And they also need someone who provides it to traders
 of a wide variety of assets. However, this process cannot be handled in a centralized way. **A decentralized solution
@@ -37,7 +37,7 @@ way. Moreover, it's decentralized and permissionless, that is:
 - all assets are not stored in one place;
 - anyone can use it from anywhere.
 
-### What is an AMM?
+### What Is an AMM?
 
 An AMM is a set of smart contracts that define how liquidity is managed. Each trading pair (e.g. ETH/USDC) is a separate
 contract that stores both ETH and USDC and that's programmed to mediate trades: exchanging ETH for USDC and vice versa.

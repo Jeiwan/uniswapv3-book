@@ -1,4 +1,4 @@
-# What We'll Build
+# What We Will Build
 
 The goal of the book is to build a clone of Uniswap V3. However, we won't build an exact copy. The main reason is that
 Uniswap is a big project with many nuances and auxiliary mechanics–breaking down all of them would bloat the book and make
