@@ -4,9 +4,9 @@ Now that we have liquidity, we can make our first swap!
 
 ## Calculating Swap Amounts
 
-First step, of course, is to figure out how to calculate swap amounts. And, again, let's pick and hardcode some amount of USDC we're going to trade in for ETH. Let it be 42! We're going to buy ETH for 42 USDC.
+The first step, of course, is to figure out how to calculate swap amounts. And, again, let's pick and hardcode some amount of USDC we're going to trade in for ETH. Let it be 42! We're going to buy ETH for 42 USDC.
 
-After deciding how many tokens we want to sell, we need to calculate how many tokens we'll get in exchange. In Uniswap V2, we would've used current pool reserves, but in Uniswap V3 we have $L$ and $\sqrt{P}$ and we know the fact that, when swapping within a price range, only $\sqrt{P}$ changes and $L$ remains unchanged (Uniswap V3 acts exactly as V2 when swapping is done only within one price range). We also know that:
+After deciding how many tokens we want to sell, we need to calculate how many tokens we'll get in exchange. In Uniswap V2, we would've used current pool reserves, but in Uniswap V3 we have $L$ and $\sqrt{P}$ and we know the fact that when swapping within a price range, only $\sqrt{P}$ changes and $L$ remains unchanged (Uniswap V3 acts exactly as V2 when swapping is done only within one price range). We also know that:
 
 $$L = \frac{\Delta y}{\Delta \sqrt{P}}$$
 
@@ -14,9 +14,9 @@ And... we know $\Delta y$! This is the 42 USDC we're going to trade in! Thus, we
 
 $$\Delta \sqrt{P} = \frac{\Delta y}{L}$$
 
-In Uniswap V3, we choose **the price we want our trade to lead to** (recall that swapping changes the current price, i.e.  it moves the current price along the curve). Knowing the target price, the contract will calculate the amount of input token it needs to take from us and the respective amount of output token it'll give us.
+In Uniswap V3, we choose **the price we want our trade to lead to** (recall that swapping changes the current price, i.e. it moves the current price along the curve). Knowing the target price, the contract will calculate the amount of input token it needs to take from us and the respective amount of output token it'll give us.
 
-Let's plug in our numbers into the above formula:
+Let's plug our numbers into the above formula:
 
 $$\Delta \sqrt{P} = \frac{42 \enspace USDC}{1517882343751509868544} = 2192253463713690532467206957$$
 
@@ -59,7 +59,7 @@ To verify the amounts, let's recall another formula:
 
 $$\Delta x = \Delta \frac{1}{\sqrt{P}} L$$
 
-Using this formula, we can find the amount of ETH we're buying, $\Delta x$, knowing the price change, $\Delta\frac{1}{\sqrt{P}}$, and liquidity $L$. Be careful though: $\Delta \frac{1}{\sqrt{P}}$ is not $\frac{1}{\Delta \sqrt{P}}$! The former is the change of the price of ETH, and it can be found using this expression:
+Using this formula, we can find the amount of ETH we're buying, $\Delta x$, knowing the price change, $\Delta\frac{1}{\sqrt{P}}$, and liquidity $L$. Be careful though: $\Delta \frac{1}{\sqrt{P}}$ is not $\frac{1}{\Delta \sqrt{P}}$! The former is the change in the price of ETH, and it can be found using this expression:
 
 $$\Delta \frac{1}{\sqrt{P}} = \frac{1}{\sqrt{P_{target}}} - \frac{1}{\sqrt{P_{current}}}$$
 
@@ -78,7 +78,7 @@ Which is 0.008396714242162698 ETH, and it's very close to the amount we found ab
 
 ## Implementing a Swap
 
-Swapping is implemented in `swap` function:
+Swapping is implemented in the `swap` function:
 ```solidity
 function swap(address recipient)
     public
@@ -88,7 +88,7 @@ function swap(address recipient)
 ```
 At this moment, it only takes a recipient, who is a receiver of tokens.
 
-First, we need to find the target price and tick, as well as calculate the token amounts. Again, we'll simply hard code the values we calculated earlier to keep things as simple as possible:
+First, we need to find the target price and tick, as well as calculate the token amounts. Again, we'll simply hard-code the values we calculated earlier to keep things as simple as possible:
 ```solidity
 ...
 int24 nextTick = 85184;
@@ -121,7 +121,7 @@ if (balance1Before + uint256(amount1) < balance1())
 ...
 ```
 
-Again, we're using a callback to pass the control to the caller and let it transfer the tokens. After that, we're checking that pool's balance is correct and includes the input amount.
+Again, we're using a callback to pass the control to the caller and let it transfer the tokens. After that, we check that the pool's balance is correct and includes the input amount.
 
 Finally, the contract emits a `Swap` event to make the swap discoverable. The event includes all the information about the swap:
 ```solidity
@@ -137,11 +137,11 @@ emit Swap(
 );
 ```
 
-And that's it! The function simply sends some amount of tokens to the specified recipient address and expects a certain number of the other token in exchange. Throughout this book, the function will get much more complicated.
+And that's it! The function simply sends some amount of tokens to the specified recipient address and expects a certain number of the other tokens in exchange. Throughout this book, the function will get much more complicated.
 
 ## Testing Swapping
 
-Now, we can test the swap function. In the same test file, create `testSwapBuyEth` function and set up the test case. This test case uses the same parameters as `testMintSuccess`:
+Now, we can test the swap function. In the same test file, create the `testSwapBuyEth` function and set up the test case. This test case uses the same parameters as `testMintSuccess`:
 ```solidity
 function testSwapBuyEth() public {
     TestCaseParams memory params = TestCaseParams({
@@ -160,7 +160,7 @@ function testSwapBuyEth() public {
     ...
 ```
 
-Next steps will be different, however.
+The next steps will be different, however.
 
 > We're not going to test that liquidity has been correctly added to the pool since we tested this functionality in the other test cases.
 
@@ -194,7 +194,7 @@ assertEq(amount0Delta, -0.008396714242162444 ether, "invalid ETH out");
 assertEq(amount1Delta, 42 ether, "invalid USDC in");
 ```
 
-Then, we need to ensure that tokens were actually transferred from the caller:
+Then, we need to ensure that tokens were transferred from the caller:
 ```solidity
 assertEq(
     token0.balanceOf(address(this)),
@@ -242,4 +242,4 @@ Notice that swapping doesn't change the current liquidity–in a later chapter, 
 
 ## Homework
 
-Write a test that fails with `InsufficientInputAmount` error. Keep in mind that there's a hidden bug 🙂
+Write a test that fails with an `InsufficientInputAmount` error. Keep in mind that there's a hidden bug 🙂

@@ -10,19 +10,19 @@ The pool contract is a core contract, it's not supposed to be user-friendly and 
 
 In our tests, we implemented these callbacks in the test contract. Since it's only a contract that can implement them, the pool contract cannot be called by regular users (non-contract addresses). This is fine. But not anymore 🙂.
 
-Our next steps in the book is deploying the pool contract to a local blockchain and interacting with it from a front-end app. Thus, we need to build a contract that will let non-contract addresses to interact with the pool. Let's do this now!
+Our next step in the book is deploying the pool contract to a local blockchain and interacting with it from a front-end app. Thus, we need to build a contract that will let non-contract addresses interact with the pool. Let's do this now!
 
 ## Workflow
 
 This is how the manager contract will work:
-1. To mint liquidity, we'll approve spending of tokens to the manager contract.
-1. We'll then call `mint` function of the manager contract and pass it minting parameters, as well as the address of the pool we want to provide liquidity into.
-1. The manager contract will call the pool's `mint` function and will implement `uniswapV3MintCallback`. It'll have permissions to send our tokens to the pool contract.
-1. To swap tokens, we'll also approve spending of tokens to the manager contract.
-1. We'll then call `swap` function of the manager contract and, similarly to minting, it'll pass the call to the pool.
-The manager contract will send our tokens to the pool contract, the pool contract will swap them, and will send the output amount to us.
+1. To mint liquidity, we'll approve the spending of tokens to the manager contract.
+1. We'll then call the `mint` function of the manager contract and pass it minting parameters, as well as the address of the pool we want to provide liquidity into.
+1. The manager contract will call the pool's `mint` function and will implement `uniswapV3MintCallback`. It'll have permission to send our tokens to the pool contract.
+1. To swap tokens, we'll also approve the spending of tokens to the manager contract.
+1. We'll then call the `swap` function of the manager contract and, similarly to minting, it'll pass the call to the pool.
+The manager contract will send our tokens to the pool contract, and the pool contract will swap them and send the output amount to us.
 
-Thus, the manager contract will act as a intermediary between users and pools.
+Thus, the manager contract will act as an intermediary between users and pools.
 
 ## Passing Data to Callbacks
 
@@ -42,7 +42,7 @@ Key points here:
 1. The function transfers tokens belonging to the test contract–we want it to transfer tokens from the caller by using `transferFrom`.
 1. The function knows `token0` and `token1`, which will be different for every pool.
 
-Idea: we need to change the arguments of the callback so we could pass user and pool addresses.
+Idea: we need to change the arguments of the callback so we can pass user and pool addresses.
 
 Now, let's look at the swap callback:
 ```solidity
@@ -124,7 +124,7 @@ function uniswapV3MintCallback(
 }
 ```
 
-Try updating the rest of the code yourself, and if it gets too difficult, feel free peeking [at this commit](https://github.com/Jeiwan/uniswapv3-code/commit/cda23134fd12a190aaeebe718786545621e16c0e).
+Try updating the rest of the code yourself, and if it gets too difficult, feel free to peek [at this commit](https://github.com/Jeiwan/uniswapv3-code/commit/cda23134fd12a190aaeebe718786545621e16c0e).
 
 ## Implementing Manager Contract
 
@@ -163,4 +163,4 @@ contract UniswapV3Manager {
 
 The callbacks are identical to those in the test contract, with the exception that there are no `transferInMintCallback` and `transferInSwapCallback` flags since the manager contract always transfers tokens.
 
-Well, we're now fully prepared for deploying and integrating with a front-end app!
+Well, we're now fully prepared to deploy and integrate with a front-end app!

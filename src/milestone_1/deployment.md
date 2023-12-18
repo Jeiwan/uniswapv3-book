@@ -1,12 +1,12 @@
 # Deployment
 
-Alright, our pool contract is done. Now, let's see how we can deploy it to a local Ethereum network so we could use it from a front-end app later on.
+Alright, our pool contract is done. Now, let's see how we can deploy it to a local Ethereum network so we can use it from a front-end app later on.
 
 ## Choosing Local Blockchain Network
 
 Smart contracts development requires running a local network, where you deploy your contracts during development and testing. This is what we want from such a network:
 1. Real blockchain. It must be a real Ethereum network, not an emulation. We want to be sure that our contract will work in the local network exactly as it would in the mainnet.
-1. Speed. We want our transactions to be minted immediately, so we could iterate quickly.
+1. Speed. We want our transactions to be minted immediately, so we can iterate quickly.
 1. Ether. To pay transaction fees, we need some ether, and we want the local network to allow us to generate any amount of ether.
 1. Cheat codes. Besides providing the standard API, we want a local network to allow us to do more. For example, we want to be able to deploy contracts at any address, execute transactions from any address (impersonate other address), change contract state directly, etc.
 
@@ -15,7 +15,7 @@ There are multiple solutions as of today:
 1. [Hardhat](https://hardhat.org/), which is a development environment that includes a local node besides other useful things.
 1. [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) from Foundry.
 
-All of these are viable solutions and each of them will satisfy our needs. Having said that, projects have been slowly migrating from Ganache (which is the oldest of the solutions) to Hardhat (which seems to be the most widely used these days), and now there's the new kid on the block: Foundry. Foundry is also the only of these solutions that uses Solidity for writing tests (the others use JavaScript). Moreover, Foundry also allows to write deployment scripts in Solidity.  Thus, since we've decided to use Solidity everywhere, we'll use Anvil to run a local development blockchain, and we'll write deployment scripts in Solidity.
+All of these are viable solutions and each of them will satisfy our needs. Having said that, projects have been slowly migrating from Ganache (which is the oldest of the solutions) to Hardhat (which seems to be the most widely used these days), and now there's the new kid on the block: Foundry. Foundry is also the only one of these solutions that uses Solidity for writing tests (the others use JavaScript). Moreover, Foundry also allows to write deployment scripts in Solidity.  Thus, since we've decided to use Solidity everywhere, we'll use Anvil to run a local development blockchain, and we'll write deployment scripts in Solidity.
 
 ## Running Local Blockchain
 
@@ -38,9 +38,9 @@ Listening on 127.0.0.1:8545
 
 > We're going to write big contracts that don't fit into the Ethereum contract size limit (which is `24576` bytes), thus we need to tell Anvil to allow bigger smart contracts.
 
-Anvil runs a single Ethereum node, so this is not really a network, but that's ok. By default, it creates 10 accounts with 10,000 ETH in each of them. It prints the addresses and related private keys when it starts–we'll be using one of these addresses when deploying and interacting with the contract from UI.
+Anvil runs a single Ethereum node, so this is not a network, but that's ok. By default, it creates 10 accounts with 10,000 ETH in each of them. It prints the addresses and related private keys when it starts–we'll be using one of these addresses when deploying and interacting with the contract from UI.
 
-Anvil exposes JSON-RPC API interface at `127.0.0.1:8545`–this interface is the main way of interacting with Ethereum nodes. You can find full API reference [here](https://ethereum.org/en/developers/docs/apis/json-rpc/). And this is how you can call it via `curl`:
+Anvil exposes the JSON-RPC API interface at `127.0.0.1:8545`–this interface is the main way of interacting with Ethereum nodes. You can find the full API reference [here](https://ethereum.org/en/developers/docs/apis/json-rpc/). And this is how you can call it via `curl`:
 ```shell
 $ curl -X POST -H 'Content-Type: application/json' \
   --data '{"id":1,"jsonrpc":"2.0","method":"eth_chainId"}' \
@@ -67,7 +67,7 @@ Now, let's deploy the pool and manager contracts to the local network.
 At its core, deploying a contract means:
 1. Compiling source code into EVM bytecode.
 1. Sending a transaction with the bytecode.
-1. Creating a new address, executing the constructor part of the bytecode, storing initialized bytecode on the address.  This step is done automatically by an Ethereum node, when your contract creation transaction is mined.
+1. Creating a new address, executing the constructor part of the bytecode, and storing deployed bytecode on the address. This step is done automatically by an Ethereum node when your contract creation transaction is mined.
 
 Deployment usually consists of multiple steps: preparing parameters, deploying auxiliary contracts, deploying main contracts, initializing contracts, etc. Scripting helps to automate these steps, and we'll write scripts in Solidity!
 
@@ -85,7 +85,7 @@ contract DeployDevelopment is Script {
 }
 ```
 
-It looks very similar to the test contract, with only difference is that it inherits from `Script` contract, not from `Test`. And, by convention, we need to define `run` function which will be the body of our deployment script. In the `run` function, we define the parameters of the deployment first:
+It looks very similar to the test contract, with only difference is that it inherits from the `Script` contract, not from `Test`. And, by convention, we need to define the `run` function which will be the body of our deployment script. In the `run` function, we define the parameters of the deployment first:
 ```solidity
 uint256 wethBalance = 1 ether;
 uint256 usdcBalance = 5042 ether;
@@ -101,7 +101,7 @@ vm.startBroadcast();
 vm.stopBroadcast();
 ```
 
-> These cheat codes are [provided by of Foundry](https://github.com/foundry-rs/foundry/tree/master/forge#cheat-codes).  We got them in the script contract by inheriting from `forge-std/Script.sol`.
+> These cheat codes are [provided by Foundry](https://github.com/foundry-rs/foundry/tree/master/forge#cheat-codes).  We got them in the script contract by inheriting from `forge-std/Script.sol`.
 
 Everything that goes after the `broadcast()` cheat code or between `startBroadcast()/stopBroadcast()` is converted to transactions and these transactions are sent to the node that executes the script.
 
@@ -152,10 +152,10 @@ $ forge script scripts/DeployDevelopment.s.sol --broadcast --fork-url http://loc
 
 > We're increasing the smart contract code size again so that the compiler doesn't fail.
 
-`--broadcast` enables broadcasting of transactions. It's not enabled by default because not every script sends transactions. `--fork-url` sets the address of the node to send transactions to. `--private-key` sets the sender wallet: a private key is needed to sign transactions. You can pick any of the private keys printed by Anvil when it's starting. I took the first one:
+`--broadcast` enables the broadcasting of transactions. It's not enabled by default because not every script sends transactions. `--fork-url` sets the address of the node to send transactions to. `--private-key` sets the sender wallet: a private key is needed to sign transactions. You can pick any of the private keys printed by Anvil when it's starting. I took the first one:
 > 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
-Deployment takes several seconds. In the end, you'll see a list of transactions it sent. It'll also save transactions receipts to `broadcast` folder. In Anvil, you'll also see many lines with `eth_sendRawTransaction`, `eth_getTransactionByHash`, and `eth_getTransactionReceipt`–after sending transactions to Anvil, Forge uses the JSON-RPC API to check their status and get transaction execution results (receipts).
+Deployment takes several seconds. In the end, you'll see a list of transactions it sent. It'll also save transaction receipts to the `broadcast` folder. In Anvil, you'll also see many lines with `eth_sendRawTransaction`, `eth_getTransactionByHash`, and `eth_getTransactionReceipt`–after sending transactions to Anvil, Forge uses the JSON-RPC API to check their status and get transaction execution results (receipts).
 
 Congratulations! You've just deployed a smart contract!
 
@@ -182,9 +182,9 @@ $ cast keccak "balanceOf(address)"| cut -b 1-10
 To pass the address, we simply append it to the function selector (and add left padding up to 32 digits since addresses take 32 bytes in function call data):
 > 0x70a08231000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266
 
-`0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266` is the address we're going to check balance of. This is our address, the first account in Anvil.
+`0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266` is the address we're going to check the balance of. This is our address, the first account in Anvil.
 
-Next, we execute `eth_call` JSON-RPC method to make the call. Notice that this doesn't require sending a transaction–this endpoint is used to read data from contracts.
+Next, we execute the `eth_call` JSON-RPC method to make the call. Notice that this doesn't require sending a transaction–this endpoint is used to read data from contracts.
 
 ```shell
 $ params='{"from":"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266","to":"0xe7f1725e7734ce288f8367e1bb143e90bb3f0512","data":"0x70a08231000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"}'
@@ -196,7 +196,7 @@ $ curl -X POST -H 'Content-Type: application/json' \
 
 > The "to" address is the USDC token. It's printed by the deployment script and it can be different in your case.
 
-Ethereum nodes return results as raw bytes, to parse them we need to know the type of a returned value. In the case of `balanceOf` function, the type of a returned value is `uint256`. Using `cast`, we can convert it to a decimal number and then convert it to ethers:
+Ethereum nodes return results as raw bytes, to parse them we need to know the type of a returned value. In the case of the `balanceOf` function, the type of a returned value is `uint256`. Using `cast`, we can convert it to a decimal number and then convert it to ether:
 ```shell
 $ cast --to-dec 0x00000000000000000000000000000000000000000000011153ce5e56cf880000| cast --from-wei
 5042.000000000000000000
@@ -217,11 +217,11 @@ $ cast call POOL_ADDRESS "slot0()"| xargs cast --abi-decode "a()(uint160,int24)"
 
 Nice! The first value is the current $\sqrt{P}$ and the second value is the current tick.
 
-> Since `--abi-decode` requires full function signature we have to specify "a()" even though we only want to decode function output.
+> Since `--abi-decode` requires a full function signature we have to specify "a()" even though we only want to decode function output.
 
 ### ABI
 
-To simplify interaction with contracts, Solidity compiler can output ABI, Application Binary Interface.
+To simplify interaction with contracts, the Solidity compiler can output ABI, Application Binary Interface.
 
 ABI is a JSON file that contains the description of all public methods and events of a contract. The goal of this file is to make it easier to encode function parameters and decode return values. To get ABI with Forge, use this command:
 
@@ -229,4 +229,4 @@ ABI is a JSON file that contains the description of all public methods and event
 $ forge inspect UniswapV3Pool abi
 ```
 
-Feel free skimming through the file to better understand its content.
+Feel free to skim through the file to better understand its content.

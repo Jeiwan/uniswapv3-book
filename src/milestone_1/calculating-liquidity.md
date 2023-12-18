@@ -15,7 +15,7 @@ We'll need to find three ticks:
 1. The current tick will correspond to the current price (5000 USDC for 1 ETH).
 1. The lower and upper bounds of the price range we're providing liquidity into. Let the lower price be \$4545 and the upper price be \$5500.
 
-From the theoretical introduction we know that:
+From the theoretical introduction, we know that:
 
 $$\sqrt{P} = \sqrt{\frac{y}{x}}$$
 
@@ -27,7 +27,7 @@ $$\sqrt{P_l} = \sqrt{\frac{4545}{1}} \approx 67.42$$
 
 $$\sqrt{P_u} = \sqrt{\frac{5500}{1}} \approx 74.16$$
 
-Where $P_c$ is the current price, $P_l$ is the lower bound of the range, $P_u$ is the upper bound of the range.
+Where $P_c$ is the current price, $P_l$ is the lower bound of the range, and $P_u$ is the upper bound of the range.
 
 Now, we can find corresponding ticks. We know that prices and ticks are connected via this formula:
 
@@ -57,7 +57,7 @@ Let's find the ticks:
 
 That's it for price range calculation!
 
-Last thing to note here is that Uniswap uses [Q64.96 number](https://en.wikipedia.org/wiki/Q_%28number_format%29) to store $\sqrt{P}$. This is a fixed point number that has 64 bits for the integer part and 96 bits for the fractional part. In our above calculations, prices are floating point numbers: `70.71`, `67.42`, `74.16`. We need to convert them to Q64.96. Luckily, this is simple: we need to multiply the numbers by $2^{96}$ (Q-number is a binary fixed point number, so we need to multiply our decimals numbers by the base of Q64.96, which is $2^{96}$). We'll get:
+Last thing to note here is that Uniswap uses [Q64.96 number](https://en.wikipedia.org/wiki/Q_%28number_format%29) to store $\sqrt{P}$. This is a fixed-point number that has 64 bits for the integer part and 96 bits for the fractional part. In our above calculations, prices are floating point numbers: `70.71`, `67.42`, and `74.16`. We need to convert them to Q64.96. Luckily, this is simple: we need to multiply the numbers by $2^{96}$ (Q-number is a binary fixed-point number, so we need to multiply our decimals numbers by the base of Q64.96, which is $2^{96}$). We'll get:
 
 $$\sqrt{P_c} = 5602277097478614198912276234240$$
 
@@ -74,11 +74,11 @@ $$\sqrt{P_u} = 5875717789736564987741329162240$$
 > price_to_sqrtp(5000)
 > > 5602277097478614198912276234240
 > ```
-> Notice that we're multiplying before converting to integer. Otherwise, we'll lose precision.
+> Notice that we're multiplying before converting to an integer. Otherwise, we'll lose precision.
 
 ## Token Amounts Calculation
 
-Next step is to decide how many tokens we want to deposit into the pool. The answer is: as many as we want. The amounts are not strictly defined, we can deposit as much as it is enough to buy a small amount of ETH without making the current price leave the price range we put liquidity into. During development and testing we'll be able to mint any amount of tokens, so getting the amounts we want is not a problem.
+The next step is to decide how many tokens we want to deposit into the pool. The answer is as many as we want. The amounts are not strictly defined, we can deposit as much as it is enough to buy a small amount of ETH without making the current price leave the price range we put liquidity into. During development and testing we'll be able to mint any amount of tokens, so getting the amounts we want is not a problem.
 
 For our first swap, let's deposit 1 ETH and 5000 USDC.
 
@@ -93,7 +93,7 @@ $$L = \sqrt{xy}$$
 
 However, this formula is for the infinite curve 🙂 But we want to put liquidity into a limited price range, which is just a segment of that infinite curve. We need to calculate $L$ specifically for the price range we're going to deposit liquidity into. We need some more advanced calculations.
 
-To calculate $L$ for a price range, let's look at one interesting fact we have discussed earlier: price ranges can be depleted. It's absolutely possible to buy the entire amount of one token from a price range and leave the pool with only the other token.
+To calculate $L$ for a price range, let's look at one interesting fact we have discussed earlier: price ranges can be depleted. It's possible to buy the entire amount of one token from a price range and leave the pool with only the other token.
 
 ![Range depletion example](images/range_depleted.png)
 
@@ -101,23 +101,23 @@ At the points $a$ and $b$, there's only one token in the range: ETH at the point
 
 That being said, we want to find an $L$ that will allow the price to move to either of the points. We want enough liquidity for the price to reach either of the boundaries of a price range. Thus, we want $L$ to be calculated based on the maximum amounts of $\Delta x$ and $\Delta y$.
 
-Now, let's see what the prices are at the edges. When ETH is bought from a pool, the price is growing; when USDC is bought, the price is falling. Recall that the price is $\frac{y}{x}$. So, at the point $a$, the price is lowest of the range; at the point $b$, the price is highest.
+Now, let's see what the prices are at the edges. When ETH is bought from a pool, the price is growing; when USDC is bought, the price is falling. Recall that the price is $\frac{y}{x}$. So, at point $a$, the price is the lowest of the range; at point $b$, the price is the highest.
 
 >In fact, prices are not defined at these points because there's only one reserve in the pool, but what we need to understand here is that the price around the point $b$ is higher than the start price, and the price at the point $a$ is lower than the start price.
 
-Now, break the curve from the image above into two segments: one to the left of the start point and one to the right of the start point. We're going to calculate **two** $L$'s, one for each of the segments. Why? Because each of the two tokens of a pool contributes to **either of the segments**: the left segment is made entirely of token $x$, the right segment is made entirely of token $y$. This comes from the fact that, during swapping, the price moves in either direction: it's either growing or falling. For the price to move, only either of the tokens is needed:
+Now, break the curve from the image above into two segments: one to the left of the start point and one to the right of the start point. We're going to calculate **two** $L$'s, one for each of the segments. Why? Because each of the two tokens of a pool contributes to **either of the segments**: the left segment is made entirely of token $x$, and the right segment is made entirely of token $y$. This comes from the fact that, during swapping, the price moves in either direction: it's either growing or falling. For the price to move, only either of the tokens is needed:
 1. when the price is growing, only token $x$ is needed for the swap (we're buying token $x$, so we want to take only token $x$ from the pool);
 1. when the price is falling, only token $y$ is needed for the swap.
 
-Thus, the liquidity in the segment of the curve to the left of the current price consists only of token $x$ and is calculated only from the amount of token $x$ provided. And, similarly, the liquidity in the segment of the curve to the right of the current price consists only of token $y$ and is calculated only from the amount of token $y$ provided.
+Thus, the liquidity in the segment of the curve to the left of the current price consists only of token $x$ and is calculated only from the amount of token $x$ provided. Similarly, the liquidity in the segment of the curve to the right of the current price consists only of token $y$ and is calculated only from the amount of token $y$ provided.
 
 ![Liquidity on the curve](images/curve_liquidity.png)
 
-This is why, when providing liquidity, we calculate two $L$'s and pick one of them. Which one? The smaller one. Why?  Because the bigger one already includes the smaller one! We want the new liquidity to be distributed **evenly** along the curve, thus we want to add the same $L$ to the left and to the right of the current price. If we pick the bigger one, the user would need to provide more liquidity to compensate the shortage in the smaller one. This is doable, of course, but this would make the smart contract more complex.
+This is why, when providing liquidity, we calculate two $L$'s and pick one of them. Which one? The smaller one. Why?  Because the bigger one already includes the smaller one! We want the new liquidity to be distributed **evenly** along the curve, thus we want to add the same $L$ to the left and to the right of the current price. If we pick the bigger one, the user would need to provide more liquidity to compensate for the shortage in the smaller one. This is doable, of course, but this would make the smart contract more complex.
 
 > What happens with the remainder of the bigger $L$? Well, nothing. After picking the smaller $L$ we can simply convert it to a smaller amount of the token that resulted in the bigger $L$–this will adjust it down. After that, we'll have token amounts that will result in the same $L$.
 
-And the final detail I need to focus your attention on here is: **new liquidity must not change the current price**. That is, it must be proportional to the current proportion of the reserves. And this is why the two $L$'s can be different–when the proportion is not preserved. And we pick the small $L$ to reestablish the proportion.
+The final detail I need to focus your attention on here is: **new liquidity must not change the current price**. That is, it must be proportional to the current proportion of the reserves. And this is why the two $L$'s can be different–when the proportion is not preserved. And we pick the small $L$ to reestablish the proportion.
 
 I hope this will make more sense after we implement this in code! Now, let's look at the formulas.
 
@@ -126,7 +126,7 @@ Let's recall how $\Delta x$ and $\Delta y$ are calculated:
 $$\Delta x = \Delta \frac{1}{\sqrt{P}} L$$
 $$\Delta y = \Delta \sqrt{P} L$$
 
-We can expands these formulas by replacing the delta P's with actual prices (we know them from the above):
+We can expand these formulas by replacing the delta P's with actual prices (we know them from the above):
 
 $$\Delta x = (\frac{1}{\sqrt{P_c}} - \frac{1}{\sqrt{P_b}}) L$$
 $$\Delta y = (\sqrt{P_c} - \sqrt{P_a}) L$$
@@ -191,7 +191,7 @@ Of these two, we'll pick the smaller one.
 
 ## Token Amounts Calculation, Again
 
-Since we choose the amounts we're going to deposit, the amounts can be wrong. We cannot deposit any amounts at any price ranges; liquidity amount needs to be distributed evenly along the curve of the price range we're depositing into. Thus, even though users choose amounts, the contract needs to re-calculate them, and actual amounts will be slightly different (at least because of rounding).
+Since we choose the amounts we're going to deposit, the amounts can be wrong. We cannot deposit any amounts at any price range; the liquidity amount needs to be distributed evenly along the curve of the price range we're depositing into. Thus, even though users choose amounts, the contract needs to re-calculate them, and actual amounts will be slightly different (at least because of rounding).
 
 Luckily, we already know the formulas:
 
@@ -216,7 +216,7 @@ $$\Delta y = L(\sqrt{P_c} - \sqrt{P_a})$$
 > (amount0, amount1)
 > > (998976618347425408, 5000000000000000000000)
 > ```
-> As you can see, the number are close to the amounts we want to provide, but ETH is slightly smaller.
+> As you can see, the numbers are close to the amounts we want to provide, but ETH is slightly smaller.
 
 > **Hint**: use `cast --from-wei AMOUNT` to convert from wei to ether, e.g.:  
 > `cast --from-wei 998976618347425280` will give you `0.998976618347425280`.

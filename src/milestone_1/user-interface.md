@@ -6,14 +6,14 @@ Finally, we made it to the final stop of this milestone–building a user interf
 
 Since building a front-end app is not the main goal of this book, I won't show how to build such an app from scratch.  Instead, I'll show how to use MetaMask to interact with smart contracts.
 
->If you want to experiment with the app and run it locally, you can fund it in the [ui](https://github.com/Jeiwan/uniswapv3-code/tree/milestone_1/ui) folder in the code repo. This is a simple React app, to run it locally set contracts addresses in `App.js` and run `yarn start`.
+>If you want to experiment with the app and run it locally, you can fund it in the [ui](https://github.com/Jeiwan/uniswapv3-code/tree/milestone_1/ui) folder in the code repo. This is a simple React app, to run it locally set contract addresses in `App.js` and run `yarn start`.
 
 
 ## Overview of Tools
 
 ### What is MetaMask?
 
-MetaMask is an Ethereum wallet implemented as a browser extension. It creates and stores private keys, shows token balances, allows to connect to different networks, sends, and receives ether and tokens–everything a wallet has to do.
+MetaMask is an Ethereum wallet implemented as a browser extension. It creates and stores private keys, shows token balances, allows to connect to different networks, and sends and receives ether and tokens–everything a wallet has to do.
 
 Besides that, MetaMask acts as a signer and a provider. As a provider, it connects to an Ethereum node and provides an interface to use its JSON-RPC API. As a signer, it provides an interface for secure transaction signing, thus it can be used to sign any transaction using a private key from the wallet.
 
@@ -21,7 +21,7 @@ Besides that, MetaMask acts as a signer and a provider. As a provider, it connec
 
 ### Convenience Libraries
 
-MetaMask, however, doesn't provide much functionality: it can only manage accounts and send raw transactions. We need another library that will make interaction with contracts easy. And we also want a set of utilities that will make our life easier when handling EVM-specific data (ABI encoding/decoding, big numbers handling, etc.).
+MetaMask, however, doesn't provide much functionality: it can only manage accounts and send raw transactions. We need another library that will make interaction with contracts easy. We also want a set of utilities that will make our life easier when handling EVM-specific data (ABI encoding/decoding, big numbers handling, etc.).
 
 There are multiple such libraries. The two most popular ones are: [web3.js](https://github.com/ChainSafe/web3.js) and [ethers.js](https://github.com/ethers-io/ethers.js/). Picking either of them is a matter of personal preference. To me, Ethers.js seems to have a cleaner contract interaction interface, so I'll pick it.
 
@@ -35,7 +35,7 @@ To send transactions and fetch blockchain data, MetaMask connects to an Ethereum
 
 After connecting to the local node, we need to import our private key. In MetaMask, click on the list of addresses, click "Import Account", and paste the private key of the address you picked before deploying the contracts. After that, go to the assets list and import the addresses of the two tokens. Now you should see balances of the tokens in MetaMask.
 
-> MetaMask is still somewhat bugged. One problem I struggled with is that it caches blockchain state when connected to `localhost`. Because of this, when restarting the node, you might see old token balances and state. To fix this, go to the advanced settings and click "Reset Account". You'll need to do this each time after restarting the node.
+> MetaMask is still somewhat bugged. One problem I struggled with is that it caches the blockchain state when connected to `localhost`. Because of this, when restarting the node, you might see old token balances and states. To fix this, go to the advanced settings and click "Reset Account". You'll need to do this each time after restarting the node.
 
 ### Connecting to MetaMask
 
@@ -63,7 +63,7 @@ const connect = () => {
 }
 ```
 
-`window.ethereum` is an object provided by MetaMask, it's the interface to communicate with MetaMask. If it's undefined, MetaMask is not installed. If it's defined, we can send two requests to MetaMask: `eth_requestAccounts` and `eth_chainId`.  In fact, `eth_requestAccounts` connects a website to MetaMask. It basically queries an address from MetaMask, and MetaMask asks for permission from user. User will be able to choose which addresses to give access to.
+`window.ethereum` is an object provided by MetaMask, it's the interface to communicate with MetaMask. If it's undefined, MetaMask is not installed. If it's defined, we can send two requests to MetaMask: `eth_requestAccounts` and `eth_chainId`.  In fact, `eth_requestAccounts` connects a website to MetaMask. It queries an address from MetaMask, and MetaMask asks for permission from the user. The user will be able to choose which addresses to give access to.
 
 `eth_chainId` will ask for the chain ID of the node MetaMask is connected to. After obtaining an address and chain ID, it's a good practice to display them in the interface:
 
@@ -73,7 +73,7 @@ const connect = () => {
 
 To provide liquidity into the pool, we need to build a form that asks the user to type the amounts they want to deposit.  After clicking "Submit", the app will build a transaction that calls `mint` in the manager contract and provides the amounts chosen by users. Let's see how to do this.
 
-Ether.js provides `Contract` interface to interact with contracts. It makes our life much easier, since it takes on the job of encoding function parameters, creating a valid transaction, and handing it over to MetaMask. For us, calling contracts looks like calling asynchronous methods on a JS object.
+Ether.js provides the `Contract` interface to interact with contracts. It makes our life much easier, since it takes on the job of encoding function parameters, creating a valid transaction, and handing it over to MetaMask. For us, calling contracts looks like calling asynchronous methods on a JS object.
 
 Let's see how to create an instance of `Contracts`:
 
@@ -138,24 +138,24 @@ Then, we check if either of them is enough to transfer a corresponding amount of
 })
 ```
 
-> `lt` is a method of [BigNumber](https://docs.ethers.io/v5/api/utils/bignumber/). Ethers.js uses BigNumber to represent `uint256` type, for which JavaScript [doesn't have enough precision](https://docs.ethers.io/v5/api/utils/bignumber/#BigNumber--notes-safenumbers). This is one of the reasons why we want a convenience library.
+> `lt` is a method of [BigNumber](https://docs.ethers.io/v5/api/utils/bignumber/). Ethers.js uses BigNumber to represent the `uint256` type, for which JavaScript [doesn't have enough precision](https://docs.ethers.io/v5/api/utils/bignumber/#BigNumber--notes-safenumbers). This is one of the reasons why we want a convenient library.
 
 This is pretty much similar to the test contract, besides the allowances part.
 
 `token0`, `token1`, and `manager` in the above code are instances of `Contract`. `approve` and `mint` are contract functions, which were generated dynamically from the ABIs we provided when instantiated the contracts. When calling these methods, Ethers.js:
 1. encodes function parameters;
 1. builds a transaction;
-1. passes the transaction to MetaMask and asks to sign it; user sees a MetaMask window and presses "Confirm";
+1. passes the transaction to MetaMask and asks to sign it; the user sees a MetaMask window and presses "Confirm";
 1. sends the transaction to the node MetaMask is connected to;
 1. returns a transaction object with full information about the sent transaction.
 
-The transaction object also contains `wait` function, which we call to wait for a transaction to be mined–this allows us to wait for a transaction to be successfully executed before sending another.
+The transaction object also contains the `wait` function, which we call to wait for a transaction to be mined–this allows us to wait for a transaction to be successfully executed before sending another.
 
-> Ethereum requires a strict order of transaction. Remember the nonce? It's an account-wide index of transactions, sent by this account. Every new transaction increases this index, and Ethereum won't mine a transaction until a previous transaction (one with a smaller nonce) was mined.
+> Ethereum requires a strict order of transactions. Remember the nonce? It's an account-wide index of transactions, sent by this account. Every new transaction increases this index, and Ethereum won't mine a transaction until a previous transaction (one with a smaller nonce) is mined.
 
 ### Swapping Tokens
 
-To swap tokens, we use the same pattern: get parameters from the user, check allowance, call `swap` on the manager.
+To swap tokens, we use the same pattern: get parameters from the user, check allowance, and call `swap` on the manager.
 
 ```js
 const swap = (amountIn, account, { tokenIn, manager, token0, token1 }, { managerAddress, poolAddress }) => {
@@ -183,17 +183,17 @@ const swap = (amountIn, account, { tokenIn, manager, token0, token1 }, { manager
 }
 ```
 
-The only new thing here is `ethers.utils.parseEther()` function, which we use to convert numbers to wei, the smallest unit in Ethereum.
+The only new thing here is the `ethers.utils.parseEther()` function, which we use to convert numbers to wei, the smallest unit in Ethereum.
 
 ### Subscribing to Changes
 
 For a decentralized application, it's important to reflect the current blockchain state. For example, in the case of a decentralized exchange, it's critical to properly calculate swap prices based on current pool reserves; outdated data can cause slippage and make a swap transaction fail.
 
-While developing the pool contract, we learned about events, which act as blockchain data indexes: whenever smart contract state is modified, it's a good practice to emit an event since events are indexed for quick search. What we're going to do now, is to subscribe to contract events to keep our front-end app updated. Let's build an event feed!
+While developing the pool contract, we learned about events, that act as blockchain data indexes: whenever a smart contract state is modified, it's a good practice to emit an event since events are indexed for quick search. What we're going to do now, is to subscribe to contract events to keep our front-end app updated. Let's build an event feed!
 
-If you checked the ABI file as I recommended earlier, you saw that it also contains description of events: event name and its fields. Well, [Ether.js parses them](https://docs.ethers.io/v5/api/contract/contract/#Contract--events) and provides an interface to subscribe to new events. Let's see how this works.
+If you checked the ABI file as I recommended earlier, you saw that it also contains the description of events: event name and its fields. Well, [Ether.js parses them](https://docs.ethers.io/v5/api/contract/contract/#Contract--events) and provides an interface to subscribe to new events. Let's see how this works.
 
-To subscribe to events, we'll use `on(EVENT_NAME, handler)` function. The callback receives all the fields of the event and the event itself as parameters:
+To subscribe to events, we'll use the `on(EVENT_NAME, handler)` function. The callback receives all the fields of the event and the event itself as parameters:
 ```js
 const subscribeToEvents = (pool, callback) => {
   pool.on("Mint", (sender, owner, tickLower, tickUpper, amount, amount0, amount1, event) => callback(event));
