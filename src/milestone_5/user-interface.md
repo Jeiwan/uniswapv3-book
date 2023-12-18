@@ -4,7 +4,7 @@ In this milestone, we've added the ability to remove liquidity from a pool and c
 
 ## Fetching Positions
 
-To let user choose how much liquidity to remove, we first need to fetch user's positions from a pool. To makes this easier, we can add a helper function to the Manager contract, which will return user position in a specific pool:
+To let the user choose how much liquidity to remove, we first need to fetch the user's positions from a pool. To make this easier, we can add a helper function to the Manager contract, which will return the user position in a specific pool:
 ```solidity
 function getPosition(GetPositionParams calldata params)
     public
@@ -39,7 +39,7 @@ function getPosition(GetPositionParams calldata params)
 
 This will free us from calculating a pool address and a position key on the front end.
 
-Then, after user typed in a position range, we can try fetching a position:
+Then, after the user has typed in a position range, we can try fetching a position:
 ```js
 const getAvailableLiquidity = debounce((amount, isLower) => {
   const lowerTick = priceToTick(isLower ? amount : lowerPrice);
@@ -62,7 +62,7 @@ const getAvailableLiquidity = debounce((amount, isLower) => {
 
 ## Getting Pool Address
 
-Since we need to call `burn` and `collect` on a pool, we still need to compute pool's address on the front end. Recall that pool addresses are compute using the `CREATE2` opcode, which requires a salt and the hash of contract's code. Luckily, Ether.js has `getCreate2Address` function that allows to compute `CREATE2` in JavaScript:
+Since we need to call `burn` and `collect` on a pool, we still need to compute the pool's address on the front end. Recall that pool addresses are computed using the `CREATE2` opcode, which requires a salt and the hash of the contract's code. Luckily, Ether.js has the `getCreate2Address` function that allows to compute `CREATE2` in JavaScript:
 
 ```js
 const sortTokens = (tokenA, tokenB) => {
@@ -84,7 +84,7 @@ const computePoolAddress = (factory, tokenA, tokenB, fee) => {
 }
 ```
 
-However, pool's codehash has to be hard coded because we don't want to store its code on the front end to calculate the hash. So, we'll use Forge to get the hash:
+However, the pool's codehash has to be hard coded because we don't want to store its code on the front end to calculate the hash. So, we'll use Forge to get the hash:
 
 ```bash
 $ forge inspect UniswapV3Pool bytecode| xargs cast keccak 
@@ -98,7 +98,7 @@ const poolCodeHash = "0x9dc805423bd1664a6a73b31955de538c338bac1f5c61beb8f4635be5
 
 ## Removing Liquidity
 
-After obtaining liquidity amount and pool address, we're ready to call `burn`:
+After obtaining the liquidity amount and the pool address, we're ready to call `burn`:
 
 ```js
 const removeLiquidity = (e) => {

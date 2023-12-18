@@ -2,9 +2,9 @@
 
 While working on the Uniswap implementation, you've probably asked yourself, "How does Uniswap make money?" Well, it doesn't (at least as of September 2022).
 
-In the implementation we've built so far, traders pay liquidity providers for providing liquidity, and Uniswap Labs, as the company that developed the DEX, is not part of this process. Neither traders, nor liquidity providers pay Uniswap Labs for using the Uniswap DEX. How come?
+In the implementation we've built so far, traders pay liquidity providers for providing liquidity, and Uniswap Labs, as the company that developed the DEX, is not part of this process. Neither traders nor liquidity providers pay Uniswap Labs for using the Uniswap DEX. How come?
 
-In fact, there's a way for Uniswap Labs to start making money on the DEX. However, the mechanism hasn't been enabled yet (again, as of September 2022). Each Uniswap pool has *protocol fees* collection mechanism. Protocol fees are collected from swap fees: a small portion of swap fees is subtracted and saved as protocol fees to later be collected by Factory contract owner (Uniswap Labs). The size of protocol fees is expected to be determined by UNI token holders, but it must be between $1/4$ and $1/10$ (inclusive) of swap fees.
+There's a way for Uniswap Labs to start making money on the DEX. However, the mechanism hasn't been enabled yet (again, as of September 2022). Each Uniswap pool has a *protocol fees* collection mechanism. Protocol fees are collected from swap fees: a small portion of swap fees is subtracted and saved as protocol fees to later be collected by the Factory contract owner (Uniswap Labs). The size of protocol fees is expected to be determined by UNI token holders, but it must be between $1/4$ and $1/10$ (inclusive) of swap fees.
 
 For brevity, we're not going to add protocol fees to our implementation, but let's see how they're implemented in Uniswap.
 
@@ -21,7 +21,7 @@ struct Slot0 {
 }
 ```
 
-And a global accumulator is needed to track accrued fees:
+A global accumulator is needed to track accrued fees:
 ```solidity
 // accumulated protocol fees in token0/token1 units
 struct ProtocolFees {
@@ -45,9 +45,9 @@ function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external overrid
 }
 ```
 
-As you can see, it's allowed to set protocol fees separate for each of the tokens. The values are two `uint8` that are packed to be stored in one `uint8`: `feeProtocol1` is shifted to the left by 4 bits (this is identical to multiplying it by 16) and added to `feeProtocol0`. To unpack `feeProtocol0`, a remainder of division `slot0.feeProtocol` by 16 is taken; `feeProtocol1` is simply shifting `slot0.feeProtocol` to the right by 4 bits. Such packing works because neither `feeProtocol0`, nor `feeProtocol1` can be greater than 10.
+As you can see, it's allowed to set protocol fees separately for each of the tokens. The values are two `uint8` that are packed to be stored in one `uint8`: `feeProtocol1` is shifted to the left by 4 bits (this is identical to multiplying it by 16) and added to `feeProtocol0`. To unpack `feeProtocol0`, a remainder of division `slot0.feeProtocol` by 16 is taken; `feeProtocol1` is simply shifting `slot0.feeProtocol` to the right by 4 bits. Such packing works because neither `feeProtocol0`, nor `feeProtocol1` can be greater than 10.
 
-Before beginning a swap, we need to choose one of the protocol fees depending on swap direction (swap and protocol fees are collected on input tokens):
+Before beginning a swap, we need to choose one of the protocol fees depending on the swap direction (swap and protocol fees are collected on input tokens):
 
 ```solidity
 function swap(...) {
@@ -83,7 +83,7 @@ if (zeroForOne) {
 }
 ```
 
-Finally, Factory contract owner can collect accrued protocol fees by calling `collectProtocol`:
+Finally, the Factory contract owner can collect accrued protocol fees by calling `collectProtocol`:
 
 ```solidity
 function collectProtocol(

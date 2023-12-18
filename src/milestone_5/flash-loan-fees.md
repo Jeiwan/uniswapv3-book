@@ -1,6 +1,6 @@
 # Flash Loan Fees
 
-In a previous chapter we implemented flash loans and made them free. However, Uniswap collects swap fees on flash loans, and we're going to add this to our implementation: the amounts repaid by flash loan borrowers must include a fee.
+In a previous chapter, we implemented flash loans and made them free. However, Uniswap collects swap fees on flash loans, and we're going to add this to our implementation: the amounts repaid by flash loan borrowers must include a fee.
 
 Here's what the updated `flash` function looks like:
 ```solidity
@@ -33,4 +33,4 @@ function flash(
 }
 ```
 
-What's changed is that we're now calculating fees on the amounts requested by caller and then expect pool balances to have grown by the fee amounts.
+What's changed is that we're now calculating fees on the amounts requested by the caller and then expect pool balances to have grown by the fee amounts.
