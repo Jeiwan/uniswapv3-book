@@ -15,7 +15,7 @@ def liquidity1(amount, pa, pb):
     return amount * q96 / (pb - pa)
 ```
 
-Let's implement them in Solidity so we could calculate liquidity in the `Manager.mint()` function.
+Let's implement them in Solidity so we can calculate liquidity in the `Manager.mint()` function.
 
 ## Implementing Liquidity Calculation for Token X
 
@@ -56,7 +56,7 @@ function getLiquidityForAmount0(
 
 ## Implementing Liquidity Calculation for Token Y
 
-Similarly, we'll use the other formula from [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation) to find $L$ when amount of $y$ and price range is known:
+Similarly, we'll use the other formula from [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation) to find $L$ when the amount of $y$ and the price range is known:
 
 $$\Delta y = \Delta\sqrt{P} L$$
 $$L = \frac{\Delta y}{\sqrt{P_u}-\sqrt{P_l}}$$
@@ -84,9 +84,9 @@ I hope this is clear!
 
 ## Finding Fair Liquidity
 
-You might be wondering why there are two ways of calculating $L$ while we have always had only one $L$, which is calculated as $L = \sqrt{xy}$, and which of these ways is correct. The answer is: they're both correct.
+You might be wondering why there are two ways of calculating $L$ while we have always had only one $L$, which is calculated as $L = \sqrt{xy}$, and which of these ways is correct? The answer is: they're both correct.
 
-In the above formulas, we calculate $L$ based on different parameters: price range and the amount of either token.  Different price ranges and different token amounts will result in different values of $L$. And there's a scenario where we need to calculate both of the $L$'s and pick one of them. Recall this piece from `mint` function:
+In the above formulas, we calculate $L$ based on different parameters: price range and the amount of either token.  Different price ranges and different token amounts will result in different values of $L$. And there's a scenario where we need to calculate both of the $L$'s and pick one of them. Recall this piece from the `mint` function:
 
 ```solidity
 if (slot0_.tick < lowerTick) {
@@ -104,14 +104,14 @@ if (slot0_.tick < lowerTick) {
 
 It turns out, we also need to follow this logic when calculating liquidity:
 1. if we're calculating liquidity for a range that's above the current price, we use the $\Delta x$ version on the formula;
-1. when calculation liquidity for a range that's below the current price, we use the $\Delta y$ one;
+1. when calculating liquidity for a range that's below the current price, we use the $\Delta y$ one;
 1. when a price range includes the current price, we calculate **both** and pick the smaller of them.
 
 > Again, we discussed these ideas in [Liquidity Amount Calculation](https://uniswapv3book.com/docs/milestone_1/calculating-liquidity/#liquidity-amount-calculation).
 
 Let's implement this logic now.
 
-When current price is below the lower bound of a price range:
+When the current price is below the lower bound of a price range:
 ```solidity
 function getLiquidityForAmounts(
     uint160 sqrtPriceX96,
@@ -131,7 +131,7 @@ function getLiquidityForAmounts(
         );
 ```
 
-When current price is within a range, we're picking the smaller $L$:
+When the current price is within a range, we're picking the smaller $L$:
 ```solidity
 } else if (sqrtPriceX96 <= sqrtPriceBX96) {
     uint128 liquidity0 = getLiquidityForAmount0(

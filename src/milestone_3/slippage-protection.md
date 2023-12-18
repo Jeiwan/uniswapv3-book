@@ -1,18 +1,18 @@
 # Slippage Protection
 
-Slippage is a very important issued in decentralized exchanges. Slippage simply means the difference between the price that you see on the screen when initialing a transaction and the actual price the swap is executed at. This difference appears because there's a short (and sometimes long, depending on network congestion and gas costs) delay between when you send a transaction and when it gets mined. In more technical terms, blockchain state changes every block and there's no guarantee that your transaction will be applied at a specific block.
+Slippage is a very important issue in decentralized exchanges. Slippage simply means the difference between the price that you see on the screen when initialing a transaction and the actual price when the swap is executed. This difference appears because there's a short (and sometimes long, depending on network congestion and gas costs) delay between when you send a transaction and when it gets mined. In more technical terms, blockchain state changes every block and there's no guarantee that your transaction will be applied at a specific block.
 
-Another important problem that slippage protection fixes is *sandwich attacks*–this is a common type of attacks on decentralized exchange users. During sandwiching, attackers "wrap" your swap transactions in their two transactions: one goes before your transaction and the other goes after it. In the first transaction, an attacker modifier the state of a pool so that your swap becomes very unprofitable for you and somewhat profitable for the attacker. This is achieved by adjusting pool liquidity so that your trade happens at a lower price. In the second transaction, the attacker reestablishes pool liquidity and the price. As a result, you get much less tokens than expected due to manipulated prices, and the attacker get some profit.
+Another important problem that slippage protection fixes is *sandwich attacks*–this is a common type of attack on decentralized exchange users. During sandwiching, attackers "wrap" your swap transactions in their two transactions: one goes before your transaction and the other goes after it. In the first transaction, an attacker modifies the state of a pool so that your swap becomes very unprofitable for you and somewhat profitable for the attacker. This is achieved by adjusting pool liquidity so that your trade happens at a lower price. In the second transaction, the attacker reestablishes pool liquidity and the price. As a result, you get much fewer tokens than expected due to manipulated prices, and the attacker gets some profit.
 
 ![Sandwich attack](images/sandwich_attack.png)
 
-The way slippage protection is implemented in decentralized exchanges is by letting user choose how far the actual price is allowed to drop. By default, Uniswap V3 sets slippage tolerance to 0.1%, which means a swap is executed only if the price at the moment of execution is not smaller than 99.9% of the price the user saw in the browser. This is a very tight range and users are allowed to adjust this number, which is useful when volatility is high.
+The way slippage protection is implemented in decentralized exchanges is by letting users choose how far the actual price is allowed to drop. By default, Uniswap V3 sets slippage tolerance to 0.1%, which means a swap is executed only if the price at the moment of execution is not smaller than 99.9% of the price the user saw in the browser. This is a very tight range and users are allowed to adjust this number, which is useful when volatility is high.
 
 Let's add slippage protection to our implementation!
 
 ## Slippage Protection in Swaps
 
-To protect swaps, we need to add one more parameter to `swap` function–we want to let user choose a stop price, a price at which swapping will stop. We'll call the parameter `sqrtPriceLimitX96`:
+To protect swaps, we need to add one more parameter to the `swap` function–we want to let the user choose a stop price, a price at which swapping will stop. We'll call the parameter `sqrtPriceLimitX96`:
 
 ```solidity
 function swap(
@@ -33,9 +33,9 @@ function swap(
     ...
 ```
 
-When selling token $x$ (`zeroForOne` is true), `sqrtPriceLimitX96` must be between the current price and the minimal $\sqrt{P}$ since selling token $x$ moves the price down. Likewise, when selling token $y$, `sqrtPriceLimitX96` must be between the current price and the maximal $\sqrt{P}$ because price moves up.
+When selling token $x$ (`zeroForOne` is true), `sqrtPriceLimitX96` must be between the current price and the minimal $\sqrt{P}$ since selling token $x$ moves the price down. Likewise, when selling token $y$, `sqrtPriceLimitX96` must be between the current price and the maximal $\sqrt{P}$ because the price moves up.
 
-In the while loop, we want to satisfy two conditions: full swap amount has not been filled and current price isn't equal to `sqrtPriceLimitX96`:
+In the while loop, we want to satisfy two conditions: the full swap amount has not been filled and the current price isn't equal to `sqrtPriceLimitX96`:
 ```solidity
 ..
 while (
@@ -45,7 +45,7 @@ while (
 ...
 ```
 
-Which means that Uniswap V3 pools don't fail when slippage tolerance gets hit and simply executes swap partially.
+This means that Uniswap V3 pools don't fail when slippage tolerance gets hit and simply execute the swap partially.
 
 Another place where we need to consider `sqrtPriceLimitX96` is when calling `SwapMath.computeSwapStep`:
 
@@ -69,9 +69,9 @@ Here, we want to ensure that `computeSwapStep` never calculates swap amounts out
 
 ## Slippage Protection in Minting
 
-Adding liquidity also requires slippage protection. This comes from the fact that price cannot be changed when adding liquidity (liquidity must be proportional to current price), thus liquidity providers also suffer from slippage. Unlike `swap` function however, we're not forced to implement slippage protection in Pool contract–recall that Pool contract is a core contract and we don't want to put unnecessary logic into it. This is why we made the Manager contract, and it's in the Manager contract where we'll implement slippage protection.
+Adding liquidity also requires slippage protection. This comes from the fact that price cannot be changed when adding liquidity (liquidity must be proportional to the current price), thus liquidity providers also suffer from slippage. Unlike the `swap` function, however, we're not forced to implement slippage protection in the Pool contract–recall that the Pool contract is a core contract and we don't want to put unnecessary logic into it. This is why we made the Manager contract, and it's in the Manager contract where we'll implement slippage protection.
 
-The Manager contract is a wrapper contract that makes calls to Pool contract more convenient. To implement slippage protection in the `mint` function, we can simply check the amounts of tokens taken by Pool and compare them to some minimal amounts chosen by user. Additionally, we can free users from calculating $\sqrt{P_{lower}}$ and $\sqrt{P_{upper}}$, as well as liquidity, and calculate these in `Manager.mint()`.
+The Manager contract is a wrapper contract that makes calls to the Pool contract more convenient. To implement slippage protection in the `mint` function, we can simply check the amounts of tokens taken by Pool and compare them to some minimal amounts chosen the by user. Additionally, we can free users from calculating $\sqrt{P_{lower}}$ and $\sqrt{P_{upper}}$, as well as liquidity, and calculate these in `Manager.mint()`.
 
 Our updated `mint` function will now take more parameters, so let's group them in a struct:
 ```solidity
@@ -94,7 +94,7 @@ contract UniswapV3Manager {
         ...
 ```
 
-`amount0Min` and `amount1Min` are the amounts that are calculated based on slippage tolerance. They must be smaller than the desired amounts, with the gap controlled by the slippage tolerance setting. Liquidity provider expect to provide amounts not smaller than `amount0Min` and `amount1Min`.
+`amount0Min` and `amount1Min` are the amounts that are calculated based on slippage tolerance. They must be smaller than the desired amounts, with the gap controlled by the slippage tolerance setting. The liquidity provider expects to provide amounts not smaller than `amount0Min` and `amount1Min`.
 
 Next, we calculate $\sqrt{P_{lower}}$, $\sqrt{P_{upper}}$, and liquidity:
 ```solidity
@@ -121,7 +121,7 @@ uint128 liquidity = LiquidityMath.getLiquidityForAmounts(
 
 `LiquidityMath.getLiquidityForAmounts` is a new function, we'll discuss it in the next chapter.
 
-Next step is to provide liquidity to the pool and check the amounts returned by the pool: if they're too low, we revert.
+The next step is to provide liquidity to the pool and check the amounts returned by the pool: if they're too low, we revert.
 ```solidity
 (amount0, amount1) = pool.mint(
     msg.sender,

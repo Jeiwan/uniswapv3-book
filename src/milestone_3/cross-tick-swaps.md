@@ -1,12 +1,12 @@
 # Cross-Tick Swaps
 
-Cross-tick swaps is probably the most advanced feature of Uniswap V3. Luckily, we have already implemented almost everything we need to make cross-tick swaps. Let's see how cross-tick swaps work before implementing them.
+Cross-tick swaps are probably the most advanced feature of Uniswap V3. Luckily, we have already implemented almost everything we need to make cross-tick swaps. Let's see how cross-tick swaps work before implementing them.
 
 ## How Cross-Tick Swaps Work
 
-A common Uniswap V3 pool is a pool with many overlapping (and outstanding) price ranges. Each pool tracks current $\sqrt{P}$ and tick. When users swap tokens they move current price and tick to the left or to the right, depending on swap direction. These movements are caused by tokens being added and removed from pools during swaps.
+A common Uniswap V3 pool is a pool with many overlapping (and outstanding) price ranges. Each pool tracks current $\sqrt{P}$ and tick. When users swap tokens they move the current price and tick to the left or the right, depending on the swap direction. These movements are caused by tokens being added and removed from pools during swaps.
 
-Pools also track $L$ (`liquidity` variable in our code), which is **the total liquidity provided by all price ranges that include current price**. It's expected that, during big price moves, current price moves outside of price ranges. When this happens, such price ranges become inactive and their liquidity gets subtracted from $L$. On the other hand, when current price enters a price range, $L$ is increased and the price range gets activated.
+Pools also track $L$ (`liquidity` variable in our code), which is **the total liquidity provided by all price ranges that include the current price**. It's expected that, during big price moves, the current price moves outside of price ranges. When this happens, such price ranges become inactive and their liquidity gets subtracted from $L$. On the other hand, when the current price enters a price range, $L$ is increased and the price range gets activated.
 
 Let's analyze this illustration:
 
@@ -20,7 +20,7 @@ If we buy all the USDC from the top price range (and sell ETH), the price will d
 
 The current price moves during swapping. It moves from one price range to another, but it must always stay within a price range–otherwise, trading is not possible.
 
-Of course, price ranges can overlap, so, in practice, the transition between price ranges is seamless. And it's not possible to hop over a gap–a swap would be completed partially. It's also worth noting that, in the areas where price ranges overlap, price moves slower. This is due to the fact that supply is higher in such areas and the effect of demand is lower (recall from the introduction that high demand with low supply increases the price).
+Of course, price ranges can overlap, so, in practice, the transition between price ranges is seamless. And it's not possible to hop over a gap–a swap would be completed partially. It's also worth noting that, in the areas where price ranges overlap, price moves slower. This is because supply is higher in such areas and the effect of demand is lower (recall from the introduction that high demand with low supply increases the price).
 
 Our current implementation doesn't support such fluidity: we only allow swaps within one active price range. This is what we're going to improve now.
 
@@ -28,9 +28,9 @@ Our current implementation doesn't support such fluidity: we only allow swaps wi
 
 In the `swap` function, we're iterating over initialized ticks (that is, ticks with liquidity) to fill the amount the user has requested. In each iteration, we:
 
-1. find next initialized tick using `tickBitmap.nextInitializedTickWithinOneWord`;
+1. find the next initialized tick using `tickBitmap.nextInitializedTickWithinOneWord`;
 1. swap in the range between the current price and the next initialized tick (using `SwapMath.computeSwapStep`);
-1. always expect that current liquidity is enough to satisfy the swap (i.e. the price after swap is between the current
+1. always expect that the current liquidity is enough to satisfy the swap (i.e. the price after a swap is between the current
 price and the next initialized tick).
 
 But what happens if the third step is not true? We have this scenario covered in tests:
@@ -109,15 +109,15 @@ function computeSwapStep(...) {
     );
 }
 ```
-First, we calculate `amountIn`–the input amount the current range can satisfy. If it's smaller than `amountRemaining`, we say that the current price range cannot fulfil the whole swap, thus the next $\sqrt{P}$ is the upper/lower $\sqrt{P}$ of the price range (in other words, we use the entire liquidity of the price range). If `amountIn` is greater than `amountRemaining`, we compute `sqrtPriceNextX96`–it'll be a price within the current price range.
+First, we calculate `amountIn`–the input amount the current range can satisfy. If it's smaller than `amountRemaining`, we say that the current price range cannot fulfill the whole swap, thus the next $\sqrt{P}$ is the upper/lower $\sqrt{P}$ of the price range (in other words, we use the entire liquidity of the price range). If `amountIn` is greater than `amountRemaining`, we compute `sqrtPriceNextX96`–it'll be a price within the current price range.
 
-In the end, after figuring the next price, we re-compute `amountIn` and compute `amountOut` withing this shorter price range (we don't consume the entire liquidity).
+In the end, after figuring out the next price, we re-compute `amountIn` and compute `amountOut` within this shorter price range (we don't consume the entire liquidity).
 
 I hope this makes sense!
 
 ## Updating the `swap` Function
 
-Now, in `swap` function, we need to handle the case we introduced in the previous part: when swap price reaches a boundary of a price range. When this happens, we want to deactivate the price range we're leaving and active the next price range.  We also want to start another iteration of the loop and try to find another tick with liquidity.
+Now, in the `swap` function, we need to handle the case we introduced in the previous part: when the swap price reaches a boundary of a price range. When this happens, we want to deactivate the price range we're leaving and activate the next price range.  We also want to start another iteration of the loop and try to find another tick with liquidity.
 
 Before updating the loop, let's save the second value returned by the `tickBitmap.nextInitializedTickWithinOneWord()` call into `step.initialized`:
 ```solidity
@@ -154,28 +154,28 @@ if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
 }
 ```
 
-The second branch is what we had before–it handles the case when current price stays within the range. So let's focus on the first one.
+The second branch is what we had before–it handles the case when the current price stays within the range. So let's focus on the first one.
 
 Here, we're updating the current liquidity, but only if the next tick is initialized (if it's not, we skip adding 0 to the liquidity to save gas).
 
 `state.sqrtPriceX96` is the new current price, i.e. the price that will be set after the current swap; `step.sqrtPriceNextX96` is the price at the next initialized tick. If these are equal, we have reached a price range boundary. As explained above, when this happens, we want to update $L$ (add or remove liquidity) and continue the swap using the boundary tick as the current tick.
 
-By convention, crossing a tick means crossing it from left to right. Thus, crossing lower ticks always adds liquidity and crossing upper ticks always removes it. However, when `zeroForOne` is true, we negate the sign: when price goes down (token $x$ is being sold), upper ticks add liquidity and lower ticks remove it.
+By convention, crossing a tick means crossing it from left to right. Thus, crossing lower ticks always adds liquidity, and crossing upper ticks always removes it. However, when `zeroForOne` is true, we negate the sign: when the price goes down (token $x$ is being sold), upper ticks add liquidity and lower ticks remove it.
 
-When updating `state.tick`, if price moves down (`zeroForOne` is true), we need to subtract 1 to step out of the price range. When moving up (`zeroForOne` is false), current tick is always excluded in `TickBitmap.nextInitializedTickWithinOneWord`.
+When updating `state.tick`, if the price moves down (`zeroForOne` is true), we need to subtract 1 to step out of the price range. When moving up (`zeroForOne` is false), the current tick is always excluded in `TickBitmap.nextInitializedTickWithinOneWord`.
 
 Another small, but very important, change that we need to make is to update $L$ when crossing a tick. We do this after the loop:
 ```solidity
 if (liquidity_ != state.liquidity) liquidity = state.liquidity;
 ```
 
-Within the loop, we update `state.liquidity` multiple times when entering/leaving price ranges. After a swap, we need to update the global $L$ for it to reflect the liquidity available at the new current price. Also, the reason why we only update the global variable when finishing the swap is also gas consumption optimization, since writing global variable is really an expensive operation!
+Within the loop, we update `state.liquidity` multiple times when entering/leaving price ranges. After a swap, we need to update the global $L$ for it to reflect the liquidity available at the new current price. Also, the reason why we only update the global variable when finishing the swap is gas consumption optimization, since writing to the storage of a contract is an expensive operation.
 
 ## Liquidity Tracking and Ticks Crossing
 
-Let's now look at updated `Tick` library.
+Let's now look at the updated `Tick` library.
 
-First change is in `Tick.Info` structure: we now have two variables to track tick liquidity:
+The first change is in the `Tick.Info` structure: we now have two variables to track tick liquidity:
 ```solidity
 struct Info {
     bool initialized;
@@ -186,9 +186,9 @@ struct Info {
 }
 ```
 
-`liquidityGross` tracks the absolute liquidity amount of a tick. It's needed to find if tick was flipped or not. `liquidityNet`, on the other hand, is a signed integer–it tracks the amount of liquidity added (in case of lower tick) or removed (in case of upper tick) when a tick is crossed.
+`liquidityGross` tracks the absolute liquidity amount of a tick. It's needed to find if a tick was flipped or not. `liquidityNet`, on the other hand, is a signed integer–it tracks the amount of liquidity added (in case of lower tick) or removed (in case of upper tick) when a tick is crossed.
 
-`liquidityNet` is set in `update` function:
+`liquidityNet` is set in the `update` function:
 ```solidity
 function update(
     mapping(int24 => Tick.Info) storage self,
@@ -218,7 +218,7 @@ function cross(mapping(int24 => Tick.Info) storage self, int24 tick)
 
 ## Testing
 
-Let's review different liquidity set ups and test them to ensure our pool implementation can handle them correctly.
+Let's review different liquidity setups and test them to ensure our pool implementation can handle them correctly.
 
 ### One Price Range
 
@@ -226,7 +226,7 @@ Let's review different liquidity set ups and test them to ensure our pool implem
 
 This is the scenario we had earlier. After we have updated the code, we need to ensure old functionality keeps working correctly.
 
-> For brevity, I'll show only most important parts of the tests. You can find full tests in [the code repo](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_3/test/UniswapV3Pool.Swaps.t.sol).
+> For brevity, I'll show only the most important parts of the tests. You can find full tests in [the code repo](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_3/test/UniswapV3Pool.Swaps.t.sol).
 
 - When buying ETH:
     ```solidity
@@ -275,8 +275,8 @@ This is the scenario we had earlier. After we have updated the code, we need to 
     }
     ```
 
-In both of these scenario we buy a small amount of ETH or USDC–it needs to be small enough for the price to not leave the only price range we created. Key values after swapping is done:
-1. `sqrtPriceX96` is slightly above or below the initial price and stays within the price rage;
+In both of these scenarios we buy a small amount of ETH or USDC–it needs to be small enough for the price to not leave the only price range we created. Key values after swapping is done:
+1. `sqrtPriceX96` is slightly above or below the initial price and stays within the price range;
 1. `currentLiquidity` remains unchanged.
 
 ### Multiple Identical and Overlapping Price Ranges
@@ -402,7 +402,7 @@ This scenario is similar to the previous one but this time we create two identic
     }
     ```
 
-In these scenarios, we make big swaps that cause price to move outside of a price range. As a result, the second price range gets activated and provides enough liquidity to satisfy the swap. In both scenarios, we can see that price lands outside of the current price range and that the price range gets deactivated (current liquidity equals to the liquidity of the second price range).
+In these scenarios, we make big swaps that cause the price to move outside of a price range. As a result, the second price range gets activated and provides enough liquidity to satisfy the swap. In both scenarios, we can see that the price lands outside of the current price range and that the price range gets deactivated (the current liquidity equals the liquidity of the second price range).
 
 ### Partially Overlapping Price Ranges
 
