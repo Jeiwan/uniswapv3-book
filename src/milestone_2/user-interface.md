@@ -1,6 +1,6 @@
 # User Interface
 
-Let's make our web app work more like a real DEX. We can now remove hardcoded swap amounts and let users type arbitrary amounts. Moreover, we can now let users swap in both direction, so we also need a button to swap the token inputs.  After updating, the swap form will look like:
+Let's make our web app work more like a real DEX. We can now remove hardcoded swap amounts and let users type arbitrary amounts. Moreover, we can now let users swap in both directions, so we also need a button to swap the token inputs.  After updating, the swap form will look like:
 
 ```jsx
 <form className="SwapForm">
@@ -20,9 +20,9 @@ Let's make our web app work more like a real DEX. We can now remove hardcoded sw
 </form>
 ```
 
-Each input has an amount assigned to it depending on swap direction controlled by `zeroForOne` state variable. The lower input field is always read-only because its value is calculated by Quoter contract.
+Each input has an amount assigned to it depending on the swap direction controlled by the `zeroForOne` state variable. The lower input field is always read-only because its value is calculated by the Quoter contract.
 
-`setAmount_` function does two things: it updates the value of the top input and calls Quoter contract to calculate the value of the lower input:
+The `setAmount_` function does two things: it updates the value of the top input and calls the Quoter contract to calculate the value of the lower input:
 
 ```js
 const updateAmountOut = debounce((amount) => {
@@ -56,4 +56,4 @@ const setAmount_ = (setAmountFn) => {
 
 Notice the `callStatic` called on `quoter`–this is what we discussed in the previous chapter: we need to force Ethers.js to make a static call. Since `quote` is not a `pure` or `view` function, Ethers.js will try to call `quote` in a transaction.
 
-And that's it! The UI now allows to specify arbitrary amounts and swap in either direction!
+And that's it! The UI now allows us to specify arbitrary amounts and swap in either direction!

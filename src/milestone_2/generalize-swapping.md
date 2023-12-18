@@ -16,11 +16,11 @@ function swap(
     ...
 ```
 
-In `swap` function, we add two new parameters: `zeroForOne` and `amountSpecified`. `zeroForOne` is the flag that controls swap direction: when `true`, `token0` is traded in for `token1`; when `false,` it's the opposite. For example, if `token0` is ETH and `token1` is USDC, setting `zeroForOne` to `true` means buying USDC for ETH. `amountSpecified` is the amount of tokens user wants to sell.
+In the `swap` function, we add two new parameters: `zeroForOne` and `amountSpecified`. `zeroForOne` is the flag that controls swap direction: when `true`, `token0` is traded in for `token1`; when `false,` it's the opposite. For example, if `token0` is ETH and `token1` is USDC, setting `zeroForOne` to `true` means buying USDC for ETH. `amountSpecified` is the number of tokens the user wants to sell.
 
 ## Filling Orders
 
-Since, in Uniswap V3, liquidity is stored in multiple price ranges, Pool contract needs to find all liquidity that's required to "fill an order" from user. This is done via iterating over initialized ticks in a direction chosen by user.
+Since, in Uniswap V3, liquidity is stored in multiple price ranges, the Pool contract needs to find all liquidity that's required to "fill an order" from the user. This is done via iterating over initialized ticks in a direction chosen by the user.
 
 Before continuing, we need to define two new structures:
 ```solidity
@@ -40,9 +40,9 @@ struct StepState {
 }
 ```
 
-`SwapState` maintains current swap's state. `amountSpecifiedRemaining` tracks the remaining amount of tokens that needs to be bought by the pool. When it's zero, the swap is done. `amountCalculated` is the out amount calculated by the contract.  `sqrtPriceX96` and `tick` are new current price and tick after a swap is done.
+`SwapState` maintains the current swap's state. `amountSpecifiedRemaining` tracks the remaining amount of tokens that need to be bought by the pool. When it's zero, the swap is done. `amountCalculated` is the out amount calculated by the contract. `sqrtPriceX96` and `tick` are the new current price and tick after a swap is done.
 
-`StepState` maintains current swap step's state. This structure tracks the state of **one iteration** of an "order filling".  `sqrtPriceStartX96` tracks the price the iteration begins with. `nextTick` is the next initialized tick that will provide liquidity for the swap and `sqrtPriceNextX96` is the price at the next tick. `amountIn` and `amountOut` are amounts that can be provided by the liquidity of the current iteration.
+`StepState` maintains the current swap step's state. This structure tracks the state of **one iteration** of an "order filling".  `sqrtPriceStartX96` tracks the price the iteration begins with. `nextTick` is the next initialized tick that will provide liquidity for the swap and `sqrtPriceNextX96` is the price at the next tick. `amountIn` and `amountOut` are amounts that can be provided by the liquidity of the current iteration.
 
 > After we implement cross-tick swaps (that is, swaps that happen across multiple price ranges), the idea of iterating will be clearer.
 
@@ -61,7 +61,7 @@ function swap(...) {
     ...
 ```
 
-Before filling an order, we initialize a `SwapState` instance. We'll loop until `amountSpecifiedRemaining` is 0, which will mean that the pool has enough liquidity to buy `amountSpecified` tokens from user.
+Before filling an order, we initialize a `SwapState` instance. We'll loop until `amountSpecifiedRemaining` is 0, which will mean that the pool has enough liquidity to buy `amountSpecified` tokens from the user.
 
 ```solidity
 ...
@@ -91,7 +91,7 @@ In the loop, we set up a price range that should provide liquidity for the swap.
     );
 ```
 
-Next, we're calculating the amounts that can be provider by the current price range, and the new current price the swap will result in.
+Next, we're calculating the amounts that can be provided by the current price range, and the new current price the swap will result in.
 
 ```solidity
     state.amountSpecifiedRemaining -= step.amountIn;
@@ -100,7 +100,7 @@ Next, we're calculating the amounts that can be provider by the current price ra
 }
 ```
 
-The final step in the loop is updating the SwapState. `step.amountIn` is the amount of tokens the price range can buy from user; `step.amountOut` is the related number of the other token the pool can sell to user. `state.sqrtPriceX96` is the current price that will be set after the swap (recall that trading changes current price).
+The final step in the loop is updating the SwapState. `step.amountIn` is the number of tokens the price range can buy from the user; `step.amountOut` is the related number of the other token the pool can sell to the user. `state.sqrtPriceX96` is the current price that will be set after the swap (recall that trading changes current price).
 
 ## SwapMath Contract
 
@@ -125,7 +125,7 @@ function computeSwapStep(
     ...
 ```
 
-This is the core logic of swapping. The function calculates swap amounts within one price range and respecting available liquidity. It'll return: the new current price and input and output token amounts. Even though the input amount is provided by user, we still calculate it to know how much of the user specified input amount was processed by one call to `computeSwapStep`.
+This is the core logic of swapping. The function calculates swap amounts within one price range and respecting available liquidity. It'll return: the new current price and input and output token amounts. Even though the input amount is provided by the user, we still calculate it to know how much of the user-specified input amount was processed by one call to `computeSwapStep`.
 
 ```solidity
 bool zeroForOne = sqrtPriceCurrentX96 >= sqrtPriceTargetX96;
@@ -138,9 +138,9 @@ sqrtPriceNextX96 = Math.getNextSqrtPriceFromInput(
 );
 ```
 
-By checking the price, we can determine the direction of the swap. Knowing the direction, we can calculate the price after swapping `amountRemaining` of tokens. We'll return to this function below.
+By checking the price, we can determine the direction of the swap. Knowing the direction, we can calculate the price after swapping the `amountRemaining` of tokens. We'll return to this function below.
 
-After finding the new price, we can calculate input and output amounts of the swap using the function we already have ( the same functions we used to calculate token amounts from liquidity in the `mint` function):
+After finding the new price, we can calculate the input and output amounts of the swap using the function we already have ( the same functions we used to calculate token amounts from liquidity in the `mint` function):
 ```solidity
 amountIn = Math.calcAmount0Delta(
     sqrtPriceCurrentX96,
@@ -167,7 +167,7 @@ That's it for `computeSwapStep`!
 
 Let's now look at `Math.getNextSqrtPriceFromInput`–the function calculates a $\sqrt{P}$ given another $\sqrt{P}$, liquidity, and input amount. It tells what the price will be after swapping the specified input amount of tokens, given the current price and liquidity.
 
-Good news is that we already know the formulas: recall how we calculated `price_next` in Python:
+The good news is that we already know the formulas: recall how we calculated `price_next` in Python:
 ```python
 # When amount_in is token0
 price_next = int((liq * q96 * sqrtp_cur) // (liq * q96 + amount_in * sqrtp_cur))
@@ -250,7 +250,7 @@ function getNextSqrtPriceFromAmount1RoundingDown(
 
 Now, let's return to the `swap` function and finish it.
 
-By this moment, we have looped over next initialized ticks, filled `amountSpecified` specified by user, calculated input and amount amounts, and found new price and tick. Since, in this milestone, we're implementing only swaps within one price range, this is enough. We now need to update contract's state, send tokens to user, and get tokens in exchange.
+By this moment, we have looped over the next initialized ticks, filled `amountSpecified` specified by the user, calculated input and amount amounts, and found a new price and tick. Since, in this milestone, we're implementing only swaps within one price range, this is enough. We now need to update the contract's state, send tokens to the user, and get tokens in exchange.
 
 
 ```solidity
@@ -259,7 +259,7 @@ if (state.tick != slot0_.tick) {
 }
 ```
 
-First, we set new price and tick. Since this operation writes to contract's storage, we want to do it only if the new tick is different, to optimize gas consumption.
+First, we set a new price and tick. Since this operation writes to the contract's storage, we want to do it only if the new tick is different, to optimize gas consumption.
 
 ```solidity
 (amount0, amount1) = zeroForOne
@@ -273,7 +273,7 @@ First, we set new price and tick. Since this operation writes to contract's stor
     );
 ```
 
-Next, we calculate swap amounts based on swap direction and the amounts calculated during the swap loop.
+Next, we calculate swap amounts based on the swap direction and the amounts calculated during the swap loop.
 
 ```solidity
 if (zeroForOne) {
@@ -301,12 +301,12 @@ if (zeroForOne) {
 }
 ```
 
-Next, we're exchanging tokens with user, depending on swap direction. This piece is identical to what we had in Milestone 2, only handling of the other swap direction was added.
+Next, we exchange tokens with the user, depending on the swap direction. This piece is identical to what we had in Milestone 2, only handling of the other swap direction was added.
 
 That's it! Swapping is done!
 
 ## Testing
 
-Test won't change significantly, we only need to pass `amountSpecified` and `zeroForOne` to `swap` function. Output amount will change insignificantly though, because it's now calculated in Solidity.
+The tests won't change significantly, we only need to pass the `amountSpecified` and `zeroForOne` to the `swap` function. Output amount will change insignificantly though, because it's now calculated in Solidity.
 
-We can now test swapping in the opposite direction! I'll leave this for you, as a homework (just be sure to choose a small input amount so the whole swap can be handled by our single price range). Don't hesitate peeking at [my tests](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_2/test/UniswapV3Pool.t.sol) if this feels difficult!
+We can now test swapping in the opposite direction! I'll leave this for you, as homework (just be sure to choose a small input amount so the whole swap can be handled by our single price range). Don't hesitate to peek at [my tests](https://github.com/Jeiwan/uniswapv3-code/blob/milestone_2/test/UniswapV3Pool.t.sol) if this feels difficult!

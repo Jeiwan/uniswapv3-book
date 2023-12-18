@@ -1,6 +1,6 @@
 # Output Amount Calculation
 
-Our collection of Uniswap math formulas lacks a final piece: the formula of calculating the output amount when selling ETH (that is: selling token $x$). In the previous milestone, we had an analogous formula for the scenario when ETH is bought (buying token $x$):
+Our collection of Uniswap math formulas lacks a final piece: the formula for calculating the output amount when selling ETH (that is: selling token $x$). In the previous milestone, we had an analogous formula for the scenario when ETH is bought (buying token $x$):
 
 $$\Delta \sqrt{P} = \frac{\Delta y}{L}$$
 
@@ -55,6 +55,6 @@ ETH in: 0.013369999999998142
 USDC out: 66.80838889019013
 ```
 
-Which means that we'll get 66.8 USDC when selling 0.01337 ETH using the liquidity we provided in the previous step.
+This means that we'll get 66.8 USDC when selling 0.01337 ETH using the liquidity we provided in the previous step.
 
 This looks good, but enough of Python! We're going to implement all the math calculations in Solidity.

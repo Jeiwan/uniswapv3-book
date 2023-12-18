@@ -1,13 +1,13 @@
 # Generalized Minting
 
-Now, we're ready to update `mint` function so we don't need to hard code values anymore and can calculate them instead.
+Now, we're ready to update the `mint` function so we don't need to hard code values anymore and can calculate them instead.
 
 
 ## Indexing Initialized Ticks
 
-Recall that, in the `mint` function, we update the TickInfo mapping to store information about available liquidity at ticks.  Now, we also need to index newly initialized ticks in the bitmap index–we'll later use this index to find next initialized tick during swapping.
+Recall that, in the `mint` function, we update the TickInfo mapping to store information about available liquidity at ticks.  Now, we also need to index newly initialized ticks in the bitmap index–we'll later use this index to find the next initialized tick during swapping.
 
-First, we need to update `Tick.update` function:
+First, we need to update the `Tick.update` function:
 ```solidity
 // src/lib/Tick.sol
 function update(
@@ -21,9 +21,9 @@ function update(
 }
 ```
 
-It now returns `flipped` flag, which is set to true when liquidity is added to an empty tick or when entire liquidity is removed from a tick.
+It now returns a `flipped` flag, which is set to true when liquidity is added to an empty tick or when entire liquidity is removed from a tick.
 
-Then, in `mint` function, we update the bitmap index:
+Then, in the `mint` function, we update the bitmap index:
 ```solidity
 // src/UniswapV3Pool.sol
 ...
@@ -44,7 +44,7 @@ if (flippedUpper) {
 
 ## Token Amounts Calculation
 
-The biggest change in `mint` function is switching to tokens amount calculation. In Milestone 1, we hard coded these values:
+The biggest change in the `mint` function is switching to tokens amount calculation. In Milestone 1, we hard-coded these values:
 ```solidity
     amount0 = 0.998976618347425280 ether;
     amount1 = 5000 ether;
@@ -81,7 +81,7 @@ function calcAmount0Delta(
 
 > This function is identical to `calc_amount0` in our Python script.
 
-First step is to sort the prices to ensure we don't underflow when subtracting. Next, we convert `liquidity` to a Q96.64 number by multiplying it by 2**96. Next, according to the formula, we multiply it by the difference of the prices and divide it by the bigger price. Then, we divide by the smaller price. The order of division doesn't matter, but we want to have two divisions because multiplication of prices can overflow.
+The first step is to sort the prices to ensure we don't underflow when subtracting. Next, we convert `liquidity` to a Q96.64 number by multiplying it by 2**96. Next, according to the formula, we multiply it by the difference of the prices and divide it by the bigger price. Then, we divide by the smaller price. The order of division doesn't matter, but we want to have two divisions because the multiplication of prices can overflow.
 
 We're using `mulDivRoundingUp` to multiply and divide in one operation. This function is based on `mulDiv` from `PRBMath`:
 ```solidity
