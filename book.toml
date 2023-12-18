@@ -4,6 +4,7 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Uniswap V3 Development Book"
+description = "A book that teaches how to build a clone of Uniswap V3 in Solidity from scratch."
 
 [output.html]
 curly-quotes = true
