@@ -179,7 +179,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="factory-contract"><a class="header" href="#factory-contract">Factory Contract</a></h1>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+<h1 id="factory-contract"><a class="header" href="#factory-contract">Factory Contract</a></h1>
 <p>Uniswap is designed in a way that assumes many discrete Pool contracts, with each pool handling swaps of one token pair.  This looks problematic when we want to swap between two tokens that don’t have a pool–if there’s no pool, no swaps are possible. However, we can still do intermediate swaps: first swap to a token that has pairs with either of the tokens and then swap this token to the target token. This can also go deeper and have more intermediate tokens. However, doing this manually is cumbersome, and, luckily, we can make the process easier by implementing it in our smart contracts.</p>
 <p>The Factory contract is a contract that serves multiple purposes:</p>
 <ol>

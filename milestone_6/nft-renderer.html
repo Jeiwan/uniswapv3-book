@@ -179,7 +179,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="nft-renderer"><a class="header" href="#nft-renderer">NFT Renderer</a></h1>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+<h1 id="nft-renderer"><a class="header" href="#nft-renderer">NFT Renderer</a></h1>
 <p>Now we need to build an NFT renderer: a library that will handle calls to <code>tokenURI</code> in the NFT manager contract. It will render JSON metadata and an SVG for each minted token. As we discussed earlier, we’ll use the data URI format, which requires base64 encoding–this means we’ll need a base64 encoder in Solidity. But first, let’s look at what our tokens will look like.</p>
 <h2 id="svg-template"><a class="header" href="#svg-template">SVG Template</a></h2>
 <p>I built this simplified variation of the Uniswap V3 NFTs:</p>

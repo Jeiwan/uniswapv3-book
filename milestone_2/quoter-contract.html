@@ -179,7 +179,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="quoter-contract"><a class="header" href="#quoter-contract">Quoter Contract</a></h1>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+<h1 id="quoter-contract"><a class="header" href="#quoter-contract">Quoter Contract</a></h1>
 <p>To integrate our updated Pool contract into the front-end app, we need a way to calculate swap amounts without making a swap. Users will type in the amount they want to sell, and we want to calculate and show them the amount they’ll get in exchange. We’ll do this through the Quoter contract.</p>
 <p>Since liquidity in Uniswap V3 is scattered over multiple price ranges, we cannot calculate swap amounts with a formula (which was possible in Uniswap V2). The design of Uniswap V3 forces us to use a different approach: to calculate swap amounts, we’ll initiate a real swap and will interrupt it in the callback function, grabbing the amounts calculated by the Pool contract. That is, we have to simulate a real swap to calculate the output amount!</p>
 <p>Again, we’ll make a helper contract for that:</p>
