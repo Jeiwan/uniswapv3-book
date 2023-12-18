@@ -11,6 +11,7 @@ curly-quotes = true
 git-repository-url = "https://github.com/Jeiwan/uniswapv3-book"
 git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/Jeiwan/uniswapv3-book/edit/main/{path}"
+cname = "uniswapv3book.com"
 
 [preprocessor.katex]
 after = ["links"]
