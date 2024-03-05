@@ -81,7 +81,7 @@ $$\Delta x = \frac{x \Delta y}{r(y - \Delta y)}$$
 
 The above calculations might seem too abstract and dry. Let's visualize the constant product function to better understand how it works.
 
-When plotted, the constant product function is a quadratic hyperbola:
+When plotted, the constant product function is a rectangular hyperbola:
 
 ![The shape of the constant product formula curve](images/the_curve.png)
 
